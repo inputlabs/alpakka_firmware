@@ -1,0 +1,39 @@
+# Alpakka Firmware
+
+*Alpakka controller reference firmware (for Raspberry Pi Pico)*
+## Project links
+- [Alpakka Manual](https://inputlabs.io/devices/alpakka/manual).
+- [Alpakka Firmware](https://github.com/inputlabs/alpakka_firmware). _(you are here)_
+- [Alpakka PCB](https://github.com/inputlabs/alpakka_pcb).
+- [Alpakka 3D-print](https://github.com/inputlabs/alpakka_case).
+
+## Supported developer operative systems
+- GNU/Linux (and MacOS) - See [Development in Linux](https://inputlabs.io/devices/alpakka/manual/dev_unix).
+- Windows - See [Development in Windows](https://inputlabs.io/devices/alpakka/manual/dev_windows).
+
+## System dependencies
+With `apt`, `rpm`, `pacman`, `brew`, or the equivalent package manager of your system, install:
+- **gcc**
+- **git**
+- **cmake**
+
+## Project dependencies
+- `make install`: Download and configure dependencies automatically.
+
+## Development commands
+- `make`: Build compilation environment and build executables.
+- `make rebuild`: Build executables again using cache (faster).
+- `make load`: Load built .uf2 file into the Pico (requires bootsel mode or active session).
+- `make reload`: Do both `rebuild` and `load` commands (for dev convenience).
+- `make clean`: Delete previous build files.
+- `make session`: Connect to UART serial stdio, and display controller log.
+- `make restart`: Restart the controller (requires active session).
+- `make bootsel`: Put the controller in bootsel mode (requires active session).
+- `make calibrate`: Calibrate thumbstick and IMUs (requires active session).
+- `make format`: Format NVM sector and reset to initial values (requires active session).
+
+## Devkit button
+- Single press: Restart the controller.
+- Double press: Put the controller in bootsel mode.
+
+Read the [Alpakka developer manual](https://inputlabs.io/devices/alpakka/manual/dev) for details about the **devkit** and more.
