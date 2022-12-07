@@ -6,7 +6,7 @@
 #include "button.h"
 #include "profile.h"
 
-Profile profile_init_wasd() {
+Profile profile_init_fps_fusion() {
     Profile profile = Profile_();
 
     profile.select_1 = Button_( PIN_SELECT_1, NORMAL, ACTIONS(KEY_TAB) );
@@ -34,10 +34,10 @@ Profile profile_init_wasd() {
     profile.rotary = Rotary_( 0, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
-        Button_(0, NORMAL, ACTIONS(KEY_A)),
-        Button_(0, NORMAL, ACTIONS(KEY_D)),
-        Button_(0, NORMAL, ACTIONS(KEY_W)),
-        Button_(0, NORMAL, ACTIONS(KEY_S)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
         Button_(PIN_L3, NORMAL, ACTIONS(KEY_LEFT_SHIFT)),
         Button_(0, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),
         Button_(0, NORMAL, ACTIONS(KEY_RIGHT_BRACKET))
@@ -53,6 +53,13 @@ Profile profile_init_wasd() {
         Button_(0, NORMAL, ACTIONS(KEY_5)),
         Button_(0, NORMAL, ACTIONS(KEY_2)),
         Button_(0, NORMAL, ACTIONS(KEY_6))
+    );
+
+    profile.gyro = Gyro_(
+        GYRO_MODE_TOUCH_ON,
+        ACTIONS(MOUSE_X),
+        ACTIONS(MOUSE_Y),
+        ACTIONS(KEY_NONE)
     );
 
     return profile;

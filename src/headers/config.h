@@ -8,7 +8,7 @@
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
 
-#define CFG_STRUCT_VERSION 6
+#define CFG_STRUCT_VERSION 7
 #define CFG_LOG_LEVEL 0
 #define CFG_LED_BRIGHTNESS 0.2
 
@@ -18,12 +18,13 @@
 #define CFG_IMU_TICK_SAMPLES 128
 #define CFG_IMU_CALIBRATION_SAMPLES 50000
 
-#define CFG_MOUSE_SENSITIVITY_SCALE pow(2, -9)
-#define CFG_MOUSE_SENSITIVITY_X  CFG_MOUSE_SENSITIVITY_SCALE * 1.45
-#define CFG_MOUSE_SENSITIVITY_Y  CFG_MOUSE_SENSITIVITY_SCALE * 1.45
-#define CFG_MOUSE_SENSITIVITY_MULTIPLIER_LOW 1.0
-#define CFG_MOUSE_SENSITIVITY_MULTIPLIER_MID 4.0 / 3.0
-#define CFG_MOUSE_SENSITIVITY_MULTIPLIER_HIGH 2.0
+#define CFG_GYRO_SENSITIVITY  pow(2, -9) * 1.45
+#define CFG_GYRO_SENSITIVITY_X  CFG_GYRO_SENSITIVITY * 1
+#define CFG_GYRO_SENSITIVITY_Y  CFG_GYRO_SENSITIVITY * 1
+#define CFG_GYRO_SENSITIVITY_Z  CFG_GYRO_SENSITIVITY * 1
+#define CFG_GYRO_SENSITIVITY_MULTIPLIER_LOW 1.0
+#define CFG_GYRO_SENSITIVITY_MULTIPLIER_MID 4.0 / 3.0
+#define CFG_GYRO_SENSITIVITY_MULTIPLIER_HIGH 2.0
 #define CFG_MOUSE_WHEEL_DEBOUNCE 1000
 
 #define CFG_PRESS_DEBOUNCE 50  // Milliseconds.
@@ -52,8 +53,10 @@ typedef struct {
     float ts_offset_y;
     double imu_0_offset_x;
     double imu_0_offset_y;
+    double imu_0_offset_z;
     double imu_1_offset_x;
     double imu_1_offset_y;
+    double imu_1_offset_z;
     uint8_t padding[256];
 } config_nvm_t;
 
@@ -62,7 +65,7 @@ void config_read(config_nvm_t* config);
 void config_set_profile(uint8_t profile);
 uint8_t config_get_profile();
 void config_set_thumbstick_offset(float x, float y);
-void config_set_imu_offset(double ax, double ay, double bx, double by);
+void config_set_imu_offset(double ax, double ay, double az, double bx, double by, double bz);
 bool config_get_os_mode();
 void config_tune_set_mode(uint8_t mode);
 void config_tune(bool direction);

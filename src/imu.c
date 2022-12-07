@@ -21,8 +21,10 @@
 double sensitivity_multiplier;
 double offset_0_x;
 double offset_0_y;
+double offset_0_z;
 double offset_1_x;
 double offset_1_y;
+double offset_1_z;
 
 void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     bus_spi_write(cs, IMU_CTRL2_G, gyro_conf);
@@ -38,12 +40,14 @@ void imu_init() {
     config_read(&config);
     offset_0_x = config.imu_0_offset_x;
     offset_0_y = config.imu_0_offset_y;
+    offset_0_z = config.imu_0_offset_z;
     offset_1_x = config.imu_1_offset_x;
     offset_1_y = config.imu_1_offset_y;
+    offset_1_z = config.imu_1_offset_z;
     imu_update_sensitivity();
 }
 
-vector_t imu_read_gyro(uint8_t cs) {
+vector_t imu_read_gyro_bits(uint8_t cs) {
     uint8_t buf[6];
     bus_spi_read(cs, IMU_OUTX_L_G, buf, 6);
     int16_t y =  (((int8_t)buf[1] << 8) + (int8_t)buf[0]);
@@ -51,23 +55,28 @@ vector_t imu_read_gyro(uint8_t cs) {
     int16_t x = -(((int8_t)buf[5] << 8) + (int8_t)buf[4]);
     double offset_x = (cs==PIN_SPI_CS0) ? offset_0_x : offset_1_x;
     double offset_y = (cs==PIN_SPI_CS0) ? offset_0_y : offset_1_y;
+    double offset_z = (cs==PIN_SPI_CS0) ? offset_0_z : offset_1_z;
     return (vector_t){
         (double)x - offset_x,
         (double)y - offset_y,
+        (double)z - offset_z,
     };
 }
 
 vector_t imu_read_gyro_burst(uint8_t cs, uint8_t samples) {
     double x = 0;
     double y = 0;
+    double z = 0;
     for(uint8_t i=0; i<samples; i++) {
-        vector_t sample = imu_read_gyro(cs);
+        vector_t sample = imu_read_gyro_bits(cs);
         x += sample.x;
         y += sample.y;
+        z += sample.z;
     }
     x /= samples;
     y /= samples;
-    return (vector_t){x, y};
+    z /= samples;
+    return (vector_t){x, y, z};
 }
 
 vector_t imu_read_gyros() {
@@ -78,7 +87,8 @@ vector_t imu_read_gyros() {
     double weight_1 = 1 - weight_0;
     double x = (imu0.x * weight_0) + (imu1.x * weight_1 / 4);
     double y = (imu0.y * weight_0) + (imu1.y * weight_1 / 4);
-    return (vector_t){x, y};
+    double z = (imu0.z * weight_0) + (imu1.z * weight_1 / 4);
+    return (vector_t){x, y, z};
 }
 
 double hssnf(double t, double k, double x) {
@@ -87,29 +97,34 @@ double hssnf(double t, double k, double x) {
     return a / b;
 }
 
-void imu_report() {
-    if (touch_status() == false) return;
-    static double mouse_sub_x = 0;
-    static double mouse_sub_y = 0;
-    // Read gyro and apply sensitivity.
+vector_t imu_read_gyro() {
+    static double sub_x = 0;
+    static double sub_y = 0;
+    static double sub_z = 0;
+    // Read gyro values.
     vector_t gyro = imu_read_gyros();
-    double mouse_x = gyro.x * CFG_MOUSE_SENSITIVITY_X * sensitivity_multiplier;
-    double mouse_y = gyro.y * CFG_MOUSE_SENSITIVITY_Y * sensitivity_multiplier;
+    double x = gyro.x * CFG_GYRO_SENSITIVITY_X * sensitivity_multiplier;
+    double y = gyro.y * CFG_GYRO_SENSITIVITY_Y * sensitivity_multiplier;
+    double z = gyro.z * CFG_GYRO_SENSITIVITY_Z * sensitivity_multiplier;
     // Magic happens.
     double t = 1.0;
     double k = 0.5;
-    if      (mouse_x > 0 && mouse_x <  t) mouse_x =  hssnf(t, k,  mouse_x);
-    else if (mouse_x < 0 && mouse_x > -t) mouse_x = -hssnf(t, k, -mouse_x);
-    if      (mouse_y > 0 && mouse_y <  t) mouse_y =  hssnf(t, k,  mouse_y);
-    else if (mouse_y < 0 && mouse_y > -t) mouse_y = -hssnf(t, k, -mouse_y);
+    if      (x > 0 && x <  t) x =  hssnf(t, k,  x);
+    else if (x < 0 && x > -t) x = -hssnf(t, k, -x);
+    if      (y > 0 && y <  t) y =  hssnf(t, k,  y);
+    else if (y < 0 && y > -t) y = -hssnf(t, k, -y);
+    if      (z > 0 && z <  t) z =  hssnf(t, k,  z);
+    else if (z < 0 && z > -t) z = -hssnf(t, k, -z);
     // Reintroduce subpixel leftovers.
-    mouse_x += mouse_sub_x;
-    mouse_y += mouse_sub_y;
+    x += sub_x;
+    y += sub_y;
+    z += sub_z;
     // Round down and save leftovers.
-    mouse_sub_x = modf(mouse_x, &mouse_x);
-    mouse_sub_y = modf(mouse_y, &mouse_y);
-    // Report.
-    hid_mouse_move((int16_t)mouse_x, (int16_t)mouse_y);
+    sub_x = modf(x, &x);
+    sub_y = modf(y, &y);
+    sub_z = modf(z, &z);
+    // Return 3d vector.
+    return (vector_t){x, y, z};
 }
 
 void imu_calibrate_single(uint8_t cs) {
@@ -118,48 +133,61 @@ void imu_calibrate_single(uint8_t cs) {
     if (cs == PIN_SPI_CS0) {
         offset_0_x = 0;
         offset_0_y = 0;
+        offset_0_z = 0;
     }
     if (cs == PIN_SPI_CS1) {
         offset_1_x = 0;
         offset_1_y = 0;
+        offset_1_z = 0;
     }
     double x = 0;
     double y = 0;
+    double z = 0;
     uint32_t i = 0;
     while(i < len) {
         if (!(i % 5000)) led_cycle_step();
-        vector_t sample = imu_read_gyro(cs);
+        vector_t sample = imu_read_gyro_bits(cs);
         x += sample.x;
         y += sample.y;
+        z += sample.z;
         i++;
     }
     x /= len;
     y /= len;
-    printf("IMU: cs=%i calibration x=%f y=%f\n", cs, x, y);
+    z /= len;
+    printf("IMU: cs=%i calibration x=%f y=%f z=%f\n", cs, x, y, z);
     if (cs == PIN_SPI_CS0) {
         offset_0_x = x;
         offset_0_y = y;
+        offset_0_z = z;
     }
     if (cs == PIN_SPI_CS1) {
         offset_1_x = x;
         offset_1_y = y;
+        offset_1_z = z;
     }
-
 }
 
 void imu_calibrate() {
     imu_calibrate_single(PIN_SPI_CS0);
     imu_calibrate_single(PIN_SPI_CS1);
-    config_set_imu_offset(offset_0_x, offset_0_y, offset_1_x, offset_1_y);
+    config_set_imu_offset(
+        offset_0_x,
+        offset_0_y,
+        offset_0_z,
+        offset_1_x,
+        offset_1_y,
+        offset_1_z
+    );
 }
 
 void imu_update_sensitivity() {
     config_nvm_t config;
     config_read(&config);
     float multipliers[3] = {
-        CFG_MOUSE_SENSITIVITY_MULTIPLIER_LOW,
-        CFG_MOUSE_SENSITIVITY_MULTIPLIER_MID,
-        CFG_MOUSE_SENSITIVITY_MULTIPLIER_HIGH
+        CFG_GYRO_SENSITIVITY_MULTIPLIER_LOW,
+        CFG_GYRO_SENSITIVITY_MULTIPLIER_MID,
+        CFG_GYRO_SENSITIVITY_MULTIPLIER_HIGH
     };
     sensitivity_multiplier = multipliers[config.sensitivity];
 }

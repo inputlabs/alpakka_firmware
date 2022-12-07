@@ -74,5 +74,12 @@ Profile profile_init_home() {
         Button_(0, NORMAL, ACTIONS(KEY_F6))
     );
 
+    profile.gyro = Gyro_(
+        GYRO_MODE_TOUCH_ON,
+        ACTIONS(MOUSE_X),
+        ACTIONS(MOUSE_Y),
+        ACTIONS(KEY_NONE)
+    );
+
     return profile;
 }

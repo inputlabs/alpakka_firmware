@@ -41,6 +41,7 @@ void Profile__report(Profile *self) {
     self->thumbstick.report(&self->thumbstick);
     self->dhat.report(&self->dhat);
     self->rotary.report(&self->rotary);
+    self->gyro.report(&self->gyro);
 }
 
 void Profile__reset(Profile *self) {
@@ -138,13 +139,13 @@ void profile_init() {
         ACTIONS(PROC_HOME)
     );
     profiles[0] = profile_init_home();
-    profiles[1] = profile_init_fusion();
+    profiles[1] = profile_init_fps_fusion();
     profiles[2] = profile_init_none();  // TODO: Racing.
     profiles[3] = profile_init_console();
     profiles[4] = profile_init_desktop();
-    profiles[5] = profile_init_wasd();
+    profiles[5] = profile_init_fps_wasd();
     profiles[6] = profile_init_none();  // TODO: Flight
-    profiles[7] = profile_init_none();  // TODO: Console legacy.
+    profiles[7] = profile_init_console_legacy();
     profiles[8] = profile_init_none();  // TODO: RTS.
     profile_set_active(config_get_profile());
 }

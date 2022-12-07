@@ -55,5 +55,12 @@ Profile profile_init_none() {
         Button_(0, NORMAL, ACTIONS(KEY_NONE))
     );
 
+    profile.gyro = Gyro_(
+        GYRO_MODE_ALWAYS_OFF,
+        ACTIONS(KEY_NONE),
+        ACTIONS(KEY_NONE),
+        ACTIONS(KEY_NONE)
+    );
+
     return profile;
 }
