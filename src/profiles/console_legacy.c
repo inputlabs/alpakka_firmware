@@ -6,7 +6,7 @@
 #include "button.h"
 #include "profile.h"
 
-Profile profile_init_console() {
+Profile profile_init_console_legacy() {
     Profile profile = Profile_();
 
     profile.select_1 =   Button_( PIN_SELECT_1,   NORMAL, ACTIONS(GAMEPAD_SELECT) );
@@ -44,21 +44,23 @@ Profile profile_init_console() {
     );
 
     profile.dhat = Dhat_(
-        Button_(0, NORMAL, ACTIONS(KEY_8)),
-        Button_(0, NORMAL, ACTIONS(KEY_4)),
-        Button_(0, NORMAL, ACTIONS(KEY_7)),
-        Button_(0, NORMAL, ACTIONS(KEY_1)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY_NEG)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RY_NEG)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY_NEG)),
+
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG)),
         Button_(0, NORMAL, ACTIONS(GAMEPAD_R3)),
-        Button_(0, NORMAL, ACTIONS(KEY_3)),
-        Button_(0, NORMAL, ACTIONS(KEY_5)),
-        Button_(0, NORMAL, ACTIONS(KEY_2)),
-        Button_(0, NORMAL, ACTIONS(KEY_6))
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX)),
+
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RY)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY))
     );
 
     profile.gyro = Gyro_(
-        GYRO_MODE_TOUCH_ON,
-        ACTIONS(MOUSE_X),
-        ACTIONS(MOUSE_Y),
+        GYRO_MODE_ALWAYS_OFF,
+        ACTIONS(KEY_NONE),
+        ACTIONS(KEY_NONE),
         ACTIONS(KEY_NONE)
     );
 

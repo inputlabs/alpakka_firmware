@@ -37,8 +37,10 @@ void config_write_init() {
         .ts_offset_y = 0,
         .imu_0_offset_x = 0,
         .imu_0_offset_y = 0,
+        .imu_0_offset_z = 0,
         .imu_1_offset_x = 0,
-        .imu_1_offset_y = 0
+        .imu_1_offset_y = 0,
+        .imu_1_offset_z = 0
     };
     config_write(&config);
 }
@@ -57,8 +59,10 @@ void config_print() {
     printf("  ts_offset_y=%f\n", config.ts_offset_y);
     printf("  imu_0_offset_x=%f\n", config.imu_0_offset_x);
     printf("  imu_0_offset_y=%f\n", config.imu_0_offset_y);
+    printf("  imu_0_offset_z=%f\n", config.imu_0_offset_z);
     printf("  imu_1_offset_x=%f\n", config.imu_1_offset_x);
     printf("  imu_1_offset_y=%f\n", config.imu_1_offset_y);
+    printf("  imu_1_offset_z=%f\n", config.imu_1_offset_z);
 }
 
 void config_set_profile(uint8_t profile) {
@@ -82,13 +86,15 @@ void config_set_thumbstick_offset(float x, float y) {
     config_write(&config);
 }
 
-void config_set_imu_offset(double ax, double ay, double bx, double by) {
+void config_set_imu_offset(double ax, double ay, double az, double bx, double by, double bz) {
     config_nvm_t config;
     config_read(&config);
     config.imu_0_offset_x = ax,
     config.imu_0_offset_y = ay,
+    config.imu_0_offset_z = az,
     config.imu_1_offset_x = bx,
     config.imu_1_offset_y = by,
+    config.imu_1_offset_z = bz,
     config_write(&config);
 }
 

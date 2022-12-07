@@ -16,15 +16,11 @@
 typedef struct vector {
     double x;
     double y;
+    double z;
 } vector_t;
 
-typedef struct vector_int {
-    int8_t x;
-    int8_t y;
-} vector_int_t;
-
 void imu_init();
-void imu_report();
-vector_t imu_read_gyro(uint8_t imu_id);
+vector_t imu_read_gyro();
 void imu_calibrate();
 void imu_update_sensitivity();
+

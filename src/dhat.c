@@ -26,29 +26,15 @@ void Dhat__report(Dhat *self) {
         self->timestamp = time_us_64();
     }
     // Report on virtual buttons.
-    if (up && left) {
-        self->up_left.virtual_press = true;
-    }
-    if (up && right) {
-        self->up_right.virtual_press = true;
-    }
-    if (down && left) {
-        self->down_left.virtual_press = true;
-    }
-    if (down && right) {
-        self->down_right.virtual_press = true;
-    }
-    if (!up && !down) {
-        if (left) self->mid_left.virtual_press = true;
-        if (right) self->mid_right.virtual_press = true;
-    }
-    if (!left && !right) {
-        if (up) self->up_center.virtual_press = true;
-        if (down) self->down_center.virtual_press = true;
-    }
-    if (push && !left && !right && !up && !down) {
-        self->mid_center.virtual_press = true;
-    }
+    self->up_left.virtual_press = (up && left);
+    self->up_center.virtual_press = (up && !left && !right);
+    self->up_right.virtual_press = (up && right);
+    self->mid_left.virtual_press = (left && !up && !down);
+    self->mid_right.virtual_press = (right && !up && !down);
+    self->down_left.virtual_press = (down && left);
+    self->down_right.virtual_press = (down && right);
+    self->down_center.virtual_press = (down && !left && !right);
+    self->mid_center.virtual_press = (push && !left && !right && !up && !down);
     self->up_left.report(&self->up_left);
     self->up_center.report(&self->up_center);
     self->up_right.report(&self->up_right);

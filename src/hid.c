@@ -63,12 +63,7 @@ void hid_procedure_release(uint8_t procedure){
 void hid_press(uint8_t key) {
     if (key == 0 || key == KEY_NONE) return;
     else if (key >= PROC_INDEX) hid_procedure_press(key);
-    else if (key >= GAMEPAD_AXIS_INDEX) {
-        if (key == GAMEPAD_AXIS_LZ) gamepad_lz = 255;
-        if (key == GAMEPAD_AXIS_RZ) gamepad_rz = 255;
-        synced_gamepad = false;
-        return;
-    } else {
+    else {
         state_matrix[key] += 1;
         if (key >= GAMEPAD_INDEX) synced_gamepad = false;
         else if (key >= MOUSE_INDEX) synced_mouse = false;
@@ -79,12 +74,7 @@ void hid_press(uint8_t key) {
 void hid_release(uint8_t key) {
     if (key == 0) return;
     else if (key >= PROC_INDEX) hid_procedure_release(key);
-    else if (key >= GAMEPAD_AXIS_INDEX) {
-        if (key == GAMEPAD_AXIS_LZ) gamepad_lz = 0;
-        if (key == GAMEPAD_AXIS_RZ) gamepad_rz = 0;
-        synced_gamepad = false;
-        return;
-    } else {
+    else {
         state_matrix[key] -= 1;
         if (key >= GAMEPAD_INDEX) synced_gamepad = false;
         else if (key >= MOUSE_INDEX) synced_mouse = false;
@@ -239,17 +229,46 @@ void hid_gamepad_report() {
     for(int i=0; i<8; i++) {
         buttons_1 += state_matrix[GAMEPAD_INDEX + i + 8] << i;
     }
+    int16_t gamepad_lx_report = 0;
+    int16_t gamepad_ly_report = 0;
+    int16_t gamepad_lz_report = 0;
+    int16_t gamepad_rx_report = 0;
+    int16_t gamepad_ry_report = 0;
+    int16_t gamepad_rz_report = 0;
+    // LX
+    if (state_matrix[GAMEPAD_AXIS_LX]) gamepad_lx_report = 32767;
+    else if (state_matrix[GAMEPAD_AXIS_LX_NEG]) gamepad_lx_report = -32767;
+    else gamepad_lx_report = gamepad_lx;
+    // LY
+    if (state_matrix[GAMEPAD_AXIS_LY]) gamepad_ly_report = 32767;
+    else if (state_matrix[GAMEPAD_AXIS_LY_NEG]) gamepad_ly_report = -32767;
+    else gamepad_ly_report = gamepad_ly;
+    // RX
+    if (state_matrix[GAMEPAD_AXIS_RX]) gamepad_rx_report = 32767;
+    else if (state_matrix[GAMEPAD_AXIS_RX_NEG]) gamepad_rx_report = -32767;
+    else gamepad_rx_report = gamepad_rx;
+    // RY
+    if (state_matrix[GAMEPAD_AXIS_RY]) gamepad_ry_report = 32767;
+    else if (state_matrix[GAMEPAD_AXIS_RY_NEG]) gamepad_ry_report = -32767;
+    else gamepad_ry_report = gamepad_ry;
+    // LZ
+    if (state_matrix[GAMEPAD_AXIS_LZ]) gamepad_lz_report = 255;
+    else gamepad_lz_report = gamepad_lz;
+    // RZ
+    if (state_matrix[GAMEPAD_AXIS_RZ]) gamepad_rz_report = 255;
+    else gamepad_rz_report = gamepad_rz;
+    // Report.
     xinput_report report = {
         .report_id   = 0,
         .report_size = XINPUT_REPORT_SIZE,
         .buttons_0   = buttons_0,
         .buttons_1   = buttons_1,
-        .lz          = gamepad_lz,
-        .rz          = gamepad_rz,
-        .lx          = gamepad_lx,
-        .ly          = -gamepad_ly,
-        .rx          = gamepad_rx,
-        .ry          = -gamepad_ry,
+        .lz          = gamepad_lz_report,
+        .rz          = gamepad_rz_report,
+        .lx          = gamepad_lx_report,
+        .ly          = -gamepad_ly_report,
+        .rx          = gamepad_rx_report,
+        .ry          = -gamepad_ry_report,
         .reserved    = {0, 0, 0, 0, 0, 0}
     };
     xinput_send_report(&report);

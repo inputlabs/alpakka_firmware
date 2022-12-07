@@ -6,6 +6,7 @@
 #include "thumbstick.h"
 #include "dhat.h"
 #include "rotary.h"
+#include "gyro.h"
 
 typedef struct Profile_struct Profile;
 
@@ -40,6 +41,7 @@ struct Profile_struct {
     Thumbstick thumbstick;
     Dhat dhat;
     Rotary rotary;
+    Gyro gyro;
 };
 
 Profile Profile_ ();
@@ -52,8 +54,9 @@ void profile_set_lock_leds(bool lock);
 void profile_update_leds();
 Profile profile_init_none();
 Profile profile_init_home();
-Profile profile_init_fusion();
-Profile profile_init_wasd();
+Profile profile_init_fps_fusion();
+Profile profile_init_fps_wasd();
 Profile profile_init_console();
+Profile profile_init_console_legacy();
 Profile profile_init_desktop();
 extern bool profile_led_lock;

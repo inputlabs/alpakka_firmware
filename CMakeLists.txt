@@ -41,18 +41,20 @@ target_sources(${PROJECT} PUBLIC
     src/button.c
     src/config.c
     src/dhat.c
+    src/gyro.c
     src/helper.c
     src/hid.c
     src/imu.c
     src/led.c
     src/nvm.c
     src/profile.c
+    src/profiles/console_legacy.c
     src/profiles/console.c
     src/profiles/desktop.c
-    src/profiles/fusion.c
+    src/profiles/fps_fusion.c
+    src/profiles/fps_wasd.c
     src/profiles/home.c
     src/profiles/none.c
-    src/profiles/wasd.c
     src/rotary.c
     src/thumbstick.c
     src/touch.c

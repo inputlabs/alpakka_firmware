@@ -24,7 +24,7 @@ void title() {
     printf("\n");
     printf("╔═══════════════════════════╗\n");
     printf("║ Input Labs Oy.            ║\n");
-    printf("║ Alpakka - firmware 0.84.6 ║\n");
+    printf("║ Alpakka - firmware 0.86.0 ║\n");
     printf("╚═══════════════════════════╝\n");
 }
 
@@ -48,7 +48,6 @@ void main_loop() {
         // Start timer.
         uint32_t tick_start = time_us_32();
         // Report.
-        imu_report();
         profile_report_active();
         hid_report();
         // Tick interval control.
