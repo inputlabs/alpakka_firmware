@@ -7,6 +7,7 @@
 #include "profile.h"
 #include "xinput.h"
 #include "helper.h"
+#include "thanks.c"
 
 bool synced_keyboard = false;
 bool synced_mouse = false;
@@ -327,29 +328,25 @@ void hid_report() {
     }
 }
 
+// A not-so-secret easter egg.
 void hid_thanks_(alarm_id_t alarm) {
     cancel_alarm(alarm);
     static uint8_t x = 0;
     static bool p = 0;
-    static uint8_t keys[16][16] = {
-        // You make this possible, thanks.
-        {19, 28, 14, 8, 8, 0},
-        {18, 6, 11, 12, 8, 9, 0}
-    };
     static uint8_t r;
     if (x == 0 && p == false) {
-        r = random8() % 2;
+        r = random8() % thanks_len;
     }
-    if (keys[r][x] == 0) {
+    if (thanks_list[r][x] == 0) {
         x = 0;
         p = 0;
         return;
     }
     if (!p) {
-        hid_press(keys[r][x]);
+        hid_press(thanks_list[r][x]);
         p = true;
     } else if (p) {
-        hid_release(keys[r][x]);
+        hid_release(thanks_list[r][x]);
         p = false;
         x += 1;
     }
