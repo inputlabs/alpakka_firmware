@@ -53,11 +53,11 @@ Profile profile_init_home() {
     profile.rotary = Rotary_( 0, ACTIONS(PROC_TUNE_UP), ACTIONS(PROC_TUNE_DOWN) );
 
     profile.thumbstick = Thumbstick_(
-        Button_(0, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),
-        Button_(0, NORMAL, ACTIONS(KEY_RIGHT_BRACKET)),
+        Button_(0, HOLD_EXCLUSIVE_LONG, ACTIONS(KEY_NONE), ACTIONS(KEY_LEFT_BRACKET)),
+        Button_(0, HOLD_EXCLUSIVE_LONG, ACTIONS(KEY_NONE), ACTIONS(KEY_RIGHT_BRACKET)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
-        Button_(PIN_L3, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_L3, HOLD_EXCLUSIVE_LONG, ACTIONS(KEY_NONE), ACTIONS(PROC_THANKS)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE))
     );

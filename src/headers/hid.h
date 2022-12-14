@@ -196,7 +196,9 @@
 #define PROC_TUNE_VIBRATION    PROC_INDEX + 18
 #define PROC_CALIBRATE         PROC_INDEX + 19
 #define PROC_BOOTSEL           PROC_INDEX + 20
+#define PROC_THANKS            PROC_INDEX + 21
 
+void hid_thanks();
 void hid_matrix_reset();
 void hid_press_multiple(uint8_t *keys);
 void hid_release_multiple(uint8_t *keys);
