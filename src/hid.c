@@ -7,6 +7,7 @@
 #include "profile.h"
 #include "xinput.h"
 #include "helper.h"
+#include "thanks.c"
 
 bool synced_keyboard = false;
 bool synced_mouse = false;
@@ -54,9 +55,10 @@ void hid_procedure_press(uint8_t procedure){
     if (procedure == PROC_TUNE_VIBRATION) config_tune_set_mode(procedure);
     if (procedure == PROC_CALIBRATE) config_calibrate();
     if (procedure == PROC_BOOTSEL) config_bootsel();
+    if (procedure == PROC_THANKS) hid_thanks();
 }
 
-void hid_procedure_release(uint8_t procedure){
+void hid_procedure_release(uint8_t procedure) {
     if (procedure == PROC_HOME) profile_set_home(false);
 }
 
@@ -324,4 +326,33 @@ void hid_report() {
             printf("USB: tud_ready FALSE\n");
         }
     }
+}
+
+// A not-so-secret easter egg.
+void hid_thanks_(alarm_id_t alarm) {
+    cancel_alarm(alarm);
+    static uint8_t x = 0;
+    static bool p = 0;
+    static uint8_t r;
+    if (x == 0 && p == false) {
+        r = random8() % thanks_len;
+    }
+    if (thanks_list[r][x] == 0) {
+        x = 0;
+        p = 0;
+        return;
+    }
+    if (!p) {
+        hid_press(thanks_list[r][x]);
+        p = true;
+    } else if (p) {
+        hid_release(thanks_list[r][x]);
+        p = false;
+        x += 1;
+    }
+    add_alarm_in_ms(5, (alarm_callback_t)hid_thanks_, NULL, true);
+}
+
+void hid_thanks() {
+    add_alarm_in_ms(5, (alarm_callback_t)hid_thanks_, NULL, true);
 }

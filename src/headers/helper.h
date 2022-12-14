@@ -16,3 +16,4 @@
 
 uint32_t bin(uint8_t k);
 uint32_t bin16(uint16_t k);
+uint8_t random8();

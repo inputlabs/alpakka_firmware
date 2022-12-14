@@ -1,10 +1,13 @@
 # Changelog
 
-## 0.86.0
+## 0.86.1 (DEV)
+- Added Patreon easter egg.
+
+## 0.86.0 (STABLE)
 - Created `Console Legacy` profile.
 - Any gamepad axis (thumbstick and analog triggers) can be assigned to any button.
 - Gyro as a configurable input in the profiles.
-    - Gyro to mouse mapping can customized and inverted.
+    - Gyro to mouse mapping can be customized and inverted.
     - Gyro axis Z is now also available to profiles.
     - Foundations to assign any action to gyro axis (still not functional).
 - Gyro modes:
