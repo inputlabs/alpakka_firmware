@@ -24,7 +24,7 @@ void title() {
     printf("\n");
     printf("╔═══════════════════════════╗\n");
     printf("║ Input Labs Oy.            ║\n");
-    printf("║ Alpakka - firmware 0.86.1 ║\n");
+    printf("║ Alpakka - firmware 0.86.2 ║\n");
     printf("╚═══════════════════════════╝\n");
 }
 

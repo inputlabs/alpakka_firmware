@@ -5,8 +5,10 @@
 // This could just be a JSON or YAML file later.
 
 // You make this possible, thanks.
-uint8_t thanks_len = 2;
-uint8_t thanks_list[2][16] = {
+uint8_t thanks_len = 4;
+uint8_t thanks_list[4][16] = {
     {19, 28, 14, 8, 8, 0},
-    {18, 6, 11, 12, 8, 9, 0}
+    {18, 6, 11, 12, 8, 9, 0},
+    {4, 21, 23, 8, 17, 10, 12, 17, 8, 8, 21, 0},
+    {26, 8, 12, 6, 11, 8, 12, 0}
 };
