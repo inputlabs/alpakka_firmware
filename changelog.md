@@ -1,9 +1,9 @@
 # Changelog
 
-## 0.86.1 (DEV)
+## 0.86.1
 - Added Patreon easter egg.
 
-## 0.86.0 (STABLE)
+## 0.86.0
 - Created `Console Legacy` profile.
 - Any gamepad axis (thumbstick and analog triggers) can be assigned to any button.
 - Gyro as a configurable input in the profiles.
