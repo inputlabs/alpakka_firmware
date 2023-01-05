@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.86.3
+- Show Pico unique hardware id into session log.
+
 ## 0.86.1
 - Added Patreon easter egg.
 

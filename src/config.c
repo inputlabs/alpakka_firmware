@@ -5,6 +5,7 @@
 #include <hardware/sync.h>
 #include <hardware/watchdog.h>
 #include <pico/bootrom.h>
+#include <pico/unique_id.h>
 #include "config.h"
 #include "nvm.h"
 #include "led.h"
@@ -193,6 +194,9 @@ void config_calibrate() {
 }
 
 void config_init() {
+    char pico_id[64];
+    pico_get_unique_board_id_string(pico_id, 64);
+    printf("Pico ID: %s\n", pico_id);
     printf("Config NVM\n");
     config_nvm_t config;
     config_read(&config);
