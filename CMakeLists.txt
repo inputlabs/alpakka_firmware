@@ -19,6 +19,7 @@ target_link_libraries(${PROJECT}
     pico_stdlib
     pico_multicore
     pico_time
+    pico_unique_id
     pico_bootrom
     pico_bootsel_via_double_reset
     hardware_adc
