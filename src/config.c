@@ -177,7 +177,8 @@ void config_bootsel() {
     reset_usb_boot(0, 0);
 }
 
-void config_calibrate_execute() {
+void config_calibrate_execute(alarm_id_t alarm) {
+    cancel_alarm(alarm);
     led_shape_all_off();
     thumbstick_calibrate();
     imu_calibrate();
