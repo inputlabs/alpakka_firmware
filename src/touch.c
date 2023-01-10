@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <pico/stdlib.h>
+#include "config.h"
 #include "touch.h"
 #include "pin.h"
 
@@ -11,6 +12,20 @@ uint32_t delta;
 bool current = false;
 bool reported = false;
 int8_t repeated = 0;
+int8_t threshold = 0;
+
+void touch_update_threshold() {
+    config_nvm_t config;
+    config_read(&config);
+    float values[5] = {
+        CFG_TOUCH_THRESHOLD_0,
+        CFG_TOUCH_THRESHOLD_1,
+        CFG_TOUCH_THRESHOLD_2,
+        CFG_TOUCH_THRESHOLD_3,
+        CFG_TOUCH_THRESHOLD_4
+    };
+    threshold = values[config.touch_threshold];
+}
 
 void touch_init() {
     printf("Config touch: ");
@@ -19,6 +34,7 @@ void touch_init() {
     gpio_init(PIN_TOUCH_IN);
     gpio_set_dir(PIN_TOUCH_IN, GPIO_IN);
     gpio_set_pulls(PIN_TOUCH_IN, false, false);
+    touch_update_threshold();
     printf("completed\n");
 }
 
@@ -41,9 +57,9 @@ bool touch_status() {
             break;
         }
     };
-    // Determine if surface is being touched.
+    // Measure current timing.
     delta = time_us_32() - sent_time;
-    current = (delta > CFG_TOUCH_THRESHOLD) || (delta == 0);
+    current = (delta >= threshold) || (delta == 0);
     // Only report change on repeated matches.
     if (current == reported) {
         repeated = 0;

@@ -8,7 +8,7 @@
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
 
-#define CFG_STRUCT_VERSION 7
+#define CFG_STRUCT_VERSION 8
 #define CFG_LOG_LEVEL 0
 #define CFG_LED_BRIGHTNESS 0.2
 
@@ -48,6 +48,7 @@ typedef struct {
     uint8_t profile;
     int8_t sensitivity;
     int8_t deadzone;
+    int8_t touch_threshold;
     int8_t vibration;
     float ts_offset_x;
     float ts_offset_y;
