@@ -1,7 +1,11 @@
 # Changelog
 
-## 0.86.3
+## 0.86.5
 - Show Pico unique hardware id into session log.
+- Fixed calibration procedure never completing.
+- Added user adjustable presets for touch threshold (5 presets).
+
+_This update requires recalibration._
 
 ## 0.86.1
 - Added Patreon easter egg.
@@ -20,8 +24,7 @@
   - `GYRO_MODE_TOUCH_ON`
 - Calibration and non-volatile memory now include gyro axis Z offset.
 
-### Additional notes:
-- This update requires recalibration.
+_This update requires recalibration._
 
 ## 0.84.6
-- First published version
+- First published version.

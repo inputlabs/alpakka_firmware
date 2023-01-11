@@ -174,29 +174,30 @@
 #define GAMEPAD_AXIS_RX_NEG  GAMEPAD_AXIS_INDEX + 8
 #define GAMEPAD_AXIS_RY_NEG  GAMEPAD_AXIS_INDEX + 9
 
-#define PROC_HOME              PROC_INDEX + 0
-#define PROC_PROFILE_1         PROC_INDEX + 1
-#define PROC_PROFILE_2         PROC_INDEX + 2
-#define PROC_PROFILE_3         PROC_INDEX + 3
-#define PROC_PROFILE_4         PROC_INDEX + 4
-#define PROC_PROFILE_5         PROC_INDEX + 5
-#define PROC_PROFILE_6         PROC_INDEX + 6
-#define PROC_PROFILE_7         PROC_INDEX + 7
-#define PROC_PROFILE_8         PROC_INDEX + 8
-#define PROC_PROFILE_9         PROC_INDEX + 9
-#define PROC_PROFILE_10        PROC_INDEX + 10
-#define PROC_PROFILE_11        PROC_INDEX + 11
-#define PROC_PROFILE_12        PROC_INDEX + 12
+#define PROC_HOME        PROC_INDEX + 0
+#define PROC_PROFILE_1   PROC_INDEX + 1
+#define PROC_PROFILE_2   PROC_INDEX + 2
+#define PROC_PROFILE_3   PROC_INDEX + 3
+#define PROC_PROFILE_4   PROC_INDEX + 4
+#define PROC_PROFILE_5   PROC_INDEX + 5
+#define PROC_PROFILE_6   PROC_INDEX + 6
+#define PROC_PROFILE_7   PROC_INDEX + 7
+#define PROC_PROFILE_8   PROC_INDEX + 8
+#define PROC_PROFILE_9   PROC_INDEX + 9
+#define PROC_PROFILE_10  PROC_INDEX + 10
+#define PROC_PROFILE_11  PROC_INDEX + 11
+#define PROC_PROFILE_12  PROC_INDEX + 12
 
-#define PROC_TUNE_UP           PROC_INDEX + 13
-#define PROC_TUNE_DOWN         PROC_INDEX + 14
-#define PROC_TUNE_OS           PROC_INDEX + 15
-#define PROC_TUNE_SENSITIVITY  PROC_INDEX + 16
-#define PROC_TUNE_DEADZONE     PROC_INDEX + 17
-#define PROC_TUNE_VIBRATION    PROC_INDEX + 18
-#define PROC_CALIBRATE         PROC_INDEX + 19
-#define PROC_BOOTSEL           PROC_INDEX + 20
-#define PROC_THANKS            PROC_INDEX + 21
+#define PROC_TUNE_UP               PROC_INDEX + 13
+#define PROC_TUNE_DOWN             PROC_INDEX + 14
+#define PROC_TUNE_OS               PROC_INDEX + 15
+#define PROC_TUNE_SENSITIVITY      PROC_INDEX + 16
+#define PROC_TUNE_DEADZONE         PROC_INDEX + 17
+#define PROC_TUNE_TOUCH_THRESHOLD  PROC_INDEX + 18
+#define PROC_TUNE_VIBRATION        PROC_INDEX + 19
+#define PROC_CALIBRATE             PROC_INDEX + 20
+#define PROC_BOOTSEL               PROC_INDEX + 21
+#define PROC_THANKS                PROC_INDEX + 22
 
 void hid_thanks();
 void hid_matrix_reset();

@@ -12,6 +12,7 @@
 #include "hid.h"
 #include "imu.h"
 #include "thumbstick.h"
+#include "touch.h"
 #include "profile.h"
 #include "helper.h"
 
@@ -33,6 +34,7 @@ void config_write_init() {
         .profile = 1,
         .sensitivity = 0,
         .deadzone = 0,
+        .touch_threshold = 2,
         .vibration = 0,
         .ts_offset_x = 0,
         .ts_offset_y = 0,
@@ -55,6 +57,7 @@ void config_print() {
     printf("  profile=%i\n", config.profile);
     printf("  sensitivity=%i\n", config.sensitivity);
     printf("  deadzone=%i\n", config.deadzone);
+    printf("  touch_threshold=%i\n", config.touch_threshold);
     printf("  vibration=%i\n", config.vibration);
     printf("  ts_offset_x=%f\n", config.ts_offset_x);
     printf("  ts_offset_y=%f\n", config.ts_offset_y);
@@ -128,12 +131,14 @@ void config_tune_update_leds() {
         if (config.deadzone == 1) led_blink_mask(LED_MASK_RIGHT);
         if (config.deadzone == 2) led_blink_mask(LED_MASK_UP);
     }
-    if (config_tune_mode == PROC_TUNE_VIBRATION) {
+    if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
         led_shape_all_off();
         led_set(LED_RIGHT, true);
-        if (config.vibration == 0) led_blink_mask(LED_MASK_DOWN);
-        if (config.vibration == 1) led_blink_mask(LED_MASK_LEFT);
-        if (config.vibration == 2) led_blink_mask(LED_MASK_UP);
+        if (config.touch_threshold == 0) led_blink_mask(LED_MASK_DOWN);
+        if (config.touch_threshold == 1) led_blink_mask(LED_MASK_DOWN + LED_MASK_LEFT);
+        if (config.touch_threshold == 2) led_blink_mask(LED_MASK_LEFT);
+        if (config.touch_threshold == 3) led_blink_mask(LED_MASK_LEFT + LED_MASK_UP);
+        if (config.touch_threshold == 4) led_blink_mask(LED_MASK_UP);
     }
 }
 
@@ -149,22 +154,26 @@ void config_tune(bool direction) {
     int8_t value = direction ? 1 : -1;
     if (config_tune_mode == PROC_TUNE_OS) {
         config.os_mode = direction;
+        printf("Tune: OS mode set to preset %i\n", config.os_mode);
         config_write(&config);
     }
     if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
         config.sensitivity = limit_between(config.sensitivity + value, 0, 2);
         config_write(&config);
+        printf("Tune: Mouse sensitivity set to preset %i\n", config.sensitivity);
         imu_update_sensitivity();
     }
     if (config_tune_mode == PROC_TUNE_DEADZONE) {
         config.deadzone = limit_between(config.deadzone + value, 0, 2);
         config_write(&config);
+        printf("Tune: Thumbstick deadzone set to preset %i\n", config.deadzone);
         thumbstick_update_deadzone();
     }
-    if (config_tune_mode == PROC_TUNE_VIBRATION) {
-        config.vibration = limit_between(config.vibration + value, 0, 2);
+    if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
+        config.touch_threshold = limit_between(config.touch_threshold + value, 0, 4);
+        printf("Tune: Touch threshold set to preset %i\n", config.touch_threshold);
         config_write(&config);
-        // Update vibration somewhere.
+        touch_update_threshold();
     }
     config_tune_update_leds();
 }
