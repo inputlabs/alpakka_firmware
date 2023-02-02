@@ -20,19 +20,24 @@
 
 #define REPORT_KEYBOARD 1
 #define REPORT_MOUSE 2
+#define REPORT_GAMEPAD 3
 
-#define STRING_VENDOR "ILO"
-#define STRING_PRODUCT "Device_A"
+#define STRING_VENDOR "Input Labs"
+#define STRING_PRODUCT "Alpakka"
 #define STRING_DEVICE_VERSION "1.0"
 #define STRING_INTERFACE_0 "HID"
 #define STRING_INTERFACE_1 "XINPUT_GENERIC_CONTROLLER"
 
 #define WCID_VENDOR 0x17
 
-#define OS_WIN_VENDOR_ID 0x0170  // Input Labs.
-#define OS_WIN_PRODUCT_ID 0xA090
-#define OS_UNIX_VENDOR_ID 0x045E   // Xbox controller vendor.
-#define OS_UNIX_PRODUCT_ID 0x028E  // Xbox controller product.
+#define OS_0_VENDOR_ID  0x0170  // Input Labs.
+#define OS_0_PRODUCT_ID 0xA090  // Alpakka (Xinput)
+
+#define OS_1_VENDOR_ID  0x045E  // 360 controller vendor.
+#define OS_1_PRODUCT_ID 0x028E  // 360 controller product.
+
+#define OS_2_VENDOR_ID  0x0170  // Input Labs.
+#define OS_2_PRODUCT_ID 0xA094  // Alpakka (HID complilant gamepad)
 
 
 #define DESCRIPTOR_DEVICE \
@@ -51,11 +56,11 @@
     0x03,        /* .iSerialNumber */\
     0x01         /* .bNumConfiguration */
 
-#define DESCRIPTOR_CONFIGURATION \
+#define DESCRIPTOR_CONFIGURATION(itfs) \
     0x09,        /* bLength */\
     0x02,        /* bDescriptorType: configuration */\
     0x00, 0x00,  /* wTotalLength */\
-    0x02,        /* bNumInterfaces */\
+    itfs,        /* bNumInterfaces */\
     0x01,        /* bConfigurationValue */\
     0x00,        /* iConfiguration */\
     0x80,        /* bmAttributes */\

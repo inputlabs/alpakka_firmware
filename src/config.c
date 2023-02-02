@@ -102,7 +102,7 @@ void config_set_imu_offset(double ax, double ay, double az, double bx, double by
     config_write(&config);
 }
 
-bool config_get_os_mode() {
+uint8_t config_get_os_mode() {
     config_nvm_t config;
     config_read(&config);
     return config.os_mode;
@@ -114,8 +114,9 @@ void config_tune_update_leds() {
     if (config_tune_mode == PROC_TUNE_OS) {
         led_shape_all_off();
         led_set(LED_UP, true);
-        if (config.os_mode) led_blink_mask(LED_MASK_RIGHT);
-        else led_blink_mask(LED_MASK_DOWN);
+        if (config.os_mode == 0) led_blink_mask(LED_MASK_LEFT);
+        if (config.os_mode == 1) led_blink_mask(LED_MASK_DOWN);
+        if (config.os_mode == 2) led_blink_mask(LED_MASK_RIGHT);
     }
     if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
         led_shape_all_off();
@@ -153,9 +154,11 @@ void config_tune(bool direction) {
     config_read(&config);
     int8_t value = direction ? 1 : -1;
     if (config_tune_mode == PROC_TUNE_OS) {
-        config.os_mode = direction;
+        config.os_mode = limit_between(config.os_mode + value, 0, 2);
         printf("Tune: OS mode set to preset %i\n", config.os_mode);
         config_write(&config);
+        profile_pending_restart = true;
+        hid_allow_communication = false;
     }
     if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
         config.sensitivity = limit_between(config.sensitivity + value, 0, 2);

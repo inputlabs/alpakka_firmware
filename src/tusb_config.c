@@ -14,14 +14,25 @@ static const char *const descriptor_string[] = {
     STRING_INTERFACE_1,
 };
 
-uint8_t const descriptor_report[] = {
+uint8_t const descriptor_report_generic[] = {
+    TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(REPORT_KEYBOARD)),
+    TUD_HID_REPORT_DESC_MOUSE(HID_REPORT_ID(REPORT_MOUSE)),
+    TUD_HID_REPORT_DESC_GAMEPAD(HID_REPORT_ID(REPORT_GAMEPAD)),
+};
+
+uint8_t const descriptor_report_xinput[] = {
     TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(REPORT_KEYBOARD)),
     TUD_HID_REPORT_DESC_MOUSE(HID_REPORT_ID(REPORT_MOUSE)),
 };
 
-uint8_t descriptor_configuration[] = {
-    DESCRIPTOR_CONFIGURATION,
-    DESCRIPTOR_INTERFACE_HID(sizeof(descriptor_report)),
+uint8_t descriptor_configuration_generic[] = {
+    DESCRIPTOR_CONFIGURATION(0x01),
+    DESCRIPTOR_INTERFACE_HID(sizeof(descriptor_report_generic))
+};
+
+uint8_t descriptor_configuration_xinput[] = {
+    DESCRIPTOR_CONFIGURATION(0x02),
+    DESCRIPTOR_INTERFACE_HID(sizeof(descriptor_report_xinput)),
     DESCRIPTOR_INTERFACE_XINPUT
 };
 
@@ -29,30 +40,37 @@ uint8_t const *tud_descriptor_device_cb() {
     printf("USB: tud_descriptor_device_cb\n");
     static tusb_desc_device_t descriptor_device = {DESCRIPTOR_DEVICE};
     if (config_get_os_mode() == 0) {
-        descriptor_device.idVendor = OS_WIN_VENDOR_ID;
-        descriptor_device.idProduct = OS_WIN_PRODUCT_ID;
+        descriptor_device.idVendor = OS_0_VENDOR_ID;
+        descriptor_device.idProduct = OS_0_PRODUCT_ID;
     }
     if (config_get_os_mode() == 1) {
-        descriptor_device.idVendor = OS_UNIX_VENDOR_ID;
-        descriptor_device.idProduct = OS_UNIX_PRODUCT_ID;
+        descriptor_device.idVendor = OS_1_VENDOR_ID;
+        descriptor_device.idProduct = OS_1_PRODUCT_ID;
+    }
+    if (config_get_os_mode() == 2) {
+        descriptor_device.idVendor = OS_2_VENDOR_ID;
+        descriptor_device.idProduct = OS_2_PRODUCT_ID;
     }
     return (uint8_t const *) &descriptor_device;
 }
 
 uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
     printf("USB: tud_descriptor_configuration_cb index=0x%x\n", index);
-    descriptor_configuration[2] = sizeof(descriptor_configuration);
-    return descriptor_configuration;
+    descriptor_configuration_generic[2] = sizeof(descriptor_configuration_generic);
+    descriptor_configuration_xinput[2] = sizeof(descriptor_configuration_xinput);
+    if (config_get_os_mode() == 2) return descriptor_configuration_generic;
+    if (config_get_os_mode() < 2) return descriptor_configuration_xinput;
 }
 
 uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance) {
     printf("USB: tud_hid_descriptor_report_cb\n");
-    return descriptor_report;
+    if (config_get_os_mode() == 2) return descriptor_report_generic;
+    if (config_get_os_mode() < 2) return descriptor_report_xinput;
 }
 
 const uint16_t *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     printf("USB: tud_descriptor_string_cb index=0x%x\n", index);
-    if (index == 0xEE) {
+    if (index == 0xEE && config_get_os_mode() == 0) {
         static uint8_t msos[18] = {MS_OS_DESCRIPTORS_MAGIC_PAYLOAD};
         return (uint16_t*)msos;
     }
@@ -81,7 +99,11 @@ const bool tud_vendor_control_xfer_cb(
         request->wIndex
     );
     if (stage != CONTROL_STAGE_SETUP) return true;
-    if (request->wIndex == 0x0004 && request->bRequest == WCID_VENDOR) {
+    if (
+        request->wIndex == 0x0004 &&
+        request->bRequest == WCID_VENDOR &&
+        config_get_os_mode() == 0)
+    {
         static uint8_t response[40] = {MS_WCID_MAGIC_PAYLOAD};
         return tud_control_xfer(rhport, request, response, 40);
     }
