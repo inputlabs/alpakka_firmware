@@ -12,8 +12,8 @@
 
 Profile profiles[16];
 uint8_t profile_active_index = -1;
-bool profile_led_lock = false;
-bool profile_pending_restart = false;
+bool profile_led_lock = false;  // Extern.
+bool profile_pending_reboot = false;  // Extern.
 bool pending_reset = false;
 bool home_is_active = false;
 Button home;
@@ -120,7 +120,7 @@ void profile_set_home(bool state) {
     if (state) led_shape_all_on();
     else {
         profile_update_leds();
-        if (profile_pending_restart) config_restart(100);
+        if (profile_pending_reboot) config_reboot();
     }
     pending_reset = true;
 }

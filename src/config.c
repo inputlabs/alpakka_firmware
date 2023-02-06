@@ -157,7 +157,7 @@ void config_tune(bool direction) {
         config.os_mode = limit_between(config.os_mode + value, 0, 2);
         printf("Tune: OS mode set to preset %i\n", config.os_mode);
         config_write(&config);
-        profile_pending_restart = true;
+        profile_pending_reboot = true;
         hid_allow_communication = false;
     }
     if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
@@ -181,8 +181,8 @@ void config_tune(bool direction) {
     config_tune_update_leds();
 }
 
-void config_restart(uint32_t delay) {
-    watchdog_enable(delay, false);
+void config_reboot() {
+    watchdog_enable(100, false);  // Reboot after 100 milliseconds.
 }
 
 void config_bootsel() {

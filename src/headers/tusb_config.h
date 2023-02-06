@@ -30,14 +30,14 @@
 
 #define WCID_VENDOR 0x17
 
-#define OS_0_VENDOR_ID  0x0170  // Input Labs.
-#define OS_0_PRODUCT_ID 0xA090  // Alpakka (Xinput)
+#define USB_WIN_VENDOR  0x0170  // Input Labs.
+#define USB_WIN_PRODUCT 0xA090  // Alpakka (Xinput)
 
-#define OS_1_VENDOR_ID  0x045E  // 360 controller vendor.
-#define OS_1_PRODUCT_ID 0x028E  // 360 controller product.
+#define USB_UNIX_VENDOR  0x045E  // 360 controller vendor.
+#define USB_UNIX_PRODUCT 0x028E  // 360 controller product.
 
-#define OS_2_VENDOR_ID  0x0170  // Input Labs.
-#define OS_2_PRODUCT_ID 0xA094  // Alpakka (HID complilant gamepad)
+#define USB_GENERIC_VENDOR  0x0170  // Input Labs.
+#define USB_GENERIC_PRODUCT 0xA094  // Alpakka (HID complilant gamepad)
 
 
 #define DESCRIPTOR_DEVICE \

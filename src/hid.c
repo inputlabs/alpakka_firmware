@@ -9,10 +9,10 @@
 #include "helper.h"
 #include "thanks.c"
 
+bool hid_allow_communication = true;  // Extern.
 bool synced_keyboard = false;
 bool synced_mouse = false;
 bool synced_gamepad = false;
-bool hid_allow_communication = true;
 
 uint8_t state_matrix[256] = {0,};
 int16_t mouse_x = 0;
@@ -322,7 +322,7 @@ void hid_report() {
                 priority_mouse = 0;
                 return;
             }
-            if (!synced_gamepad && config_get_os_mode() == 2) {
+            if (!synced_gamepad && config_get_os_mode() == OS_MODE_GENERIC) {
                 hid_gamepad_report();
                 synced_gamepad = true;
                 priority_gamepad = 0;
@@ -330,7 +330,7 @@ void hid_report() {
             }
         }
 
-        if (!synced_gamepad && config_get_os_mode() < 2) {
+        if (!synced_gamepad && config_get_os_mode() != OS_MODE_GENERIC) {
             if (tud_suspended()) {
                 tud_remote_wakeup();
             }

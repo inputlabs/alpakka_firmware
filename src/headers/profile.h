@@ -62,4 +62,4 @@ Profile profile_init_console_legacy();
 Profile profile_init_desktop();
 
 extern bool profile_led_lock;
-extern bool profile_pending_restart;
+extern bool profile_pending_reboot;
