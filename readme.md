@@ -6,6 +6,7 @@
 - [Alpakka Firmware](https://github.com/inputlabs/alpakka_firmware). _(you are here)_
 - [Alpakka PCB](https://github.com/inputlabs/alpakka_pcb).
 - [Alpakka 3D-print](https://github.com/inputlabs/alpakka_case).
+- [Input Labs Roadmap](https://github.com/orgs/inputlabs/projects/2/views/2).
 
 ## Supported developer operative systems
 - GNU/Linux (and MacOS) - See [Development in Linux](https://inputlabs.io/devices/alpakka/manual/dev_unix).
