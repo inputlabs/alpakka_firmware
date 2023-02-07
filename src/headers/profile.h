@@ -52,6 +52,7 @@ void profile_set_home(bool state);
 void profile_set_active(uint8_t index);
 void profile_set_lock_leds(bool lock);
 void profile_update_leds();
+
 Profile profile_init_none();
 Profile profile_init_home();
 Profile profile_init_fps_fusion();
@@ -59,4 +60,6 @@ Profile profile_init_fps_wasd();
 Profile profile_init_console();
 Profile profile_init_console_legacy();
 Profile profile_init_desktop();
+
 extern bool profile_led_lock;
+extern bool profile_pending_reboot;

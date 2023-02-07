@@ -8,6 +8,10 @@
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
 
+#define OS_MODE_XINPUT_WIN 0
+#define OS_MODE_XINPUT_UNIX 1
+#define OS_MODE_GENERIC 2
+
 #define CFG_STRUCT_VERSION 8
 #define CFG_LOG_LEVEL 0
 #define CFG_LED_BRIGHTNESS 0.2
@@ -67,10 +71,11 @@ void config_set_profile(uint8_t profile);
 uint8_t config_get_profile();
 void config_set_thumbstick_offset(float x, float y);
 void config_set_imu_offset(double ax, double ay, double az, double bx, double by, double bz);
-bool config_get_os_mode();
+uint8_t config_get_os_mode();
 void config_tune_set_mode(uint8_t mode);
 void config_tune(bool direction);
 void config_calibrate();
+void config_reboot();
 void config_bootsel();
 void config_write_init();
 void config_print();

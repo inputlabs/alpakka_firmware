@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.87.0
+- Added new OS mode: HID generic gamepad (aka DirectInput in Windows). See Manual for details.
+- Automatic controller restart when changing OS mode.
+
 ## 0.86.5
 - Show Pico unique hardware id into session log.
 - Fixed calibration procedure never completing.
