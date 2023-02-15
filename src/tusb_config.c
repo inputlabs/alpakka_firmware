@@ -42,10 +42,14 @@ uint8_t const *tud_descriptor_device_cb() {
     if (config_get_os_mode() == OS_MODE_XINPUT_WIN) {
         descriptor_device.idVendor = USB_WIN_VENDOR;
         descriptor_device.idProduct = USB_WIN_PRODUCT;
+        descriptor_device.bDeviceClass = 0xff;
+        descriptor_device.bDeviceSubClass = 0xff;
     }
     if (config_get_os_mode() == OS_MODE_XINPUT_UNIX) {
         descriptor_device.idVendor = USB_UNIX_VENDOR;
         descriptor_device.idProduct = USB_UNIX_PRODUCT;
+        descriptor_device.bDeviceClass = 0xff;
+        descriptor_device.bDeviceSubClass = 0xff;
     }
     if (config_get_os_mode() == OS_MODE_GENERIC) {
         descriptor_device.idVendor = USB_GENERIC_VENDOR;
