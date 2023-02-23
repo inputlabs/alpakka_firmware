@@ -139,7 +139,7 @@ void profile_init() {
     home = Button_(
         PIN_HOME,
         HOLD_OVERLAP_EARLY,
-        ACTIONS(KEY_LEFT_SHIFT, KEY_TAB),
+        ACTIONS(GAMEPAD_HOME),
         ACTIONS(PROC_HOME)
     );
     profiles[0] = profile_init_home();
