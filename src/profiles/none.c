@@ -57,6 +57,7 @@ Profile profile_init_none() {
 
     profile.gyro = Gyro_(
         GYRO_MODE_ALWAYS_OFF,
+        PIN_NONE,
         ACTIONS(KEY_NONE),
         ACTIONS(KEY_NONE),
         ACTIONS(KEY_NONE)

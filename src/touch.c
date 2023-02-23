@@ -9,6 +9,9 @@
 
 uint32_t sent_time;
 uint32_t delta;
+bool status = false;
+uint8_t peak_up = 0;
+uint8_t peak_down = 0;
 bool current = false;
 bool reported = false;
 int8_t repeated = 0;
@@ -59,17 +62,36 @@ bool touch_status() {
     };
     // Measure current timing.
     delta = time_us_32() - sent_time;
-    current = (delta >= threshold) || (delta == 0);
-    // Only report change on repeated matches.
-    if (current == reported) {
-        repeated = 0;
-    } else {
-        repeated++;
-        if (repeated >= CFG_TOUCH_SMOOTH) {
-            reported = current;
+    // printf("%i ", delta);
+
+    if (!status) {
+        if (delta < peak_down) {
+            peak_down = delta;
+            printf("down down %i %i\n", delta, peak_down);
+            return false;
+        }
+        if (delta > peak_down + 1) {
+            status = true;
+            peak_down = 0;
+            printf("down up %i %i\n", delta, peak_down);
+            return true;
         }
     }
-    // printf("%i-", delta);
-    // if (reported) printf("%i-", delta);
-    return reported;
+    if (status) {
+        if (delta > peak_up) {
+            peak_up = delta;
+            printf("up up %i %i\n", delta, peak_up);
+            return true;
+        }
+        uint8_t t = peak_up / 2;
+        if (t < 2) t = 2;
+        if (delta < t) {
+            status = false;
+            peak_up = 0;
+            peak_down = delta;
+            printf("up down %i %i\n", delta, peak_up);
+            return false;
+        }
+    }
+    return status;
 }

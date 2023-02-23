@@ -73,6 +73,7 @@ Profile profile_init_desktop() {
 
     profile.gyro = Gyro_(
         GYRO_MODE_TOUCH_ON,
+        PIN_TOUCH_IN,
         ACTIONS(MOUSE_X),
         ACTIONS(MOUSE_Y),
         ACTIONS(KEY_NONE)
