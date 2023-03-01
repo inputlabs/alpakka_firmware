@@ -10,9 +10,9 @@ Profile profile_init_console() {
     Profile profile = Profile_();
 
     profile.select_1 =   Button_( PIN_SELECT_1,   NORMAL, ACTIONS(GAMEPAD_SELECT) );
-    profile.select_2 =   Button_( PIN_SELECT_2,   NORMAL, ACTIONS(KEY_NONE) );
+    profile.select_2 =   Button_( PIN_SELECT_2,   NORMAL, ACTIONS(KEY_M) );
     profile.start_1 =    Button_( PIN_START_1,    NORMAL, ACTIONS(GAMEPAD_START) );
-    profile.start_2 =    Button_( PIN_START_2,    NORMAL, ACTIONS(KEY_NONE) );
+    profile.start_2 =    Button_( PIN_START_2,    NORMAL, ACTIONS(KEY_N) );
 
     profile.dpad_left =  Button_( PIN_DPAD_LEFT,  NORMAL, ACTIONS(GAMEPAD_LEFT) );
     profile.dpad_right = Button_( PIN_DPAD_RIGHT, NORMAL, ACTIONS(GAMEPAD_RIGHT) );
