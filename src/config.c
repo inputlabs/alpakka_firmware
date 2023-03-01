@@ -27,6 +27,7 @@ void config_write(config_nvm_t* config) {
 }
 
 void config_write_init() {
+    // Default values when the config is created for first time.
     config_nvm_t config = {
         .header = NVM_CONFIG_HEADER,
         .config_version = CFG_STRUCT_VERSION,

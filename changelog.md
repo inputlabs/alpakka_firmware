@@ -1,7 +1,15 @@
 # Changelog
 
+## 0.87.2
+- Added dynamic touch threshold logic. While the static threshold presets are kept as legacy options. See [Tune](https://inputlabs.io/alpakka/manual/tune) for details.
+- Gyro engage bind is defined in each profile, and can be either the touch surface (default) or any button.
+- Home button mapped to `gamepad-home` instead of `shift-tab` (default shortcut for Steam overlay).
+- In console profile, second row select buttons are mapped to `M` and `N`. For consistency with FPS profiles.
+
+_This update requires recalibration._
+
 ## 0.87.0
-- Added new OS mode: HID generic gamepad (aka DirectInput in Windows). See Manual for details.
+- Added new OS mode: HID generic gamepad (aka DirectInput in Windows). See [Tune](https://inputlabs.io/alpakka/manual/tune) for details.
 - Automatic controller restart when changing OS mode.
 
 ## 0.86.5
