@@ -7,11 +7,11 @@
 #define CFG_TOUCH_TIMEOUT 50  // Microseconds.
 #define CFG_TOUCH_SMOOTH 2
 
-#define CFG_TOUCH_THRESHOLD_0 2  // Microseconds.
-#define CFG_TOUCH_THRESHOLD_1 3  // Microseconds.
-#define CFG_TOUCH_THRESHOLD_2 5  // Microseconds.
-#define CFG_TOUCH_THRESHOLD_3 8  // Microseconds.
-#define CFG_TOUCH_THRESHOLD_4 13  // Microseconds.
+#define CFG_TOUCH_THRESHOLD_0 0  // Automatic.
+#define CFG_TOUCH_THRESHOLD_1 2  // Microseconds.
+#define CFG_TOUCH_THRESHOLD_2 3  // Microseconds.
+#define CFG_TOUCH_THRESHOLD_3 5  // Microseconds.
+#define CFG_TOUCH_THRESHOLD_4 8  // Microseconds.
 
 void touch_init();
 void touch_update_threshold();

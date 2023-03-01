@@ -34,7 +34,7 @@ void config_write_init() {
         .profile = 1,
         .sensitivity = 0,
         .deadzone = 0,
-        .touch_threshold = 2,
+        .touch_threshold = 0,
         .vibration = 0,
         .ts_offset_x = 0,
         .ts_offset_y = 0,
