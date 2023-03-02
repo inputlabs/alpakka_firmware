@@ -6,12 +6,13 @@
 #include <pico/time.h>
 #include <hardware/gpio.h>
 #include "config.h"
+#include "pin.h"
 #include "profile.h"
 #include "hid.h"
 #include "bus.h"
 
 bool Button__is_pressed(Button *self) {
-    if (self->pin == 0) {
+    if (self->pin == PIN_NONE) {
         if (self->virtual_press) {
             self->virtual_press = false;
             return true;
@@ -33,6 +34,7 @@ bool Button__is_pressed(Button *self) {
 void Button__report(Button *self) {
     if (self->behavior == NORMAL) self->handle_normal(self);
     else if (self->behavior == STICKY) self->handle_sticky(self);
+    else if (self->behavior == CYCLE) self->handle_cycle(self);
     else if (self->behavior == HOLD_OVERLAP) self->handle_hold_overlap(self);
     else if (self->behavior == HOLD_OVERLAP_EARLY) self->handle_hold_overlap_early(self);
     else if (self->behavior == HOLD_EXCLUSIVE) {
@@ -171,8 +173,48 @@ void Button__handle_hold_overlap_early(Button *self) {
     }
 }
 
+void Button__handle_cycle(Button *self) {
+    if (self->virtual_press) {
+        if (self->state) return;
+        self->state = true;
+        if (self->state_secondary) {
+            self->press_timestamp++;
+            if (self->press_timestamp > 3 || self->actions[self->press_timestamp] == 0) {
+                self->press_timestamp = 0;
+            }
+        }
+    }
+    if (self->virtual_press_secondary) {
+        if (self->state && self->state_secondary) {
+            hid_press_and_release(KEY_BACKSPACE, 5);
+            self->state_secondary = false;
+        }
+        if (!self->state_secondary) {
+            add_alarm_in_ms(
+                10,
+                (alarm_callback_t)hid_press_delayed,
+                (void*)(uint32_t)self->actions[(uint8_t)self->press_timestamp],
+                true
+            );
+            add_alarm_in_ms(
+                15,
+                (alarm_callback_t)hid_release_delayed,
+                (void*)(uint32_t)self->actions[(uint8_t)self->press_timestamp],
+                true
+            );
+            self->state_secondary = true;
+        }
+        self->state = false;
+    }
+}
+
 void Button__reset(Button *self) {
     self->state = false;
+    self->state_secondary = false;
+    self->virtual_press = false;
+    self->virtual_press_secondary = false;
+    self->press_timestamp = 0;
+    self->hold_timestamp = 0;
 }
 
 Button Button_ (
@@ -194,11 +236,13 @@ Button Button_ (
     button.handle_hold_exclusive = Button__handle_hold_exclusive;
     button.handle_hold_overlap = Button__handle_hold_overlap;
     button.handle_hold_overlap_early = Button__handle_hold_overlap_early;
+    button.handle_cycle = Button__handle_cycle;
     button.pin = pin;
     button.behavior = behavior;
     button.state = false;
-    button.virtual_press = false;
     button.state_secondary = false;
+    button.virtual_press = false;
+    button.virtual_press_secondary = false;
     button.press_timestamp = 0;
     button.hold_timestamp = 0;
     button.actions[0] = 0;

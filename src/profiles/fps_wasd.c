@@ -34,25 +34,34 @@ Profile profile_init_fps_wasd() {
     profile.rotary = Rotary_( 0, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
-        Button_(0, NORMAL, ACTIONS(KEY_A)),
-        Button_(0, NORMAL, ACTIONS(KEY_D)),
-        Button_(0, NORMAL, ACTIONS(KEY_W)),
-        Button_(0, NORMAL, ACTIONS(KEY_S)),
-        Button_(PIN_L3, NORMAL, ACTIONS(KEY_LEFT_SHIFT)),
-        Button_(0, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),
-        Button_(0, NORMAL, ACTIONS(KEY_RIGHT_BRACKET))
+        THUMBSTICK_MODE_4DIR,
+        // Left & right.
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_A)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_D)),
+        // Up & Down
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_W)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_S)),
+        // Corners.
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        // Push, inner, outer.
+        Button_(PIN_L3,   NORMAL, ACTIONS(KEY_LEFT_SHIFT)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_RIGHT_BRACKET))
     );
 
     profile.dhat = Dhat_(
-        Button_(0, NORMAL, ACTIONS(KEY_8)),
-        Button_(0, NORMAL, ACTIONS(KEY_4)),
-        Button_(0, NORMAL, ACTIONS(KEY_7)),
-        Button_(0, NORMAL, ACTIONS(KEY_1)),
-        Button_(0, NORMAL, ACTIONS(KEY_0)),
-        Button_(0, NORMAL, ACTIONS(KEY_3)),
-        Button_(0, NORMAL, ACTIONS(KEY_5)),
-        Button_(0, NORMAL, ACTIONS(KEY_2)),
-        Button_(0, NORMAL, ACTIONS(KEY_6))
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_8)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_4)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_7)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_1)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_0)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_3)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_5)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_2)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_6))
     );
 
     profile.gyro = Gyro_(

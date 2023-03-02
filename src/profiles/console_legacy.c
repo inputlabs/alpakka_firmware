@@ -34,27 +34,36 @@ Profile profile_init_console_legacy() {
     profile.rotary =     Rotary_( 0, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
-        Button_(PIN_L3, NORMAL, ACTIONS(GAMEPAD_L3)),
-        Button_(0, NORMAL, ACTIONS(KEY_NONE)),
-        Button_(0, NORMAL, ACTIONS(KEY_NONE))
+        THUMBSTICK_MODE_4DIR,
+        // Left & right.
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
+        // Up & Down
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),
+        // Corners.
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        // Push, inner, outer.
+        Button_(PIN_L3,   NORMAL, ACTIONS(GAMEPAD_L3)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE))
     );
 
     profile.dhat = Dhat_(
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY_NEG)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RY_NEG)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY_NEG)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY_NEG)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_RY_NEG)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY_NEG)),
 
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_R3)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_R3)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_RX)),
 
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RY)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY))
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_RY)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY))
     );
 
     profile.gyro = Gyro_(

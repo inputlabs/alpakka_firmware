@@ -100,6 +100,16 @@ void hid_release_multiple(uint8_t *keys) {
     }
 }
 
+void hid_press_delayed(alarm_id_t alarm, uint8_t key) {
+    cancel_alarm(alarm);
+    hid_press(key);
+}
+
+void hid_release_delayed(alarm_id_t alarm, uint8_t key) {
+    cancel_alarm(alarm);
+    hid_release(key);
+}
+
 void hid_press_multiple_delayed(alarm_id_t alarm, uint8_t *keys) {
     cancel_alarm(alarm);
     for(uint8_t i=0; i<4; i++) {
@@ -113,6 +123,23 @@ void hid_release_multiple_delayed(alarm_id_t alarm, uint8_t *keys) {
     for(uint8_t i=0; i<4; i++) {
         if (keys[i] == 0) return;
         hid_release(keys[i]);
+    }
+}
+
+void hid_press_and_release(uint8_t key, uint16_t delay) {
+    hid_press(key);
+    add_alarm_in_ms(
+        delay,
+        (alarm_callback_t)hid_release_delayed,
+        (void*)(uint32_t)key,
+        true
+    );
+}
+
+void hid_press_and_release_multiple(uint8_t *keys, uint16_t delay) {
+    for(uint8_t i=0; i<4; i++) {
+        if (keys[i] == 0) return;
+        hid_press_and_release(keys[i], delay);
     }
 }
 

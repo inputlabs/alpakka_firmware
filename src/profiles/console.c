@@ -34,10 +34,19 @@ Profile profile_init_console() {
     profile.rotary =     Rotary_( 0, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
+        THUMBSTICK_MODE_4DIR,
+        // Left & right.
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),
         Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
+        // Up & Down
         Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),
+        // Corners.
+        Button_(0, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(0, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(0, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(0, NORMAL, ACTIONS(KEY_NONE)),
+        // Push, inner, outer.
         Button_(PIN_L3, NORMAL, ACTIONS(GAMEPAD_L3)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE))

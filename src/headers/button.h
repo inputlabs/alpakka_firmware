@@ -5,19 +5,20 @@
 #include <stdbool.h>
 #include <pico/stdlib.h>
 
-// Type of button behavior.
-#define NORMAL 1
-#define STICKY 2
-#define HOLD_EXCLUSIVE 3
-#define HOLD_EXCLUSIVE_LONG 4
-#define HOLD_OVERLAP 5
-#define HOLD_OVERLAP_EARLY 6
-
 #define SENTINEL 255
 #define ACTIONS(...)  __VA_ARGS__, SENTINEL
 
-typedef struct Button_struct Button;
+typedef enum button_mode {
+    NORMAL,
+    STICKY,
+    HOLD_EXCLUSIVE,
+    HOLD_EXCLUSIVE_LONG,
+    HOLD_OVERLAP,
+    HOLD_OVERLAP_EARLY,
+    CYCLE
+} Button_mode;
 
+typedef struct Button_struct Button;
 struct Button_struct {
     bool (*is_pressed) (Button *self);
     void (*report) (Button *self);
@@ -27,13 +28,15 @@ struct Button_struct {
     void (*handle_hold_exclusive) (Button *self, uint16_t time);
     void (*handle_hold_overlap) (Button *self);
     void (*handle_hold_overlap_early) (Button *self);
-    uint8_t behavior;
+    void (*handle_cycle) (Button *self);
+    Button_mode behavior;
     uint8_t pin;
     uint8_t actions[4];
     uint8_t actions_secondary[4];
     bool state;
     bool state_secondary;
     bool virtual_press;
+    bool virtual_press_secondary;
     uint64_t press_timestamp;
     uint64_t hold_timestamp;
 };

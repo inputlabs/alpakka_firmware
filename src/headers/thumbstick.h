@@ -6,26 +6,66 @@
 
 #define ANALOG_FACTOR 32767
 #define TRIGGER_FACTOR 255
+#define ANGLE_CUT_1 22.5
+#define ANGLE_CUT_2 67.5
+#define ANGLE_CUT_3 112.5
+#define ANGLE_CUT_4 157.5
+
+typedef enum thumbstick_mode {
+    THUMBSTICK_MODE_4DIR,
+    THUMBSTICK_MODE_8DIR,
+    THUMBSTICK_MODE_KEYBOARD
+} Thumbstick_mode;
+
+typedef enum thumbstick_8dir {
+    DIR8_CENTER,
+    DIR8_UP,
+    DIR8_UP_RIGHT,
+    DIR8_RIGHT,
+    DIR8_DOWN_RIGHT,
+    DIR8_DOWN,
+    DIR8_DOWN_LEFT,
+    DIR8_LEFT,
+    DIR8_UP_LEFT
+} Thumbstick_8dir;
+
+typedef struct thumbstick_position {
+    float x;
+    float y;
+    float angle;
+    float radius;
+} Thumbstick_position;
 
 typedef struct Thumbstick_struct Thumbstick;
-
 struct Thumbstick_struct {
     void (*report) (Thumbstick *self);
+    void (*report_4dir) (Thumbstick *self, Thumbstick_position position);
+    void (*report_keyboard) (Thumbstick *self, Thumbstick_position position);
     void (*reset) (Thumbstick *self);
+    Thumbstick_mode mode;
     Button left;
     Button right;
     Button up;
     Button down;
+    Button corner_ul;
+    Button corner_ur;
+    Button corner_dl;
+    Button corner_dr;
     Button push;
     Button inner;
     Button outer;
 };
 
 Thumbstick Thumbstick_ (
-    Button up,
+    Thumbstick_mode mode,
     Button left,
     Button right,
+    Button up,
     Button down,
+    Button corner_ul,
+    Button corner_ur,
+    Button corner_dl,
+    Button corner_dr,
     Button push,
     Button inner,
     Button outer

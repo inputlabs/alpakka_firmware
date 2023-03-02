@@ -34,13 +34,22 @@ Profile profile_init_fps_fusion() {
     profile.rotary = Rotary_( 0, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
-        Button_(PIN_L3, NORMAL, ACTIONS(KEY_LEFT_SHIFT)),
-        Button_(0, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),
-        Button_(0, NORMAL, ACTIONS(KEY_RIGHT_BRACKET))
+        THUMBSTICK_MODE_4DIR,
+        // Left & right.
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
+        // Up & Down
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),
+        // Corners.
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_NONE)),
+        // Push, inner, outer.
+        Button_(PIN_L3,   NORMAL, ACTIONS(KEY_LEFT_SHIFT)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),
+        Button_(PIN_NONE, NORMAL, ACTIONS(KEY_RIGHT_BRACKET))
     );
 
     profile.dhat = Dhat_(

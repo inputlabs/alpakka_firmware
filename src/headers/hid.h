@@ -201,12 +201,16 @@
 
 void hid_thanks();
 void hid_matrix_reset();
-void hid_press_multiple(uint8_t *keys);
-void hid_release_multiple(uint8_t *keys);
-void hid_press_multiple_delayed(alarm_id_t alarm, uint8_t *keys);
-void hid_release_multiple_delayed(alarm_id_t alarm, uint8_t *keys);
 void hid_press(uint8_t key);
 void hid_release(uint8_t key);
+void hid_press_multiple(uint8_t *keys);
+void hid_release_multiple(uint8_t *keys);
+void hid_press_delayed(alarm_id_t alarm, uint8_t key);
+void hid_release_delayed(alarm_id_t alarm, uint8_t key);
+void hid_press_multiple_delayed(alarm_id_t alarm, uint8_t *keys);
+void hid_release_multiple_delayed(alarm_id_t alarm, uint8_t *keys);
+void hid_press_and_release(uint8_t key, uint16_t delay);
+void hid_press_and_release_multiple(uint8_t *keys, uint16_t delay);
 void hid_mouse_move(int16_t x, int16_t y);
 void hid_mouse_wheel(int8_t z);
 void hid_gamepad_lx(int16_t value);
