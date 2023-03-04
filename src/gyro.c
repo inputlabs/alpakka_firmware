@@ -70,7 +70,7 @@ Gyro Gyro_ (
     gyro.reset = Gyro__reset;
     gyro.mode = mode;
     gyro.pin = pin;
-    if (pin != PIN_TOUCH_IN) {
+    if (pin != PIN_NONE && pin != PIN_TOUCH_IN) {
         gyro.engage_button = Button_(pin, NORMAL, ACTIONS(KEY_NONE));
     }
     gyro.actions_x[0] = 0;

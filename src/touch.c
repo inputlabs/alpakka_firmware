@@ -11,11 +11,7 @@
 uint32_t sent_time;
 uint32_t delta;
 bool status = false;
-bool status_prev = false;
-uint8_t repeated = 0;
 uint8_t threshold = 0;
-uint8_t peak_up = 0;
-uint8_t peak_down = 0;
 
 void touch_update_threshold() {
     config_nvm_t config;
@@ -42,6 +38,8 @@ void touch_init() {
 }
 
 bool touch_status_static() {
+    static bool status_prev = false;
+    static uint8_t repeated = 0;
     status = (delta >= threshold) || (delta == 0);
     // Only report change on repeated matches.
     if (status == status_prev) {
@@ -57,31 +55,41 @@ bool touch_status_static() {
 }
 
 bool touch_status_dynamic() {
+    static uint8_t peak_up = 255;
+    static uint8_t peak_down = 1;
+    // If the surface is currently being reported as not touched.
     if (!status) {
+        // If the current timing is lower than the current peak
+        // then in becomes the new low peak.
         if (delta < peak_down) {
             peak_down = delta;
-            // printf("down down %i %i\n", delta, peak_down);
+            printf("down down %i %i~%i\n", delta, peak_down, peak_down);
             return false;
         }
-        if (delta > peak_down + 1) {
+        // If the timing value goes over the peak, it is considered touched.
+        if (delta > peak_down) {
             status = true;
-            peak_down = 0;
-            // printf("down up %i %i\n", delta, peak_down);
+            printf("down up   %i %i~%i\n", delta, peak_down, peak_down);
             return true;
         }
     }
+    // If the surface is currently being reported as touched.
     if (status) {
+        // If the current timing is higher than the current peak
+        // then in becomes the new high peak.
         if (delta > peak_up) {
             peak_up = delta;
-            // printf("up up %i %i\n", delta, peak_up);
+            printf("up up     %i %i~%i\n", delta, peak_down, peak_down);
             return true;
         }
+        // If the timing value goes under the dynamic threshold, it is
+        // considered not touched anymore.
         uint8_t dynamic_threshold = max(2, peak_up / 2);
         if (delta < dynamic_threshold) {
             status = false;
             peak_up = 0;
             peak_down = delta;
-            // printf("up down %i %i\n", delta, peak_up);
+            printf("up down   %i %i~%i\n", delta, peak_down, peak_down);
             return false;
         }
     }
@@ -95,6 +103,7 @@ bool touch_status() {
     gpio_put(PIN_TOUCH_OUT, false);
     while(gpio_get(PIN_TOUCH_IN) == true) {
         if ((time_us_32() - sent_time) > CFG_TOUCH_TIMEOUT) {
+            printf("B0\n");
             break;
         }
     };
@@ -104,12 +113,15 @@ bool touch_status() {
     gpio_put(PIN_TOUCH_OUT, true);
     while(gpio_get(PIN_TOUCH_IN) == false) {
         if ((time_us_32() - sent_time) > CFG_TOUCH_TIMEOUT) {
+            printf("B1\n");
             break;
         }
     };
     // Measure current timing and report.
     delta = time_us_32() - sent_time;
-    // printf("%i ", delta);
+    static uint16_t x= 0;
+    x++;
+    if (!(x % 20)) printf("%i ", delta);
     if (threshold == 0) return touch_status_dynamic();
     else return touch_status_static();
 }
