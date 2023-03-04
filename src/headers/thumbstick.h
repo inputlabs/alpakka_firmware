@@ -47,10 +47,10 @@ struct Thumbstick_struct {
     Button right;
     Button up;
     Button down;
-    Button corner_ul;
-    Button corner_ur;
-    Button corner_dl;
-    Button corner_dr;
+    Button up_left;
+    Button up_right;
+    Button down_left;
+    Button down_right;
     Button push;
     Button inner;
     Button outer;
@@ -62,10 +62,10 @@ Thumbstick Thumbstick_ (
     Button right,
     Button up,
     Button down,
-    Button corner_ul,
-    Button corner_ur,
-    Button corner_dl,
-    Button corner_dr,
+    Button up_left,
+    Button up_right,
+    Button down_left,
+    Button down_right,
     Button push,
     Button inner,
     Button outer

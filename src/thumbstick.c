@@ -24,9 +24,9 @@ float thumbstick_value(uint8_t adc_index, float offset) {
     return limit_between(value - offset, -1, 1);
 }
 
-Thumbstick_8dir thumbstick_get_8dir(Thumbstick_position pos) {
+Thumbstick_8dir thumbstick_get_8dir(Thumbstick_position pos, float deadzone) {
     if (pos.radius <= deadzone) return DIR8_CENTER;
-    if      (pos.angle < -ANGLE_CUT_4) return DIR8_DOWN;
+    else if (pos.angle < -ANGLE_CUT_4) return DIR8_DOWN;
     else if (pos.angle < -ANGLE_CUT_3) return DIR8_DOWN_LEFT;
     else if (pos.angle < -ANGLE_CUT_2) return DIR8_LEFT;
     else if (pos.angle < -ANGLE_CUT_1) return DIR8_UP_LEFT;
@@ -176,33 +176,116 @@ void Thumbstick__report_4dir(Thumbstick *self, Thumbstick_position pos) {
 }
 
 void Thumbstick__report_keyboard(Thumbstick *self, Thumbstick_position pos) {
-    Thumbstick_8dir direction = thumbstick_get_8dir(pos);
-    if (pos.radius > 0.10) {
-        if (pos.radius > 0.90) {
-            if (direction == DIR8_UP) {
-                self->up.virtual_press = false;
-                self->up.virtual_press_secondary = true;
-            }
-            if (direction == DIR8_RIGHT) {
-                self->right.virtual_press = false;
-                self->right.virtual_press_secondary = true;
-            }
-        } else {
-            if (direction == DIR8_UP) {
-                self->up.virtual_press = true;
-                self->up.virtual_press_secondary = false;
-            }
-            if (direction == DIR8_RIGHT) {
-                self->right.virtual_press = true;
-                self->right.virtual_press_secondary = false;
-            }
-        }
-    } else {
-        self->up.reset(&self->up);
-        self->right.reset(&self->right);
+    static Thumbstick_8dir direction_prev = DIR8_CENTER;
+    static Thumbstick_8dir engaged = false;
+    static bool outer_prev = false;
+    static uint8_t preview = 0;
+    static uint8_t index_last = -1;
+    static Button button;
+
+    Thumbstick_8dir direction = thumbstick_get_8dir(pos, 0.50);
+    bool outer = pos.radius > 0.51;
+
+    // SKIP REPEATED
+    if (direction == direction_prev && outer == outer_prev) return;
+
+    // ACCEPT
+    if (direction == DIR8_CENTER) {
+        preview = 0;
+        index_last = -1;
+        engaged = false;
     }
-    self->up.report(&self->up);
-    self->right.report(&self->right);
+
+    // ENGAGE
+    if (outer && !engaged) {
+        if      (direction == DIR8_UP)         button = self->up;
+        else if (direction == DIR8_UP_RIGHT)   button = self->up_right;
+        else if (direction == DIR8_RIGHT)      button = self->right;
+        else if (direction == DIR8_DOWN_RIGHT) button = self->down_right;
+        else if (direction == DIR8_DOWN)       button = self->down;
+        else if (direction == DIR8_DOWN_LEFT)  button = self->down_left;
+        else if (direction == DIR8_LEFT)       button = self->left;
+        else if (direction == DIR8_UP_LEFT)    button = self->up_left;
+        engaged = direction;
+    }
+
+    // DIAL
+    if (outer && engaged) {
+        // int8_t index = direction - engaged;
+        // uint8_t mod = button.actions[3] != 0 ? 4 : 3;
+        // index = (index % 8) / 2;
+        int8_t index = index_last;
+        if (engaged == DIR8_UP) {
+            if (direction == DIR8_UP)    index = 0;
+            if (direction == DIR8_RIGHT) index = 1;
+            if (direction == DIR8_DOWN)  index = 2;
+            if (direction == DIR8_LEFT)  index = 3;
+        }
+        else if (engaged == DIR8_RIGHT) {
+            if (direction == DIR8_UP)    index = 2;
+            if (direction == DIR8_RIGHT) index = 0;
+            if (direction == DIR8_DOWN)  index = 1;
+            if (direction == DIR8_LEFT)  index = 2;
+        }
+        else if (engaged == DIR8_DOWN) {
+            if (direction == DIR8_UP)    index = 2;
+            if (direction == DIR8_RIGHT) index = 2;
+            if (direction == DIR8_DOWN)  index = 0;
+            if (direction == DIR8_LEFT)  index = 1;
+        }
+        else if (engaged == DIR8_LEFT) {
+            if (direction == DIR8_UP)    index = 1;
+            if (direction == DIR8_RIGHT) index = 2;
+            if (direction == DIR8_DOWN)  index = 3;
+            if (direction == DIR8_LEFT)  index = 0;
+        }
+        else if (engaged == DIR8_UP_RIGHT) {
+            if (direction == DIR8_UP_RIGHT)   index = 0;
+            if (direction == DIR8_DOWN_RIGHT) index = 1;
+            if (direction == DIR8_DOWN_LEFT)  index = 2;
+            if (direction == DIR8_UP_LEFT)    index = 3;
+        }
+        else if (engaged == DIR8_DOWN_RIGHT) {
+            if (direction == DIR8_UP_RIGHT)   index = 3;
+            if (direction == DIR8_DOWN_RIGHT) index = 0;
+            if (direction == DIR8_DOWN_LEFT)  index = 1;
+            if (direction == DIR8_UP_LEFT)    index = 2;
+        }
+        else if (engaged == DIR8_DOWN_LEFT) {
+            if (direction == DIR8_UP_RIGHT)   index = 2;
+            if (direction == DIR8_DOWN_RIGHT) index = 3;
+            if (direction == DIR8_DOWN_LEFT)  index = 0;
+            if (direction == DIR8_UP_LEFT)    index = 1;
+        }
+        else if (engaged == DIR8_UP_LEFT) {
+            if (direction == DIR8_UP_RIGHT)   index = 1;
+            if (direction == DIR8_DOWN_RIGHT) index = 2;
+            if (direction == DIR8_DOWN_LEFT)  index = 3;
+            if (direction == DIR8_UP_LEFT)    index = 0;
+        }
+        if (index != index_last) {
+            if (preview) {
+                hid_press_and_release(KEY_BACKSPACE, 10);
+                preview = 0;
+            }
+            add_alarm_in_ms(
+                20,
+                (alarm_callback_t)hid_press_delayed,
+                (void*)(uint32_t)button.actions[index],
+                true
+            );
+            add_alarm_in_ms(
+                30,
+                (alarm_callback_t)hid_release_delayed,
+                (void*)(uint32_t)button.actions[index],
+                true
+            );
+            index_last = index;
+            preview = 1;
+        }
+    }
+    direction_prev = direction;
+    outer_prev = outer;
 }
 
 void Thumbstick__reset(Thumbstick *self) {
@@ -221,10 +304,10 @@ Thumbstick Thumbstick_ (
     Button right,
     Button up,
     Button down,
-    Button corner_ul,
-    Button corner_ur,
-    Button corner_dl,
-    Button corner_dr,
+    Button up_left,
+    Button up_right,
+    Button down_left,
+    Button down_right,
     Button push,
     Button inner,
     Button outer
@@ -239,10 +322,10 @@ Thumbstick Thumbstick_ (
     thumbstick.right = right;
     thumbstick.up = up;
     thumbstick.down = down;
-    thumbstick.corner_ul = corner_ul;
-    thumbstick.corner_ur = corner_ur;
-    thumbstick.corner_dl = corner_dl;
-    thumbstick.corner_dr = corner_dr;
+    thumbstick.up_left = up_left;
+    thumbstick.up_right = up_right;
+    thumbstick.down_left = down_left;
+    thumbstick.down_right = down_right;
     thumbstick.push = push;
     thumbstick.inner = inner;
     thumbstick.outer = outer;
