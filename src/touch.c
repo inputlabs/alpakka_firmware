@@ -57,19 +57,24 @@ bool touch_status_static() {
 bool touch_status_dynamic() {
     static uint8_t peak_up = 255;
     static uint8_t peak_down = 1;
+    static uint8_t delta_prev[32] = {0,};
+    static uint8_t delta_prev_index = 0;
+    delta_prev[delta_prev_index] = delta;
+    delta_prev_index++;
+    if (delta_prev_index >= 32) delta_prev_index = 0;
     // If the surface is currently being reported as not touched.
     if (!status) {
         // If the current timing is lower than the current peak
         // then in becomes the new low peak.
         if (delta < peak_down) {
             peak_down = delta;
-            printf("down down %i %i~%i\n", delta, peak_down, peak_down);
+            // printf("down down %i %i~%i\n", delta, peak_down, peak_down);
             return false;
         }
         // If the timing value goes over the peak, it is considered touched.
-        if (delta > peak_down) {
+        if (delta > peak_down + 1) {
             status = true;
-            printf("down up   %i %i~%i\n", delta, peak_down, peak_down);
+            // printf("down up   %i %i~%i\n", delta, peak_down, peak_down);
             return true;
         }
     }
@@ -79,17 +84,21 @@ bool touch_status_dynamic() {
         // then in becomes the new high peak.
         if (delta > peak_up) {
             peak_up = delta;
-            printf("up up     %i %i~%i\n", delta, peak_down, peak_down);
+            // printf("up up     %i %i~%i\n", delta, peak_down, peak_down);
             return true;
         }
         // If the timing value goes under the dynamic threshold, it is
         // considered not touched anymore.
+        peak_up = 0;
+        for(uint8_t i; i<32; i++) {
+            peak_up = max(peak_up, delta_prev[delta_prev_index]);
+        }
         uint8_t dynamic_threshold = max(2, peak_up / 2);
         if (delta < dynamic_threshold) {
             status = false;
             peak_up = 0;
             peak_down = delta;
-            printf("up down   %i %i~%i\n", delta, peak_down, peak_down);
+            // printf("up down   %i %i~%i\n", delta, peak_down, peak_down);
             return false;
         }
     }
