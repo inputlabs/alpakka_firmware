@@ -210,11 +210,6 @@ void Button__handle_cycle(Button *self) {
 
 void Button__reset(Button *self) {
     self->state = false;
-    self->state_secondary = false;
-    self->virtual_press = false;
-    self->virtual_press_secondary = false;
-    self->press_timestamp = 0;
-    self->hold_timestamp = 0;
 }
 
 Button Button_ (
