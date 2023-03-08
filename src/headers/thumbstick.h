@@ -6,12 +6,22 @@
 
 #define ANALOG_FACTOR 32767
 #define TRIGGER_FACTOR 255
+#define DEADZONE_FROM_CONFIG 0
+
+typedef struct thumbstick_position {
+    float x;
+    float y;
+    float angle;
+    float radius;
+} Thumbstick_position;
 
 typedef struct Thumbstick_struct Thumbstick;
 
 struct Thumbstick_struct {
     void (*report) (Thumbstick *self);
+    void (*report_4dir) (Thumbstick *self, Thumbstick_position pos, float deadzone);
     void (*reset) (Thumbstick *self);
+    float deadzone;
     Button left;
     Button right;
     Button up;
@@ -22,6 +32,7 @@ struct Thumbstick_struct {
 };
 
 Thumbstick Thumbstick_ (
+    float deadzone,
     Button up,
     Button left,
     Button right,

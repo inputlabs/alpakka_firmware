@@ -34,10 +34,15 @@ Profile profile_init_none() {
     profile.rotary = Rotary_( 0, ACTIONS(KEY_NONE), ACTIONS(KEY_NONE));
 
     profile.thumbstick = Thumbstick_(
+        // Deadzone.
+        DEADZONE_FROM_CONFIG,
+        // Left and right.
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
+        // Up and down.
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
+        // Push, inner and outer.
         Button_(PIN_L3, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE))

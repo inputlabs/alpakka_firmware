@@ -34,10 +34,15 @@ Profile profile_init_fps_wasd() {
     profile.rotary = Rotary_( 0, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
+        // Deadzone.
+        DEADZONE_FROM_CONFIG,
+        // Left and right.
         Button_(0, NORMAL, ACTIONS(KEY_A)),
         Button_(0, NORMAL, ACTIONS(KEY_D)),
+        // Up and down.
         Button_(0, NORMAL, ACTIONS(KEY_W)),
         Button_(0, NORMAL, ACTIONS(KEY_S)),
+        // Push, inner and outer.
         Button_(PIN_L3, NORMAL, ACTIONS(KEY_LEFT_SHIFT)),
         Button_(0, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),
         Button_(0, NORMAL, ACTIONS(KEY_RIGHT_BRACKET))

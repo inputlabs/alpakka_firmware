@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <pico/time.h>
 #include <hardware/gpio.h>
@@ -43,33 +44,17 @@ void Rotary__report(Rotary *self) {
         rotary_pending &&
         (time_us_32() > (rotary_ts + CFG_MOUSE_WHEEL_DEBOUNCE))
     ) {
-        if (rotary_increment > 0) {
+        uint8_t actions[8] = {0,};
+        for(uint8_t r=0; r<abs(rotary_increment); r++) {
             for(uint8_t i=0; i<4; i++) {
-                uint8_t action = self->actions_up[i];
-                if (action == MOUSE_SCROLL_UP) hid_mouse_wheel(rotary_increment);
-                if (action == MOUSE_SCROLL_DOWN) hid_mouse_wheel(-rotary_increment);
+                uint8_t action = (
+                    rotary_increment > 0
+                    ? self->actions_up[i]
+                    : self->actions_down[i]
+                );
+                hid_press(action);
+                hid_release_later(action, 100);
             }
-            hid_press_multiple(self->actions_up);
-            add_alarm_in_ms(
-                100,
-                (alarm_callback_t)hid_release_multiple_delayed,
-                self->actions_up,
-                true
-            );
-        }
-        if (rotary_increment < 0) {
-            for(uint8_t i=0; i<4; i++) {
-                uint8_t action = self->actions_down[i];
-                if (action == MOUSE_SCROLL_UP) hid_mouse_wheel(-rotary_increment);
-                if (action == MOUSE_SCROLL_DOWN) hid_mouse_wheel(rotary_increment);
-            }
-            hid_press_multiple(self->actions_down);
-            add_alarm_in_ms(
-                100,
-                (alarm_callback_t)hid_release_multiple_delayed,
-                self->actions_down,
-                true
-            );
         }
         rotary_increment = 0;
         rotary_pending = false;

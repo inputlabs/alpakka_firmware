@@ -95,12 +95,7 @@ void Button__handle_hold_exclusive(Button *self, uint16_t time) {
     if(!pressed) {
         if (self->state) {
             hid_press_multiple(self->actions);
-            add_alarm_in_ms(
-                100,
-                (alarm_callback_t)hid_release_multiple_delayed,
-                self->actions,
-                true
-            );
+            hid_release_multiple_later(self->actions, 100);
             self->state = false;
             return;
         }
@@ -153,18 +148,8 @@ void Button__handle_hold_overlap_early(Button *self) {
         hid_release_multiple(self->actions_secondary);
         uint64_t hold_time_us = CFG_HOLD_OVERLAP_EARLY_TIME * 1000;
         if (time_us_64() < self->hold_timestamp + hold_time_us) {
-            add_alarm_in_ms(
-                10,
-                (alarm_callback_t)hid_press_multiple_delayed,
-                self->actions,
-                true
-            );
-            add_alarm_in_ms(
-                100,
-                (alarm_callback_t)hid_release_multiple_delayed,
-                self->actions,
-                true
-            );
+            hid_press_multiple_later(self->actions, 10);
+            hid_release_multiple_later(self->actions, 100);
         }
         self->state_secondary = false;
         return;

@@ -67,7 +67,7 @@ bool touch_status() {
         if (!(x % 20)) printf("%i ", timing);
     }
 
-    // Report.
+    // Determine if the surface is considered touched and report.
     static bool touched_prev = false;
     static uint8_t repeated = 0;
     static uint8_t peak = 0;
@@ -77,8 +77,8 @@ bool touch_status() {
         threshold = max(2, peak / 2);
     }
     touched = (timing >= threshold) || (timing == 0);
-    // Only report change on repeated threshold hits.
     if (touched != touched_prev) {
+        // Only report change on repeated threshold hits.
         repeated++;
         if (repeated >= CFG_TOUCH_SMOOTH) {
             touched_prev = touched;

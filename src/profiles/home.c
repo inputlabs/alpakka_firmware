@@ -53,10 +53,15 @@ Profile profile_init_home() {
     profile.rotary = Rotary_( 0, ACTIONS(PROC_TUNE_UP), ACTIONS(PROC_TUNE_DOWN) );
 
     profile.thumbstick = Thumbstick_(
-        Button_(0, HOLD_EXCLUSIVE_LONG, ACTIONS(KEY_NONE), ACTIONS(KEY_LEFT_BRACKET)),
-        Button_(0, HOLD_EXCLUSIVE_LONG, ACTIONS(KEY_NONE), ACTIONS(KEY_RIGHT_BRACKET)),
+        // Deadzone.
+        0.25,
+        // Left and right.
+        Button_(0, HOLD_EXCLUSIVE_LONG, ACTIONS(PROC_MACRO, KEY_N, KEY_O), ACTIONS(KEY_LEFT_BRACKET)),
+        Button_(0, HOLD_EXCLUSIVE_LONG, ACTIONS(PROC_MACRO, KEY_Y, KEY_E, KEY_S), ACTIONS(KEY_RIGHT_BRACKET)),
+        // Up and down.
+        Button_(0, NORMAL, ACTIONS(PROC_MACRO, KEY_G, KEY_G)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
-        Button_(0, NORMAL, ACTIONS(KEY_NONE)),
+        // Push, inner and outer.
         Button_(PIN_L3, HOLD_EXCLUSIVE_LONG, ACTIONS(KEY_NONE), ACTIONS(PROC_THANKS)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE))
