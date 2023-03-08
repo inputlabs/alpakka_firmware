@@ -186,14 +186,10 @@ Button Button_ (
     button.state_secondary = false;
     button.press_timestamp = 0;
     button.hold_timestamp = 0;
-    button.actions[0] = 0;
-    button.actions[1] = 0;
-    button.actions[2] = 0;
-    button.actions[3] = 0;
-    button.actions_secondary[0] = 0;
-    button.actions_secondary[1] = 0;
-    button.actions_secondary[2] = 0;
-    button.actions_secondary[3] = 0;
+    for(uint8_t i=0; i<MACROS_LEN; i++) {
+        button.actions[i] = 0;
+        button.actions_secondary[i] = 0;
+    }
     // Capture varible arguments.
     va_list va;
     va_start(va, 0);

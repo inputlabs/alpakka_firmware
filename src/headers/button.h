@@ -14,6 +14,8 @@
 #define HOLD_OVERLAP_EARLY 6
 
 #define SENTINEL 255
+#define MACROS_LEN 16
+#define ACTIONS_LEN 4
 #define ACTIONS(...)  __VA_ARGS__, SENTINEL
 
 typedef struct Button_struct Button;
@@ -29,8 +31,8 @@ struct Button_struct {
     void (*handle_hold_overlap_early) (Button *self);
     uint8_t behavior;
     uint8_t pin;
-    uint8_t actions[4];
-    uint8_t actions_secondary[4];
+    uint8_t actions[MACROS_LEN];
+    uint8_t actions_secondary[MACROS_LEN];
     bool state;
     bool state_secondary;
     bool virtual_press;

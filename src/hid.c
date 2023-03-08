@@ -90,14 +90,15 @@ void hid_release(uint8_t key) {
 void hid_press_multiple(uint8_t *keys) {
     if (keys[0] == PROC_MACRO) {
         uint16_t time = 10;
-        for(uint8_t i=1; i<4; i++) {
+        for(uint8_t i=1; i<MACROS_LEN; i++) {
+            if (keys[i] == 0) break;
             hid_press_later(keys[i], time);
             time += 10;
             hid_release_later(keys[i], time);
             time += 10;
         }
     } else {
-        for(uint8_t i=0; i<4; i++) {
+        for(uint8_t i=0; i<ACTIONS_LEN; i++) {
             if (keys[i] == 0) return;
             hid_press(keys[i]);
         }
@@ -106,7 +107,7 @@ void hid_press_multiple(uint8_t *keys) {
 
 void hid_release_multiple(uint8_t *keys) {
     if (keys[0] == PROC_MACRO) return;
-    for(uint8_t i=0; i<4; i++) {
+    for(uint8_t i=0; i<ACTIONS_LEN; i++) {
         if (keys[i] == 0) return;
         hid_release(keys[i]);
     }
@@ -133,7 +134,6 @@ void hid_release_later(uint8_t key, uint16_t delay) {
 }
 
 void hid_press_multiple_later(uint8_t *keys, uint16_t delay) {
-    printf("PML %i %i\n", keys[0], keys[1]);
     add_alarm_in_ms(
         delay,
         (alarm_callback_t)hid_press_multiple_later_callback,

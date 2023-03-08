@@ -46,7 +46,7 @@ void Rotary__report(Rotary *self) {
     ) {
         uint8_t actions[8] = {0,};
         for(uint8_t r=0; r<abs(rotary_increment); r++) {
-            for(uint8_t i=0; i<4; i++) {
+            for(uint8_t i=0; i<ACTIONS_LEN; i++) {
                 uint8_t action = (
                     rotary_increment > 0
                     ? self->actions_up[i]
