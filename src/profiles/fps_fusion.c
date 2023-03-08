@@ -37,11 +37,11 @@ Profile profile_init_fps_fusion() {
         // Deadzone.
         DEADZONE_FROM_CONFIG,
         // Left and right.
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),
         Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
         // Up and down.
         Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),
         // Push, inner and outer.
         Button_(PIN_L3, NORMAL, ACTIONS(KEY_LEFT_SHIFT)),
         Button_(0, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),
