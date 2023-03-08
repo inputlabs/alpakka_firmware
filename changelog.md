@@ -1,10 +1,19 @@
 # Changelog
 
-## 0.87.2
+## 0.88.0
 - Added dynamic touch threshold logic. While the static threshold presets are kept as legacy options. See [Tune](https://inputlabs.io/alpakka/manual/tune) for details.
-- Gyro engage bind is defined in each profile, and can be either the touch surface (default) or any button.
-- Home button mapped to `gamepad-home` instead of `shift-tab` (default shortcut for Steam overlay).
-- In console profile, second row select buttons are mapped to `M` and `N`. For consistency with FPS profiles.
+- Profiles can define the gyro engage trigger, can be either the touch surface (default) or any button.
+- Profiles can define can define a thumbstick deadzone that overrides config deadzone.
+- Profiles can define any axis on independent sides of the thumbstick.
+- Scrollwheel actions (up or down) can be mapped to any button.
+- Home button mapped to `gamepad-home` instead of `shift-tab`.
+- In console profile, 2nd row select buttons are mapped to `M` and `N`. For consistency with FPS profiles.
+- Basic implementation of macros (fixed timing, no modifier keys).
+- Added predefined phrases on home thumbstick (using macros):
+  - `yes`
+  - `no`
+  - `thanks`
+  - `gg`
 
 _This update requires recalibration._
 
