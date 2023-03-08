@@ -74,7 +74,7 @@ Profile Profile_ () {
 
 void profile_reset_all() {
     config_tune_set_mode(0);
-    for(uint8_t i=0; i<=4; i++) {
+    for(uint8_t i=0; i<=8; i++) {
         profiles[i].reset(&profiles[i]);
     }
 }
