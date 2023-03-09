@@ -3,11 +3,16 @@
 ## 0.88.0
 - Added dynamic touch threshold logic. While the static threshold presets are kept as legacy options. See [Tune](https://inputlabs.io/alpakka/manual/tune) for details.
 - Profiles can define the gyro engage trigger, can be either the touch surface (default) or any button.
-- Profiles can define can define a thumbstick deadzone that overrides config deadzone.
-- Profiles can define any axis on independent sides of the thumbstick.
-- Scrollwheel actions (up or down) can be mapped to any button.
+- Profiles can define a thumbstick deadzone that overrides global tune deadzone.
+- Profiles can define the thumbstick overlap for the 4 directions, as a value from `-1` to `1`:
+  - `0` means no overlap (each direction takes 90°).
+  - Values approaching `1` create bigger overlaps (each direction takes up to 180°).
+  - Values approaching `-1` create thinner activation areas with gaps in-between (each direction takes down to 0°).
+- Profiles can define any axis on independent sides of the thumbstick, and negative axis have their own identifier.
+- Scrollwheel scroll (up or down) can be mapped to any button.
 - Home button mapped to `gamepad-home` instead of `shift-tab`.
-- In console profile, 2nd row select buttons are mapped to `M` and `N`. For consistency with FPS profiles.
+- In console profile, previously unused 2nd row select buttons are mapped to `M` and `N`. For consistency with FPS profiles.
+- Fixed LED not blinking when requested profile was the same than the active profile.
 - Basic implementation of macros (fixed timing, no modifier keys).
 - Added predefined phrases on home thumbstick (using macros):
   - `yes`
