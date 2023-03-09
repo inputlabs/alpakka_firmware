@@ -4,19 +4,26 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "config.h"
+#include "pin.h"
 #include "button.h"
 #include "gyro.h"
 #include "imu.h"
 #include "hid.h"
 #include "touch.h"
 
+bool Gyro__is_engaged(Gyro *self) {
+    if (self->pin == PIN_NONE) return false;
+    if (self->pin == PIN_TOUCH_IN) return touch_status();
+    return self->engage_button.is_pressed(&(self->engage_button));
+}
+
 void Gyro__report(Gyro *self) {
     // Mode
     if (self->mode == GYRO_MODE_TOUCH_ON) {
-        if (touch_status() == false) return;
+        if (self->is_engaged(self) == false) return;
     }
     else if (self->mode == GYRO_MODE_TOUCH_OFF) {
-        if (touch_status() == true) return;
+        if (self->is_engaged(self) == true) return;
     }
     else if (self->mode == GYRO_MODE_ALWAYS_OFF) {
         return;
@@ -54,12 +61,18 @@ void Gyro__reset(Gyro *self) {
 
 Gyro Gyro_ (
     uint8_t mode,
+    uint8_t pin,
     ...  // Actions
 ) {
     Gyro gyro;
+    gyro.is_engaged = Gyro__is_engaged;
     gyro.report = Gyro__report;
     gyro.reset = Gyro__reset;
     gyro.mode = mode;
+    gyro.pin = pin;
+    if (pin != PIN_NONE && pin != PIN_TOUCH_IN) {
+        gyro.engage_button = Button_(pin, NORMAL, ACTIONS(KEY_NONE));
+    }
     gyro.actions_x[0] = 0;
     gyro.actions_x[1] = 0;
     gyro.actions_x[2] = 0;

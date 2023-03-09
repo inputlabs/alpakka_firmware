@@ -6,13 +6,11 @@
 #include "config.h"
 #include "touch.h"
 #include "pin.h"
+#include "helper.h"
 
-uint32_t sent_time;
-uint32_t delta;
-bool current = false;
-bool reported = false;
-int8_t repeated = 0;
-int8_t threshold = 0;
+uint8_t loglevel = 0;
+uint8_t threshold_config = 0;
+bool touched = false;
 
 void touch_update_threshold() {
     config_nvm_t config;
@@ -24,7 +22,7 @@ void touch_update_threshold() {
         CFG_TOUCH_THRESHOLD_3,
         CFG_TOUCH_THRESHOLD_4
     };
-    threshold = values[config.touch_threshold];
+    threshold_config = values[config.touch_threshold];
 }
 
 void touch_init() {
@@ -40,36 +38,54 @@ void touch_init() {
 
 bool touch_status() {
     // Send low.
+    uint32_t time_low;
     busy_wait_us_32(CFG_TOUCH_SETTLE);
-    sent_time = time_us_32();
+    time_low = time_us_32();
     gpio_put(PIN_TOUCH_OUT, false);
     while(gpio_get(PIN_TOUCH_IN) == true) {
-        if ((time_us_32() - sent_time) > CFG_TOUCH_TIMEOUT) {
-            break;
+        if ((time_us_32() - time_low) > CFG_TOUCH_TIMEOUT) {
+            return touched;
         }
     };
     // Send high.
     busy_wait_us_32(CFG_TOUCH_SETTLE);
-    sent_time = time_us_32();
+    time_low = time_us_32();
     gpio_put(PIN_TOUCH_OUT, true);
     while(gpio_get(PIN_TOUCH_IN) == false) {
-        if ((time_us_32() - sent_time) > CFG_TOUCH_TIMEOUT) {
+        if ((time_us_32() - time_low) > CFG_TOUCH_TIMEOUT) {
             break;
         }
     };
-    // Measure current timing.
-    delta = time_us_32() - sent_time;
-    current = (delta >= threshold) || (delta == 0);
-    // Only report change on repeated matches.
-    if (current == reported) {
-        repeated = 0;
-    } else {
+    // Determine capacitance low-to-high elapsed time.
+    uint32_t timing;
+    timing = time_us_32() - time_low;
+
+    // Debug.
+    if (loglevel > 1) {
+        static uint16_t x= 0;
+        x++;
+        if (!(x % 20)) printf("%i ", timing);
+    }
+
+    // Determine if the surface is considered touched and report.
+    static bool touched_prev = false;
+    static uint8_t repeated = 0;
+    static uint8_t peak = 0;
+    uint8_t threshold = threshold_config;
+    if (threshold_config == 0) {
+        peak = max(peak, timing);
+        threshold = max(2, peak / 2);
+    }
+    touched = (timing >= threshold) || (timing == 0);
+    if (touched != touched_prev) {
+        // Only report change on repeated threshold hits.
         repeated++;
         if (repeated >= CFG_TOUCH_SMOOTH) {
-            reported = current;
+            touched_prev = touched;
+            return touched;
         }
+    } else {
+        repeated = 0;
+        return touched_prev;
     }
-    // printf("%i-", delta);
-    // if (reported) printf("%i-", delta);
-    return reported;
 }

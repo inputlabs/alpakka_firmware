@@ -8,7 +8,7 @@
 #define min(a, b)  ((a < b) ? a : b)
 #define max(a, b)  ((a > b) ? a : b)
 #define limit_between(value, low, high)  max(low, min(high, value))
-#define is_between(value, low, high)  value == limit_between(value, low, high)
+#define is_between(value, low, high)  ((value >= low) && (value <= high))
 #define degrees(radians)  (radians * 180.0 / M_PI)
 #define radians(degrees)  (degrees * M_PI / 180.0)
 #define ramp_low(x, z)  x<z ? 0 : (x-z) * (1 / (1-z))

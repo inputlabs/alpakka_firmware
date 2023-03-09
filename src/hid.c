@@ -13,11 +13,11 @@ bool hid_allow_communication = true;  // Extern.
 bool synced_keyboard = false;
 bool synced_mouse = false;
 bool synced_gamepad = false;
+uint16_t alarms = 0;
 
 uint8_t state_matrix[256] = {0,};
 int16_t mouse_x = 0;
 int16_t mouse_y = 0;
-int8_t mouse_z = 0;
 int16_t gamepad_lx = 0;
 int16_t gamepad_ly = 0;
 int16_t gamepad_lz = 0;
@@ -65,7 +65,7 @@ void hid_procedure_release(uint8_t procedure) {
 }
 
 void hid_press(uint8_t key) {
-    if (key == 0 || key == KEY_NONE) return;
+    if (key == KEY_NONE) return;
     else if (key >= PROC_INDEX) hid_procedure_press(key);
     else {
         state_matrix[key] += 1;
@@ -76,7 +76,9 @@ void hid_press(uint8_t key) {
 }
 
 void hid_release(uint8_t key) {
-    if (key == 0) return;
+    if (key == KEY_NONE) return;
+    else if (key == MOUSE_SCROLL_UP) return;
+    else if (key == MOUSE_SCROLL_DOWN) return;
     else if (key >= PROC_INDEX) hid_procedure_release(key);
     else {
         state_matrix[key] -= 1;
@@ -87,43 +89,99 @@ void hid_release(uint8_t key) {
 }
 
 void hid_press_multiple(uint8_t *keys) {
-    for(uint8_t i=0; i<4; i++) {
-        if (keys[i] == 0) return;
-        hid_press(keys[i]);
+    if (keys[0] == PROC_MACRO) {
+        if (alarms > 0) return;  // Disallows parallel macros. TODO fix.
+        uint16_t time = 10;
+        for(uint8_t i=1; i<MACROS_LEN; i++) {
+            if (keys[i] == 0) break;
+            hid_press_later(keys[i], time);
+            time += 10;
+            hid_release_later(keys[i], time);
+            time += 10;
+        }
+    } else {
+        for(uint8_t i=0; i<ACTIONS_LEN; i++) {
+            if (keys[i] == 0) return;
+            hid_press(keys[i]);
+        }
     }
 }
 
 void hid_release_multiple(uint8_t *keys) {
-    for(uint8_t i=0; i<4; i++) {
+    if (keys[0] == PROC_MACRO) return;
+    for(uint8_t i=0; i<ACTIONS_LEN; i++) {
         if (keys[i] == 0) return;
         hid_release(keys[i]);
     }
 }
 
-void hid_press_multiple_delayed(alarm_id_t alarm, uint8_t *keys) {
-    cancel_alarm(alarm);
-    for(uint8_t i=0; i<4; i++) {
-        if (keys[i] == 0) return;
-        hid_press(keys[i]);
-    }
+void hid_press_later(uint8_t key, uint16_t delay) {
+    add_alarm_in_ms(
+        delay,
+        (alarm_callback_t)hid_press_later_callback,
+        (void*)(uint32_t)key,
+        true
+    );
+    alarms++;
 }
 
-void hid_release_multiple_delayed(alarm_id_t alarm, uint8_t *keys) {
+void hid_release_later(uint8_t key, uint16_t delay) {
+    add_alarm_in_ms(
+        delay,
+        (alarm_callback_t)hid_release_later_callback,
+        (void*)(uint32_t)key,
+        true
+    );
+    alarms++;
+}
+
+void hid_press_multiple_later(uint8_t *keys, uint16_t delay) {
+    add_alarm_in_ms(
+        delay,
+        (alarm_callback_t)hid_press_multiple_later_callback,
+        keys,
+        true
+    );
+    alarms++;
+}
+
+void hid_release_multiple_later(uint8_t *keys, uint16_t delay) {
+    add_alarm_in_ms(
+        delay,
+        (alarm_callback_t)hid_release_multiple_later_callback,
+        keys,
+        true
+    );
+    alarms++;
+}
+
+void hid_press_later_callback(alarm_id_t alarm, uint8_t key) {
     cancel_alarm(alarm);
-    for(uint8_t i=0; i<4; i++) {
-        if (keys[i] == 0) return;
-        hid_release(keys[i]);
-    }
+    hid_press(key);
+    alarms--;
+}
+
+void hid_release_later_callback(alarm_id_t alarm, uint8_t key) {
+    cancel_alarm(alarm);
+    hid_release(key);
+    alarms--;
+}
+
+void hid_press_multiple_later_callback(alarm_id_t alarm, uint8_t *keys) {
+    cancel_alarm(alarm);
+    hid_press_multiple(keys);
+    alarms--;
+}
+
+void hid_release_multiple_later_callback(alarm_id_t alarm, uint8_t *keys) {
+    cancel_alarm(alarm);
+    hid_release_multiple(keys);
+    alarms--;
 }
 
 void hid_mouse_move(int16_t x, int16_t y) {
     mouse_x += x;
     mouse_y += y;
-    synced_mouse = false;
-}
-
-void hid_mouse_wheel(int8_t z) {
-    mouse_z += z;
     synced_mouse = false;
 }
 
@@ -190,6 +248,9 @@ void hid_mouse_report() {
         report_y = (int8_t)mouse_y;
         mouse_y = 0;
     }
+    uint8_t mouse_z = state_matrix[MOUSE_SCROLL_UP] - state_matrix[MOUSE_SCROLL_DOWN];
+    state_matrix[MOUSE_SCROLL_UP] = 0;
+    state_matrix[MOUSE_SCROLL_DOWN] = 0;
     tud_hid_mouse_report(
         REPORT_MOUSE,
         buttons,
@@ -198,7 +259,6 @@ void hid_mouse_report() {
         mouse_z,
         0
     );
-    mouse_z = 0;
 }
 
 void hid_keyboard_report() {

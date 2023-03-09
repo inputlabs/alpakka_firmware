@@ -95,12 +95,7 @@ void Button__handle_hold_exclusive(Button *self, uint16_t time) {
     if(!pressed) {
         if (self->state) {
             hid_press_multiple(self->actions);
-            add_alarm_in_ms(
-                100,
-                (alarm_callback_t)hid_release_multiple_delayed,
-                self->actions,
-                true
-            );
+            hid_release_multiple_later(self->actions, 100);
             self->state = false;
             return;
         }
@@ -153,18 +148,8 @@ void Button__handle_hold_overlap_early(Button *self) {
         hid_release_multiple(self->actions_secondary);
         uint64_t hold_time_us = CFG_HOLD_OVERLAP_EARLY_TIME * 1000;
         if (time_us_64() < self->hold_timestamp + hold_time_us) {
-            add_alarm_in_ms(
-                10,
-                (alarm_callback_t)hid_press_multiple_delayed,
-                self->actions,
-                true
-            );
-            add_alarm_in_ms(
-                100,
-                (alarm_callback_t)hid_release_multiple_delayed,
-                self->actions,
-                true
-            );
+            hid_press_multiple_later(self->actions, 10);
+            hid_release_multiple_later(self->actions, 100);
         }
         self->state_secondary = false;
         return;
@@ -201,14 +186,10 @@ Button Button_ (
     button.state_secondary = false;
     button.press_timestamp = 0;
     button.hold_timestamp = 0;
-    button.actions[0] = 0;
-    button.actions[1] = 0;
-    button.actions[2] = 0;
-    button.actions[3] = 0;
-    button.actions_secondary[0] = 0;
-    button.actions_secondary[1] = 0;
-    button.actions_secondary[2] = 0;
-    button.actions_secondary[3] = 0;
+    for(uint8_t i=0; i<MACROS_LEN; i++) {
+        button.actions[i] = 0;
+        button.actions_secondary[i] = 0;
+    }
     // Capture varible arguments.
     va_list va;
     va_start(va, 0);

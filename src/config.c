@@ -27,6 +27,7 @@ void config_write(config_nvm_t* config) {
 }
 
 void config_write_init() {
+    // Default values when the config is created for first time.
     config_nvm_t config = {
         .header = NVM_CONFIG_HEADER,
         .config_version = CFG_STRUCT_VERSION,
@@ -34,7 +35,7 @@ void config_write_init() {
         .profile = 1,
         .sensitivity = 0,
         .deadzone = 0,
-        .touch_threshold = 2,
+        .touch_threshold = 0,
         .vibration = 0,
         .ts_offset_x = 0,
         .ts_offset_y = 0,

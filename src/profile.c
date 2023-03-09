@@ -74,7 +74,7 @@ Profile Profile_ () {
 
 void profile_reset_all() {
     config_tune_set_mode(0);
-    for(uint8_t i=0; i<=4; i++) {
+    for(uint8_t i=0; i<=8; i++) {
         profiles[i].reset(&profiles[i]);
     }
 }
@@ -126,12 +126,13 @@ void profile_set_home(bool state) {
 }
 
 void profile_set_active(uint8_t index) {
-    if (index == profile_active_index) return;
-    printf("Profile: Profile %i\n", index);
-    profile_active_index = index;
-    pending_reset = true;
+    if (index != profile_active_index) {
+        printf("Profile: Profile %i\n", index);
+        profile_active_index = index;
+        pending_reset = true;
+        config_set_profile(index);
+    }
     profile_update_leds();
-    config_set_profile(index);
 }
 
 void profile_init() {
@@ -139,7 +140,7 @@ void profile_init() {
     home = Button_(
         PIN_HOME,
         HOLD_OVERLAP_EARLY,
-        ACTIONS(KEY_LEFT_SHIFT, KEY_TAB),
+        ACTIONS(GAMEPAD_HOME),
         ACTIONS(PROC_HOME)
     );
     profiles[0] = profile_init_home();

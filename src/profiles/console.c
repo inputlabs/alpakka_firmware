@@ -10,9 +10,9 @@ Profile profile_init_console() {
     Profile profile = Profile_();
 
     profile.select_1 =   Button_( PIN_SELECT_1,   NORMAL, ACTIONS(GAMEPAD_SELECT) );
-    profile.select_2 =   Button_( PIN_SELECT_2,   NORMAL, ACTIONS(KEY_NONE) );
+    profile.select_2 =   Button_( PIN_SELECT_2,   NORMAL, ACTIONS(KEY_M) );
     profile.start_1 =    Button_( PIN_START_1,    NORMAL, ACTIONS(GAMEPAD_START) );
-    profile.start_2 =    Button_( PIN_START_2,    NORMAL, ACTIONS(KEY_NONE) );
+    profile.start_2 =    Button_( PIN_START_2,    NORMAL, ACTIONS(KEY_N) );
 
     profile.dpad_left =  Button_( PIN_DPAD_LEFT,  NORMAL, ACTIONS(GAMEPAD_LEFT) );
     profile.dpad_right = Button_( PIN_DPAD_RIGHT, NORMAL, ACTIONS(GAMEPAD_RIGHT) );
@@ -34,10 +34,16 @@ Profile profile_init_console() {
     profile.rotary =     Rotary_( 0, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
+        // Deadzone and overlap.
+        DEADZONE_FROM_CONFIG,
+        0.5,
+        // Left and right.
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),
         Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),
+        // Up and down.
         Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
-        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),
+        Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),
+        // Push, inner and outer.
         Button_(PIN_L3, NORMAL, ACTIONS(GAMEPAD_L3)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE))
@@ -57,6 +63,7 @@ Profile profile_init_console() {
 
     profile.gyro = Gyro_(
         GYRO_MODE_TOUCH_ON,
+        PIN_TOUCH_IN,
         ACTIONS(MOUSE_X),
         ACTIONS(MOUSE_Y),
         ACTIONS(KEY_NONE)

@@ -50,10 +50,16 @@ Profile profile_init_desktop() {
     profile.rotary = Rotary_( 0, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
+        // Deadzone and overlap.
+        DEADZONE_FROM_CONFIG,
+        0.5,
+        // Left and right.
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
+        // Up and down.
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
+        // Push, inner and outer.
         Button_(PIN_L3, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE))
@@ -73,6 +79,7 @@ Profile profile_init_desktop() {
 
     profile.gyro = Gyro_(
         GYRO_MODE_TOUCH_ON,
+        PIN_TOUCH_IN,
         ACTIONS(MOUSE_X),
         ACTIONS(MOUSE_Y),
         ACTIONS(KEY_NONE)

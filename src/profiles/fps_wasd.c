@@ -34,10 +34,16 @@ Profile profile_init_fps_wasd() {
     profile.rotary = Rotary_( 0, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
+        // Deadzone and overlap.
+        DEADZONE_FROM_CONFIG,
+        0.5,
+        // Left and right.
         Button_(0, NORMAL, ACTIONS(KEY_A)),
         Button_(0, NORMAL, ACTIONS(KEY_D)),
+        // Up and down.
         Button_(0, NORMAL, ACTIONS(KEY_W)),
         Button_(0, NORMAL, ACTIONS(KEY_S)),
+        // Push, inner and outer.
         Button_(PIN_L3, NORMAL, ACTIONS(KEY_LEFT_SHIFT)),
         Button_(0, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),
         Button_(0, NORMAL, ACTIONS(KEY_RIGHT_BRACKET))
@@ -57,6 +63,7 @@ Profile profile_init_fps_wasd() {
 
     profile.gyro = Gyro_(
         GYRO_MODE_TOUCH_ON,
+        PIN_TOUCH_IN,
         ACTIONS(MOUSE_X),
         ACTIONS(MOUSE_Y),
         ACTIONS(KEY_NONE)
