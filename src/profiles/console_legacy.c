@@ -34,8 +34,9 @@ Profile profile_init_console_legacy() {
     profile.rotary =     Rotary_( 0, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
-        // Deadzone.
+        // Deadzone and overlap.
         DEADZONE_FROM_CONFIG,
+        0.5,
         // Left and right.
         Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),
         Button_(0, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),

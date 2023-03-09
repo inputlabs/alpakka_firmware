@@ -53,8 +53,9 @@ Profile profile_init_home() {
     profile.rotary = Rotary_( 0, ACTIONS(PROC_TUNE_UP), ACTIONS(PROC_TUNE_DOWN) );
 
     profile.thumbstick = Thumbstick_(
-        // Deadzone.
+        // Deadzone and overlap.
         0.25,
+        -0.5,
         // Left and right.
         Button_(0, NORMAL, ACTIONS(PROC_MACRO, KEY_N, KEY_O)),
         Button_(0, NORMAL, ACTIONS(PROC_MACRO, KEY_Y, KEY_E, KEY_S)),

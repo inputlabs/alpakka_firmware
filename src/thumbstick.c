@@ -78,10 +78,12 @@ void Thumbstick__report_4dir(
     if (pos.radius > deadzone) {
         if (pos.radius < CFG_THUMBSTICK_INNER_RADIUS) self->inner.virtual_press = true;
         else self->outer.virtual_press = true;
-        if (is_between(pos.angle, -135, -45)) self->left.virtual_press = true;
-        if (is_between(pos.angle, 45, 135)) self->right.virtual_press = true;
-        if (fabs(pos.angle) < 45) self->up.virtual_press = true;
-        if (fabs(pos.angle) > 135) self->down.virtual_press = true;
+        float cut_0 = 45 * (-self->overlap + 1);
+        float cut_1 = 180 - cut_0;
+        if (is_between(pos.angle, -cut_1, -cut_0)) self->left.virtual_press = true;
+        if (is_between(pos.angle, cut_0, cut_1)) self->right.virtual_press = true;
+        if (fabs(pos.angle) <= 90 - cut_0) self->up.virtual_press = true;
+        if (fabs(pos.angle) >= 90 + cut_0) self->down.virtual_press = true;
     }
     // Report directional virtual buttons.
     if (!is_between(self->left.actions[0],  GAMEPAD_AXIS_INDEX, PROC_INDEX-1)) self->left.report(&self->left);
@@ -174,6 +176,7 @@ void Thumbstick__reset(Thumbstick *self) {
 
 Thumbstick Thumbstick_ (
     float deadzone,
+    float overlap,
     Button left,
     Button right,
     Button up,
@@ -187,6 +190,7 @@ Thumbstick Thumbstick_ (
     thumbstick.report_4dir = Thumbstick__report_4dir;
     thumbstick.reset = Thumbstick__reset;
     thumbstick.deadzone = deadzone;
+    thumbstick.overlap = overlap;
     thumbstick.left = left;
     thumbstick.right = right;
     thumbstick.up = up;

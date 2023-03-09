@@ -34,8 +34,9 @@ Profile profile_init_none() {
     profile.rotary = Rotary_( 0, ACTIONS(KEY_NONE), ACTIONS(KEY_NONE));
 
     profile.thumbstick = Thumbstick_(
-        // Deadzone.
+        // Deadzone and overlap.
         DEADZONE_FROM_CONFIG,
+        0.5,
         // Left and right.
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),
         Button_(0, NORMAL, ACTIONS(KEY_NONE)),

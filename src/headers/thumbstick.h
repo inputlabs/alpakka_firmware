@@ -22,6 +22,7 @@ struct Thumbstick_struct {
     void (*report_4dir) (Thumbstick *self, Thumbstick_position pos, float deadzone);
     void (*reset) (Thumbstick *self);
     float deadzone;
+    float overlap;
     Button left;
     Button right;
     Button up;
@@ -33,6 +34,7 @@ struct Thumbstick_struct {
 
 Thumbstick Thumbstick_ (
     float deadzone,
+    float overlap,
     Button up,
     Button left,
     Button right,
