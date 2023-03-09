@@ -126,12 +126,13 @@ void profile_set_home(bool state) {
 }
 
 void profile_set_active(uint8_t index) {
-    if (index == profile_active_index) return;
-    printf("Profile: Profile %i\n", index);
-    profile_active_index = index;
-    pending_reset = true;
+    if (index != profile_active_index) {
+        printf("Profile: Profile %i\n", index);
+        profile_active_index = index;
+        pending_reset = true;
+        config_set_profile(index);
+    }
     profile_update_leds();
-    config_set_profile(index);
 }
 
 void profile_init() {
