@@ -10,6 +10,7 @@
 
 uint8_t loglevel = 0;
 uint8_t threshold_config = 0;
+uint8_t peak = 0;
 bool touched = false;
 
 void touch_update_threshold() {
@@ -64,13 +65,12 @@ bool touch_status() {
     if (loglevel > 1) {
         static uint16_t x= 0;
         x++;
-        if (!(x % 20)) printf("%i ", timing);
+        if (!(x % 20)) printf("%i %i\n", timing, peak);
     }
 
     // Determine if the surface is considered touched and report.
     static bool touched_prev = false;
     static uint8_t repeated = 0;
-    static uint8_t peak = 0;
     uint8_t threshold = threshold_config;
     if (threshold_config == 0) {
         peak = max(peak, timing);
