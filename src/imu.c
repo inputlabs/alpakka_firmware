@@ -33,7 +33,7 @@ void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
 }
 
 void imu_init() {
-    printf("Config IMU\n");
+    printf("INIT: IMU\n");
     imu_init_single(PIN_SPI_CS0, IMU_CTRL2_G_500);
     imu_init_single(PIN_SPI_CS1, IMU_CTRL2_G_125);
     config_nvm_t config;

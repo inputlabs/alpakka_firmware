@@ -10,7 +10,7 @@
 #include "helper.h"
 
 void bus_i2c_init() {
-    printf("Config I2C bus\n");
+    printf("INIT: I2C bus\n");
     i2c_init(i2c1, I2C_FREQ);
     gpio_set_function(PIN_SDA, GPIO_FUNC_I2C);
     gpio_set_function(PIN_SCL, GPIO_FUNC_I2C);
@@ -50,7 +50,7 @@ void bus_i2c_write(uint8_t device, uint8_t reg, uint8_t value) {
 }
 
 void bus_i2c_io_init() {
-    printf("Config I2C IO\n");
+    printf("INIT: I2C IO\n");
     bus_i2c_write(I2C_IO_0, I2C_IO_REG_POLARITY,   0b11111111);
     bus_i2c_write(I2C_IO_0, I2C_IO_REG_POLARITY+1, 0b11111111);
     bus_i2c_write(I2C_IO_1, I2C_IO_REG_POLARITY,   0b11111111);
@@ -82,7 +82,7 @@ uint16_t bus_i2c_io_get_cache(uint8_t index) {
 }
 
 void bus_spi_init() {
-    printf("Config SPI bus\n");
+    printf("INIT: SPI bus\n");
     spi_init(spi1, SPI_FREQ);
     gpio_set_function(PIN_SPI_CK, GPIO_FUNC_SPI);
     gpio_set_function(PIN_SPI_TX, GPIO_FUNC_SPI);

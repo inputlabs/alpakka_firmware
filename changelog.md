@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.88.1
+- Hotfix for dynamic touch threshold.
+- Dedicated alarm pool for HID (macros).
+
 ## 0.88.0
 - Added dynamic touch threshold logic. While the static threshold presets are kept as legacy options. See [Tune](https://inputlabs.io/alpakka/manual/tune) for details.
 - Profiles can define the gyro engage trigger, can be either the touch surface (default) or any button.

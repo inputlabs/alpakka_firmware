@@ -60,13 +60,12 @@ void thumbstick_calibrate() {
 }
 
 void thumbstick_init() {
-    printf("Thumbstick: Init...\n");
+    printf("INIT: Thumbstick\n");
     adc_init();
     adc_gpio_init(PIN_TX);
     adc_gpio_init(PIN_TY);
     thumbstick_update_offsets();
     thumbstick_update_deadzone();
-    printf("Thumbstick: Init OK\n");
 }
 
 void Thumbstick__report_4dir(

@@ -10,6 +10,7 @@
 
 uint8_t loglevel = 0;
 uint8_t threshold_config = 0;
+uint8_t peak = 0;
 bool touched = false;
 
 void touch_update_threshold() {
@@ -26,14 +27,13 @@ void touch_update_threshold() {
 }
 
 void touch_init() {
-    printf("Config touch: ");
+    printf("INIT: Touch\n");
     gpio_init(PIN_TOUCH_OUT);
     gpio_set_dir(PIN_TOUCH_OUT, GPIO_OUT);
     gpio_init(PIN_TOUCH_IN);
     gpio_set_dir(PIN_TOUCH_IN, GPIO_IN);
     gpio_set_pulls(PIN_TOUCH_IN, false, false);
     touch_update_threshold();
-    printf("completed\n");
 }
 
 bool touch_status() {
@@ -64,13 +64,12 @@ bool touch_status() {
     if (loglevel > 1) {
         static uint16_t x= 0;
         x++;
-        if (!(x % 20)) printf("%i ", timing);
+        if (!(x % 20)) printf("%i %i\n", timing, peak);
     }
 
     // Determine if the surface is considered touched and report.
     static bool touched_prev = false;
     static uint8_t repeated = 0;
-    static uint8_t peak = 0;
     uint8_t threshold = threshold_config;
     if (threshold_config == 0) {
         peak = max(peak, timing);

@@ -136,7 +136,7 @@ void profile_set_active(uint8_t index) {
 }
 
 void profile_init() {
-    printf("Config profiles\n");
+    printf("INIT: Profiles\n");
     home = Button_(
         PIN_HOME,
         HOLD_OVERLAP_EARLY,
