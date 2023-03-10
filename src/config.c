@@ -52,7 +52,7 @@ void config_write_init() {
 void config_print() {
     config_nvm_t config;
     config_read(&config);
-    printf("NVM:\n");
+    printf("NVM: dump\n");
     printf("  config_version=%i\n", config.config_version);
     printf("  os_mode=%i\n", config.os_mode);
     printf("  profile=%i\n", config.profile);
@@ -211,7 +211,7 @@ void config_init() {
     char pico_id[64];
     pico_get_unique_board_id_string(pico_id, 64);
     printf("Pico ID: %s\n", pico_id);
-    printf("Config NVM\n");
+    printf("INIT: Config\n");
     config_nvm_t config;
     config_read(&config);
     if (

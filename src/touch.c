@@ -27,14 +27,13 @@ void touch_update_threshold() {
 }
 
 void touch_init() {
-    printf("Config touch: ");
+    printf("INIT: Touch\n");
     gpio_init(PIN_TOUCH_OUT);
     gpio_set_dir(PIN_TOUCH_OUT, GPIO_OUT);
     gpio_init(PIN_TOUCH_IN);
     gpio_set_dir(PIN_TOUCH_IN, GPIO_IN);
     gpio_set_pulls(PIN_TOUCH_IN, false, false);
     touch_update_threshold();
-    printf("completed\n");
 }
 
 bool touch_status() {

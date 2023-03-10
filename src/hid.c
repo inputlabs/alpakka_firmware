@@ -443,6 +443,6 @@ void hid_thanks() {
 }
 
 void hid_init() {
-    printf("Init HID\n");
+    printf("INIT: HID\n");
     alarm_pool = alarm_pool_create(2, 255);
 }
