@@ -24,7 +24,7 @@ void title() {
     printf("\n");
     printf("╔═══════════════════════════╗\n");
     printf("║ Input Labs Oy.            ║\n");
-    printf("║ Alpakka - firmware 0.88.0 ║\n");
+    printf("║ Alpakka - firmware 0.88.1-beta ║\n");
     printf("╚═══════════════════════════╝\n");
 }
 
@@ -32,6 +32,7 @@ void main_init() {
     stdio_init();
     title();
     config_init();
+    hid_init();
     led_init();
     bus_init();
     thumbstick_init();

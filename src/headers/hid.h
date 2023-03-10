@@ -223,5 +223,6 @@ void hid_gamepad_rx(int16_t value);
 void hid_gamepad_ry(int16_t value);
 void hid_gamepad_rz(int16_t value);
 void hid_report();
+void hid_init();
 
 extern bool hid_allow_communication;

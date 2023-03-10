@@ -14,6 +14,7 @@ bool synced_keyboard = false;
 bool synced_mouse = false;
 bool synced_gamepad = false;
 uint16_t alarms = 0;
+alarm_pool_t *alarm_pool;
 
 uint8_t state_matrix[256] = {0,};
 int16_t mouse_x = 0;
@@ -116,7 +117,8 @@ void hid_release_multiple(uint8_t *keys) {
 }
 
 void hid_press_later(uint8_t key, uint16_t delay) {
-    add_alarm_in_ms(
+    alarm_pool_add_alarm_in_ms(
+        alarm_pool,
         delay,
         (alarm_callback_t)hid_press_later_callback,
         (void*)(uint32_t)key,
@@ -126,7 +128,8 @@ void hid_press_later(uint8_t key, uint16_t delay) {
 }
 
 void hid_release_later(uint8_t key, uint16_t delay) {
-    add_alarm_in_ms(
+    alarm_pool_add_alarm_in_ms(
+        alarm_pool,
         delay,
         (alarm_callback_t)hid_release_later_callback,
         (void*)(uint32_t)key,
@@ -136,7 +139,8 @@ void hid_release_later(uint8_t key, uint16_t delay) {
 }
 
 void hid_press_multiple_later(uint8_t *keys, uint16_t delay) {
-    add_alarm_in_ms(
+    alarm_pool_add_alarm_in_ms(
+        alarm_pool,
         delay,
         (alarm_callback_t)hid_press_multiple_later_callback,
         keys,
@@ -146,7 +150,8 @@ void hid_press_multiple_later(uint8_t *keys, uint16_t delay) {
 }
 
 void hid_release_multiple_later(uint8_t *keys, uint16_t delay) {
-    add_alarm_in_ms(
+    alarm_pool_add_alarm_in_ms(
+        alarm_pool,
         delay,
         (alarm_callback_t)hid_release_multiple_later_callback,
         keys,
@@ -156,25 +161,25 @@ void hid_release_multiple_later(uint8_t *keys, uint16_t delay) {
 }
 
 void hid_press_later_callback(alarm_id_t alarm, uint8_t key) {
-    cancel_alarm(alarm);
+    alarm_pool_cancel_alarm(alarm_pool, alarm);
     hid_press(key);
     alarms--;
 }
 
 void hid_release_later_callback(alarm_id_t alarm, uint8_t key) {
-    cancel_alarm(alarm);
+    alarm_pool_cancel_alarm(alarm_pool, alarm);
     hid_release(key);
     alarms--;
 }
 
 void hid_press_multiple_later_callback(alarm_id_t alarm, uint8_t *keys) {
-    cancel_alarm(alarm);
+    alarm_pool_cancel_alarm(alarm_pool, alarm);
     hid_press_multiple(keys);
     alarms--;
 }
 
 void hid_release_multiple_later_callback(alarm_id_t alarm, uint8_t *keys) {
-    cancel_alarm(alarm);
+    alarm_pool_cancel_alarm(alarm_pool, alarm);
     hid_release_multiple(keys);
     alarms--;
 }
@@ -435,4 +440,9 @@ void hid_thanks_(alarm_id_t alarm) {
 
 void hid_thanks() {
     add_alarm_in_ms(5, (alarm_callback_t)hid_thanks_, NULL, true);
+}
+
+void hid_init() {
+    printf("Init HID\n");
+    alarm_pool = alarm_pool_create(2, 255);
 }
