@@ -4,8 +4,10 @@
 #pragma once
 
 #define CFG_TOUCH_SETTLE 20  // Microseconds.
-#define CFG_TOUCH_TIMEOUT 50  // Microseconds.
-#define CFG_TOUCH_SMOOTH 2
+#define CFG_TOUCH_TIMEOUT 20  // Microseconds.
+#define CFG_TOUCH_SMOOTH 2  // Ticks.
+#define CFG_TOUCH_DYNAMIC_MIN 3 // Microseconds
+#define CFG_TOUCH_DYNAMIC_FACTOR 2
 
 #define CFG_TOUCH_THRESHOLD_0 0  // Automatic.
 #define CFG_TOUCH_THRESHOLD_1 2  // Microseconds.

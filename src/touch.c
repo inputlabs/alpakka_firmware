@@ -11,7 +11,6 @@
 uint8_t loglevel = 0;
 uint8_t threshold_config = 0;
 uint8_t peak = 0;
-bool touched = false;
 
 void touch_update_threshold() {
     config_nvm_t config;
@@ -36,6 +35,31 @@ void touch_init() {
     touch_update_threshold();
 }
 
+uint8_t touch_get_dynamic_threshold(uint8_t timing) {
+    static uint8_t timing_prev = 0;
+    static uint16_t ticks = 0;
+    ticks++;
+    // Lower threshold periodically.
+    uint32_t pushdown_interval = 1200000 / (pow(peak, 4));  // Sorry for the magic numbers,
+    if (!(ticks % pushdown_interval)) {                     // this is experimental.
+        uint8_t peak_candidate = peak - 1;
+        uint8_t peak_min = CFG_TOUCH_DYNAMIC_MIN * CFG_TOUCH_DYNAMIC_FACTOR;
+        if (peak_candidate >= peak_min) {
+            peak = peak_candidate;
+            ticks = 0;
+            if (loglevel >= 2) printf("Touch peak down %i\n", peak);
+        }
+    }
+    // Raise threshold.
+    if (timing > peak && timing_prev > peak) {
+        peak = min(timing, timing_prev);
+        if (loglevel >= 2) printf("Touch peak up %i\n", peak);
+    }
+    // Return.
+    timing_prev = timing;
+    return max(CFG_TOUCH_DYNAMIC_MIN, peak / CFG_TOUCH_DYNAMIC_FACTOR);
+}
+
 bool touch_status() {
     // Send low.
     uint32_t time_low;
@@ -44,7 +68,8 @@ bool touch_status() {
     gpio_put(PIN_TOUCH_OUT, false);
     while(gpio_get(PIN_TOUCH_IN) == true) {
         if ((time_us_32() - time_low) > CFG_TOUCH_TIMEOUT) {
-            return touched;
+            if (loglevel >= 1) printf("Touch send low timeout\n");
+            return true;
         }
     };
     // Send high.
@@ -53,7 +78,8 @@ bool touch_status() {
     gpio_put(PIN_TOUCH_OUT, true);
     while(gpio_get(PIN_TOUCH_IN) == false) {
         if ((time_us_32() - time_low) > CFG_TOUCH_TIMEOUT) {
-            break;
+            if (loglevel >= 1) printf("Touch send high timeout\n");
+            return true;
         }
     };
     // Determine capacitance low-to-high elapsed time.
@@ -61,30 +87,29 @@ bool touch_status() {
     timing = time_us_32() - time_low;
 
     // Debug.
-    if (loglevel > 1) {
+    if (loglevel >= 2) {
         static uint16_t x= 0;
         x++;
         if (!(x % 20)) printf("%i %i\n", timing, peak);
     }
 
     // Determine if the surface is considered touched and report.
-    static bool touched_prev = false;
-    static uint8_t repeated = 0;
+    static bool touched = false;
+    static uint8_t hits = 0;
     uint8_t threshold = threshold_config;
     if (threshold_config == 0) {
-        peak = max(peak, timing);
-        threshold = max(2, peak / 2);
+        threshold = touch_get_dynamic_threshold(timing);
     }
-    touched = (timing >= threshold) || (timing == 0);
-    if (touched != touched_prev) {
-        // Only report change on repeated threshold hits.
-        repeated++;
-        if (repeated >= CFG_TOUCH_SMOOTH) {
-            touched_prev = touched;
-            return touched;
+    bool over = timing >= threshold;
+    if (over != touched) {
+        // Only report change on repeated hits.
+        hits++;
+        if (hits >= CFG_TOUCH_SMOOTH) {
+            touched = over;
+            if (loglevel >= 1) printf("Touch status %i\n", touched);
         }
     } else {
-        repeated = 0;
-        return touched_prev;
+        hits = 0;
     }
+    return touched;
 }
