@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.88.2
+- Dynamic touch threshold improvements:
+  - Do not increase the threshold on sudden inconsistent peaks.
+  - Prevent the threshold from going higher and higher on long gaming sessions.
+
 ## 0.88.1
 - Hotfix for dynamic touch threshold.
 - Dedicated alarm pool for HID (macros).
@@ -44,9 +49,9 @@ _This update requires recalibration._
 - Created `Console Legacy` profile.
 - Any gamepad axis (thumbstick and analog triggers) can be assigned to any button.
 - Gyro as a configurable input in the profiles.
-    - Gyro to mouse mapping can be customized and inverted.
-    - Gyro axis Z is now also available to profiles.
-    - Foundations to assign any action to gyro axis (still not functional).
+  - Gyro to mouse mapping can be customized and inverted.
+  - Gyro axis Z is now also available to profiles.
+  - Foundations to assign any action to gyro axis (still not functional).
 - Gyro modes:
   - `GYRO_MODE_ALWAYS_OFF`
   - `GYRO_MODE_ALWAYS_ON`
