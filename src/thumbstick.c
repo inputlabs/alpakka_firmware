@@ -68,6 +68,19 @@ void thumbstick_init() {
     thumbstick_update_deadzone();
 }
 
+void thumbstick_report_axis(uint8_t axis, float value) {
+    if (axis == GAMEPAD_AXIS_LX) hid_gamepad_lx( value * ANALOG_FACTOR);
+    if (axis == GAMEPAD_AXIS_LY) hid_gamepad_ly(-value * ANALOG_FACTOR);
+    if (axis == GAMEPAD_AXIS_RX) hid_gamepad_rx( value * ANALOG_FACTOR);
+    if (axis == GAMEPAD_AXIS_RY) hid_gamepad_ry(-value * ANALOG_FACTOR);
+    if (axis == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-value * ANALOG_FACTOR);
+    if (axis == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( value * ANALOG_FACTOR);
+    if (axis == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value * ANALOG_FACTOR);
+    if (axis == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( value * ANALOG_FACTOR);
+    if (axis == GAMEPAD_AXIS_LZ) hid_gamepad_lz(max(0, value) * TRIGGER_FACTOR);
+    if (axis == GAMEPAD_AXIS_RZ) hid_gamepad_rz(max(0, value) * TRIGGER_FACTOR);
+}
+
 void Thumbstick__report_4dir(
     Thumbstick *self,
     Thumbstick_position pos,
@@ -97,54 +110,10 @@ void Thumbstick__report_4dir(
     // Report push.
     self->push.report(&self->push);
     // Report axis.
-    if (pos.x < 0) {
-        if (self->left.actions[0] == GAMEPAD_AXIS_LX)     hid_gamepad_lx(-pos.x * ANALOG_FACTOR);
-        if (self->left.actions[0] == GAMEPAD_AXIS_LY)     hid_gamepad_ly( pos.x * ANALOG_FACTOR);
-        if (self->left.actions[0] == GAMEPAD_AXIS_RX)     hid_gamepad_rx(-pos.x * ANALOG_FACTOR);
-        if (self->left.actions[0] == GAMEPAD_AXIS_RY)     hid_gamepad_ry( pos.x * ANALOG_FACTOR);
-        if (self->left.actions[0] == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx( pos.x * ANALOG_FACTOR);
-        if (self->left.actions[0] == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly(-pos.x * ANALOG_FACTOR);
-        if (self->left.actions[0] == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx( pos.x * ANALOG_FACTOR);
-        if (self->left.actions[0] == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry(-pos.x * ANALOG_FACTOR);
-        if (self->left.actions[0] == GAMEPAD_AXIS_LZ)     hid_gamepad_lz(max(0, -pos.x) * TRIGGER_FACTOR);
-        if (self->left.actions[0] == GAMEPAD_AXIS_RZ)     hid_gamepad_rz(max(0, -pos.x) * TRIGGER_FACTOR);
-    }
-    if (pos.x > 0) {
-        if (self->right.actions[0] == GAMEPAD_AXIS_LX)     hid_gamepad_lx( pos.x * ANALOG_FACTOR);
-        if (self->right.actions[0] == GAMEPAD_AXIS_LY)     hid_gamepad_ly(-pos.x * ANALOG_FACTOR);
-        if (self->right.actions[0] == GAMEPAD_AXIS_RX)     hid_gamepad_rx( pos.x * ANALOG_FACTOR);
-        if (self->right.actions[0] == GAMEPAD_AXIS_RY)     hid_gamepad_ry(-pos.x * ANALOG_FACTOR);
-        if (self->right.actions[0] == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-pos.x * ANALOG_FACTOR);
-        if (self->right.actions[0] == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( pos.x * ANALOG_FACTOR);
-        if (self->right.actions[0] == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-pos.x * ANALOG_FACTOR);
-        if (self->right.actions[0] == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( pos.x * ANALOG_FACTOR);
-        if (self->right.actions[0] == GAMEPAD_AXIS_LZ)     hid_gamepad_lz(max(0, pos.x) * TRIGGER_FACTOR);
-        if (self->right.actions[0] == GAMEPAD_AXIS_RZ)     hid_gamepad_rz(max(0, pos.x) * TRIGGER_FACTOR);
-    }
-    if (pos.y < 0) {
-        if (self->up.actions[0] == GAMEPAD_AXIS_LX)     hid_gamepad_lx(-pos.y * ANALOG_FACTOR);
-        if (self->up.actions[0] == GAMEPAD_AXIS_LY)     hid_gamepad_ly( pos.y * ANALOG_FACTOR);
-        if (self->up.actions[0] == GAMEPAD_AXIS_RX)     hid_gamepad_rx(-pos.y * ANALOG_FACTOR);
-        if (self->up.actions[0] == GAMEPAD_AXIS_RY)     hid_gamepad_ry( pos.y * ANALOG_FACTOR);
-        if (self->up.actions[0] == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx( pos.y * ANALOG_FACTOR);
-        if (self->up.actions[0] == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly(-pos.y * ANALOG_FACTOR);
-        if (self->up.actions[0] == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx( pos.y * ANALOG_FACTOR);
-        if (self->up.actions[0] == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry(-pos.y * ANALOG_FACTOR);
-        if (self->up.actions[0] == GAMEPAD_AXIS_LZ)     hid_gamepad_lz(max(0, -pos.y) * TRIGGER_FACTOR);
-        if (self->up.actions[0] == GAMEPAD_AXIS_RZ)     hid_gamepad_rz(max(0, -pos.y) * TRIGGER_FACTOR);
-    }
-    if (pos.y > 0) {
-        if (self->down.actions[0] == GAMEPAD_AXIS_LX)     hid_gamepad_lx( pos.y * ANALOG_FACTOR);
-        if (self->down.actions[0] == GAMEPAD_AXIS_LY)     hid_gamepad_ly(-pos.y * ANALOG_FACTOR);
-        if (self->down.actions[0] == GAMEPAD_AXIS_RX)     hid_gamepad_rx( pos.y * ANALOG_FACTOR);
-        if (self->down.actions[0] == GAMEPAD_AXIS_RY)     hid_gamepad_ry(-pos.y * ANALOG_FACTOR);
-        if (self->down.actions[0] == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-pos.y * ANALOG_FACTOR);
-        if (self->down.actions[0] == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( pos.y * ANALOG_FACTOR);
-        if (self->down.actions[0] == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-pos.y * ANALOG_FACTOR);
-        if (self->down.actions[0] == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( pos.y * ANALOG_FACTOR);
-        if (self->down.actions[0] == GAMEPAD_AXIS_LZ)     hid_gamepad_lz(max(0, pos.y) * TRIGGER_FACTOR);
-        if (self->down.actions[0] == GAMEPAD_AXIS_RZ)     hid_gamepad_rz(max(0, pos.y) * TRIGGER_FACTOR);
-    }
+    if (pos.x < 0) thumbstick_report_axis(self->left.actions[0],  -pos.x);
+    if (pos.x > 0) thumbstick_report_axis(self->right.actions[0],  pos.x);
+    if (pos.y < 0) thumbstick_report_axis(self->up.actions[0],    -pos.y);
+    if (pos.y > 0) thumbstick_report_axis(self->down.actions[0],   pos.y);
 }
 
 void Thumbstick__report(Thumbstick *self) {
