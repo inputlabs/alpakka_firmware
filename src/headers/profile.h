@@ -63,3 +63,4 @@ Profile profile_init_desktop();
 
 extern bool profile_led_lock;
 extern bool profile_pending_reboot;
+extern bool lock_abxy;  // TODO: Experimental.

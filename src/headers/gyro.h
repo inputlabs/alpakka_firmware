@@ -3,13 +3,14 @@
 
 #pragma once
 
-#define GYRO_MODE_ALWAYS_OFF 0
-#define GYRO_MODE_ALWAYS_ON 1
-#define GYRO_MODE_TOUCH_OFF 2
-#define GYRO_MODE_TOUCH_ON 3
+typedef enum GyroMode_enum {
+    GYRO_MODE_ALWAYS_OFF,
+    GYRO_MODE_ALWAYS_ON,
+    GYRO_MODE_TOUCH_OFF,
+    GYRO_MODE_TOUCH_ON,
+} GyroMode;
 
 typedef struct Gyro_struct Gyro;
-
 struct Gyro_struct {
     bool (*is_engaged) (Gyro *self);
     void (*report) (Gyro *self);

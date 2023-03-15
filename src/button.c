@@ -9,9 +9,10 @@
 #include "profile.h"
 #include "hid.h"
 #include "bus.h"
+#include "pin.h"
 
 bool Button__is_pressed(Button *self) {
-    if (self->pin == 0) {
+    if (self->pin == PIN_VIRTUAL) {
         if (self->virtual_press) {
             self->virtual_press = false;
             return true;
@@ -165,7 +166,7 @@ Button Button_ (
     uint8_t behavior,
     ...  // Actions.
 ) {
-    if (pin) {
+    if (pin != PIN_NONE && pin != PIN_VIRTUAL) {
         gpio_init(pin);
         gpio_set_dir(pin, GPIO_IN);
         gpio_pull_up(pin);

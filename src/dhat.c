@@ -20,7 +20,7 @@ void Dhat__report(Dhat *self) {
     bool push = self->push.is_pressed(&self->push);
     // Debounce.
     if (left || right || up || down || push) {
-        if (time_us_64() <= self->timestamp + CFG_DHAT_DEBOUNCE_TIME*1000) {
+        if (time_us_64() <= self->timestamp + CFG_DHAT_DEBOUNCE_TIME * 1000) {
             return;
         }
         self->timestamp = time_us_64();
@@ -64,15 +64,15 @@ void Dhat__reset(Dhat *self) {
 }
 
 Dhat Dhat_ (
-    Button up_left,
-    Button up_center,
-    Button up_right,
     Button mid_left,
-    Button mid_center,
     Button mid_right,
-    Button down_left,
+    Button up_center,
     Button down_center,
-    Button down_right
+    Button up_left,
+    Button up_right,
+    Button down_left,
+    Button down_right,
+    Button mid_center
 ) {
     Dhat dhat;
     dhat.report = Dhat__report;

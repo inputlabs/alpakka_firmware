@@ -65,7 +65,7 @@ void Rotary__reset(Rotary *self) {
 }
 
 Rotary Rotary_ (
-    uint8_t useless,
+    void *useless,
     ...  // Actions
 ) {
     Rotary rotary;

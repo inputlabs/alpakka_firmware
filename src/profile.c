@@ -18,6 +18,9 @@ bool pending_reset = false;
 bool home_is_active = false;
 Button home;
 
+// TODO: Experimental.
+bool lock_abxy = false;
+
 void Profile__report(Profile *self) {
     bus_i2c_io_update_cache();
     home.report(&home);
@@ -25,10 +28,12 @@ void Profile__report(Profile *self) {
     self->select_2.report(&self->select_2);
     self->start_2.report(&self->start_1);
     self->start_1.report(&self->start_2);
-    self->a.report(&self->a);
-    self->b.report(&self->b);
-    self->x.report(&self->x);
-    self->y.report(&self->y);
+    if (!lock_abxy) {
+        self->a.report(&self->a);
+        self->b.report(&self->b);
+        self->x.report(&self->x);
+        self->y.report(&self->y);
+    }
     self->dpad_left.report(&self->dpad_left);
     self->dpad_right.report(&self->dpad_right);
     self->dpad_up.report(&self->dpad_up);
