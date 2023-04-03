@@ -110,10 +110,10 @@ void Thumbstick__report_4dir(
     // Report push.
     self->push.report(&self->push);
     // Report axis.
-    if (pos.x < 0) thumbstick_report_axis(self->left.actions[0],  -pos.x);
-    if (pos.x > 0) thumbstick_report_axis(self->right.actions[0],  pos.x);
-    if (pos.y < 0) thumbstick_report_axis(self->up.actions[0],    -pos.y);
-    if (pos.y > 0) thumbstick_report_axis(self->down.actions[0],   pos.y);
+    if (pos.x < 0) thumbstick_report_axis(self->left.actions[0],   -pos.x);
+    if (pos.x >= 0) thumbstick_report_axis(self->right.actions[0],  pos.x);
+    if (pos.y < 0) thumbstick_report_axis(self->up.actions[0],     -pos.y);
+    if (pos.y >= 0) thumbstick_report_axis(self->down.actions[0],   pos.y);
 }
 
 void Thumbstick__report(Thumbstick *self) {
