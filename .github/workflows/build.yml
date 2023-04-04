@@ -3,7 +3,7 @@ name: Firmware Build
 on:
   push:
     branches:
-      - build-action
+      - main
 
 jobs:
   build:
@@ -50,7 +50,7 @@ jobs:
           Commit:
           ${GITHUB_SHA}
 
-          Checksum: (
+          Checksum:
           \$ shasum alpakka.uf2
           $(cat alpakka.uf2 | shasum | head -c 40)
 
