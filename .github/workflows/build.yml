@@ -59,10 +59,21 @@ jobs:
           mkdir -p build
           cd build && cmake .. && make
           ls -l
-          md5sum alpakka.uf2
+          shasum alpakka.uf2
+          echo -e "\
+            =================================
+            This firmware build was automated
+            =================================
+            Tag: $(GITHUB_REF)
+            Commit: ${GITHUB_SHA}
+            Checksum (shasum): $(cat alpakka.uf2 | shasum)
+            Job: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+            " > metadata.txt
 
       - name: Upload build
         uses: actions/upload-artifact@v3
         with:
-          name: alpakka
-          path: build/alpakka.uf2
+          name: alpakka_firmware_artifacts
+          path: |
+            build/alpakka.uf2
+            build/metadata.txt
