@@ -2,7 +2,8 @@ name: Firmware Build
 
 on:
   push:
-  pull_request:
+    branches:
+      - build-action
 
 jobs:
   build:
@@ -11,6 +12,7 @@ jobs:
     env:
       PICO_SDK_URL: https://github.com/raspberrypi/pico-sdk.git
       PICO_SDK_VERSION: 1.3.1
+      PICO_DIR: pico-sdk
       ARM_URL_COMMON: https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10
       ARM_FILENAME_LINUX: gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
       ARM_DIR: arm-toolchain
@@ -19,7 +21,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Clone Raspberry Pi Pico SDK and submodules
+      - name: Cache Raspberry Pi Pico SDK
+        id: cache-pico-sdk
+        uses: actions/cache@v3
+        with:
+          path: deps/${{ env.ARM_DIR }}/
+          key: ${{ env.PICO_SDK_URL }}_${{ env.PICO_SDK_VERSION }}
+
+      - name: Clone Raspberry Pi Pico SDK
+        if: ${{ steps.cache-pico-sdk.outputs.cache-hit != 'true' }}
         run: |
           mkdir deps
           cd deps
@@ -29,14 +39,14 @@ jobs:
           git submodule update --depth 1
 
       - name: Cache the ARM toolchain
-        id: cache-toolchain
+        id: cache-arm-toolchain
         uses: actions/cache@v3
         with:
           path: deps/${{ env.ARM_DIR }}/
-          key: ${{ env.ARM_URL_COMMON }}/${{ env.ARM_FILENAME_LINUX }}
+          key: ${{ env.ARM_FILENAME_LINUX }}
 
-      - if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' }}
-        name: Download and install the ARM toolchain
+      - name: Download the ARM toolchain
+        if: ${{ steps.cache-arm-toolchain.outputs.cache-hit != 'true' }}
         run: |
           cd deps
           wget --progress=dot:giga ${ARM_URL_COMMON}/${ARM_FILENAME_LINUX}
@@ -44,13 +54,11 @@ jobs:
           tar jxf ${ARM_FILENAME_LINUX} --directory ${ARM_DIR} --strip-components 1
           rm ${ARM_FILENAME_LINUX}
 
-      - name: Configure CMake
-        run: cmake -B build
-
       - name: Build
         run: |
-          cmake --build build
-          ls -l build
+          mkdir -p build
+          cd build && cmake .. && make
+          ls -l
 
       - name: Upload build
         uses: actions/upload-artifact@v3
