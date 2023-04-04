@@ -26,6 +26,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: deps/
+          # Unique identifier by concatenation.
           key: ${{ env.SDK_URL }}_${{ env.SDK_TAG }}_${{ env.ARM_FILENAME_LINUX }}
 
       - name: Dependencies from internet
@@ -49,8 +50,9 @@ jobs:
           Commit:
           ${GITHUB_SHA}
 
-          Checksum (shasum alpakka.uf2):
-          $(cat alpakka.uf2 | shasum)
+          Checksum: (
+          \$ shasum alpakka.uf2
+          $(cat alpakka.uf2 | shasum | head -c 40)
 
           Job:
           ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
