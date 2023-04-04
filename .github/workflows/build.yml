@@ -59,6 +59,7 @@ jobs:
           mkdir -p build
           cd build && cmake .. && make
           ls -l
+          md5sum alpakka.uf2
 
       - name: Upload build
         uses: actions/upload-artifact@v3
