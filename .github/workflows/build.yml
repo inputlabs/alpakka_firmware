@@ -39,14 +39,22 @@ jobs:
           ls -l
           shasum alpakka.uf2
           echo -e "\
-            =================================
-            This firmware build was automated
-            =================================
-            Tag:               ${GITHUB_REF}
-            Commit:            ${GITHUB_SHA}
-            Checksum (shasum): $(cat alpakka.uf2 | shasum)
-            Job:               ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-            " > metadata.txt
+          =================================
+          This firmware build was automated
+          =================================
+
+          Branch / Tag:
+          ${GITHUB_REF}
+
+          Commit:
+          ${GITHUB_SHA}
+
+          Checksum (shasum alpakka.uf2):
+          $(cat alpakka.uf2 | shasum)
+
+          Job:
+          ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          " > metadata.txt
 
       - name: Upload build
         uses: actions/upload-artifact@v3
