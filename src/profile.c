@@ -140,6 +140,11 @@ void profile_set_active(uint8_t index) {
     profile_update_leds();
 }
 
+// TODO: Experimental.
+void profile_lock_abxy(bool value) {
+    lock_abxy = value;
+}
+
 void profile_init() {
     printf("INIT: Profiles\n");
     home = Button_(

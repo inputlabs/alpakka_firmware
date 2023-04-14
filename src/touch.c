@@ -8,7 +8,7 @@
 #include "pin.h"
 #include "helper.h"
 
-uint8_t loglevel = 2;
+uint8_t loglevel = 0;
 uint8_t threshold_config = 0;
 uint8_t peak = 0;
 

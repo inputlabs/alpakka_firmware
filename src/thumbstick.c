@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <string.h>
 #include <pico/stdlib.h>
 #include <hardware/adc.h>
 #include "config.h"
@@ -170,18 +169,13 @@ uint8_t glyphs[32][8] = {
 };
 
 // TODO: Experimental.
-bool thumbstick_glyph_match(Dir4 *input, uint8_t *glyph) {
-    for(uint8_t i=0; i<8; i++) {
-        if (input[i] == glyph[i+1]) {
-            continue;
-        } else {
-            if (input[i] == 0 && glyph[i+1] == SENTINEL) {
-                hid_press(glyph[0]);
-                hid_release_later(glyph[0], 100);
-                return true;
-            } else {
-                break;
-            }
+bool thumbstick_glyph_match(uint8_t len, Dir4 *input, uint8_t *glyph) {
+    for(uint8_t i=0; i<len; i++) {
+        if (input[i] != glyph[i+1]) break;
+        if (i+1==len && glyph[i+2] == SENTINEL) {
+            hid_press(glyph[0]);
+            hid_release_later(glyph[0], 100);
+            return true;
         }
     }
     return false;
@@ -197,13 +191,12 @@ void set_daisy(uint8_t key_a, uint8_t key_b, uint8_t key_x, uint8_t key_y) {
 
 // TODO: Experimental.
 void Thumbstick__report_glyph(Thumbstick *self, ThumbstickPosition pos) {
-    // Glyph-stick + daisy implementation.
     static Dir4 input[8] = {0,};
     static uint8_t input_index = 0;
     Dir4 dir4 = 0;
     Dir8 dir8 = 0;
     if (pos.radius > 0.7) {
-        lock_abxy = true;
+        profile_lock_abxy(true);
         // Detect direction 4.
         if      (is_between(pos.angle, -CUT4_, -CUT4)) dir4 = DIR4_LEFT;
         else if (is_between(pos.angle,  CUT4,  CUT4_)) dir4 = DIR4_RIGHT;
@@ -237,15 +230,13 @@ void Thumbstick__report_glyph(Thumbstick *self, ThumbstickPosition pos) {
             // Glyph-stick match.
             if (!daisy_used) {
                 for(uint8_t i=0; i<32; i++) {
-                    if (thumbstick_glyph_match(input, glyphs[i])) break;
+                    if (thumbstick_glyph_match(input_index, input, glyphs[i])) break;
                 }
             }
-            // Glyph-stick reset.
-            memset(input, 0, sizeof(input));
             input_index = 0;
             // Daisywheel reset.
             daisy_used = false;
-            lock_abxy = false;
+            profile_lock_abxy(false);
         }
     }
 }
