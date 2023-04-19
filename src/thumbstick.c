@@ -218,12 +218,12 @@ void Thumbstick__report_glyph(Thumbstick *self, ThumbstickPosition pos) {
         }
         // Report daisy keyboard.
         if      (dir8 == DIR8_UP)         set_daisy(KEY_A, KEY_B, KEY_C, KEY_D);
-        else if (dir8 == DIR8_UP_RIGHT)   set_daisy(KEY_E, KEY_H, KEY_G, KEY_F);
-        else if (dir8 == DIR8_RIGHT)      set_daisy(KEY_O, KEY_N, KEY_M, KEY_NONE);
+        else if (dir8 == DIR8_UP_RIGHT)   set_daisy(KEY_E, KEY_F, KEY_G, KEY_H);
+        else if (dir8 == DIR8_RIGHT)      set_daisy(KEY_O, KEY_M, KEY_N, KEY_NONE);
         else if (dir8 == DIR8_DOWN_RIGHT) set_daisy(KEY_W, KEY_Z, KEY_X, KEY_Y);
         else if (dir8 == DIR8_DOWN)       set_daisy(KEY_U, KEY_T, KEY_V, KEY_NONE);
-        else if (dir8 == DIR8_DOWN_LEFT)  set_daisy(KEY_S, KEY_R, KEY_P, KEY_Q);
-        else if (dir8 == DIR8_LEFT)       set_daisy(KEY_I, KEY_L, KEY_J, KEY_K);
+        else if (dir8 == DIR8_DOWN_LEFT)  set_daisy(KEY_P, KEY_Q, KEY_R, KEY_S);
+        else if (dir8 == DIR8_LEFT)       set_daisy(KEY_I, KEY_J, KEY_K, KEY_L);
         else if (dir8 == DIR8_UP_LEFT)    set_daisy(KEY_COMMA, KEY_PERIOD, KEY_NONE, KEY_NONE);
     } else {
         if (input_index > 0) {
