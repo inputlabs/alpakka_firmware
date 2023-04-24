@@ -39,9 +39,9 @@ void main_init() {
     stdio_init();
     title();
     config_init();
+    bus_init();
     hid_init();
     led_init();
-    bus_init();
     thumbstick_init();
     touch_init();
     rotary_init();
