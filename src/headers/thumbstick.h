@@ -31,10 +31,10 @@ typedef enum Dir4_enum {
 
 typedef enum Dir8_enum {
     DIR8_CENTER,
-    DIR8_UP,
-    DIR8_DOWN,
     DIR8_LEFT,
     DIR8_RIGHT,
+    DIR8_UP,
+    DIR8_DOWN,
     DIR8_UP_LEFT,
     DIR8_UP_RIGHT,
     DIR8_DOWN_LEFT,
@@ -47,6 +47,8 @@ struct Thumbstick_struct {
     void (*report_4dir) (Thumbstick *self, ThumbstickPosition pos, float deadzone);
     void (*report_glyph) (Thumbstick *self, ThumbstickPosition pos);
     void (*reset) (Thumbstick *self);
+    void (*config_daisywheel) (Thumbstick *self, ...);
+    void (*report_daisywheel) (Thumbstick *self, Dir8 dir);
     ThumbstickMode mode;
     float deadzone;
     float overlap;
@@ -57,6 +59,7 @@ struct Thumbstick_struct {
     Button push;
     Button inner;
     Button outer;
+    uint8_t daisywheel[8][4][4];
 };
 
 Thumbstick Thumbstick_ (
@@ -76,4 +79,3 @@ void thumbstick_init();
 void thumbstick_report();
 void thumbstick_calibrate();
 void thumbstick_update_deadzone();
-void thumbstick_swap_keyboard();  // TODO: Exprerimental.

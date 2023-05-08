@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <pico/stdlib.h>
+#include <stdarg.h>
 #include <hardware/adc.h>
 #include "config.h"
 #include "pin.h"
@@ -18,10 +19,7 @@ float offset_x = 0;
 float offset_y = 0;
 float config_deadzone = 0;
 
-// TODO: Experimental.
-float CUT4 = 45;
-float CUT4_ = 135;  // 180 - 45
-float CUT8 = 22.5;
+// Alphanumeric.
 bool daisy_used = false;
 Button daisy_a;
 Button daisy_b;
@@ -181,25 +179,76 @@ bool thumbstick_glyph_match(uint8_t len, Dir4 *input, uint8_t *glyph) {
     return false;
 }
 
-// TODO: Experimental.
-void set_daisy(uint8_t key_a, uint8_t key_b, uint8_t key_x, uint8_t key_y) {
-    if      (daisy_a.is_pressed(&daisy_a)) {hid_press(key_a); hid_release_later(key_a, 10); daisy_used=true;}
-    else if (daisy_b.is_pressed(&daisy_b)) {hid_press(key_b); hid_release_later(key_b, 10); daisy_used=true;}
-    else if (daisy_x.is_pressed(&daisy_x)) {hid_press(key_x); hid_release_later(key_x, 10); daisy_used=true;}
-    else if (daisy_y.is_pressed(&daisy_y)) {hid_press(key_y); hid_release_later(key_y, 10); daisy_used=true;}
+void Thumbstick__config_daisywheel(Thumbstick *self, ...) {
+    va_list va;
+    va_start(va, 0);
+    uint8_t dir_index = 0;
+    uint8_t button_index = 0;
+    uint8_t action_index = 0;
+    for(uint8_t i=0; true; i++) {
+        if (action_index >= 4) {
+            action_index = 0;
+            button_index += 1;
+        }
+        if (button_index >= 4) {
+            button_index = 0;
+            dir_index += 1;
+        }
+        if (dir_index >= 8) break;
+        uint8_t value = va_arg(va, int);
+        if (value != SENTINEL) {
+            self->daisywheel[dir_index][button_index][action_index] = value;
+            action_index += 1;
+        } else {
+            for(uint8_t j=action_index; j<4; j++) {
+                // Init all remaining slots to avoid undefined behavior.
+                self->daisywheel[dir_index][button_index][j] = 0;
+            }
+            action_index = 0;
+            button_index += 1;
+        }
+    }
+    va_end(va);
+}
+
+void Thumbstick__report_daisywheel(Thumbstick *self, Dir8 dir) {
+    dir -= 1;  // Shift zero since not using center direction here.
+    if (daisy_a.is_pressed(&daisy_a)) {
+        hid_press_multiple(self->daisywheel[dir][0]);
+        hid_release_multiple_later(self->daisywheel[dir][0], 10);
+        daisy_used=true;
+    }
+    else if (daisy_b.is_pressed(&daisy_b)) {
+        hid_press_multiple(self->daisywheel[dir][1]);
+        hid_release_multiple_later(self->daisywheel[dir][1], 10);
+        daisy_used=true;
+    }
+    else if (daisy_x.is_pressed(&daisy_x)) {
+        hid_press_multiple(self->daisywheel[dir][2]);
+        hid_release_multiple_later(self->daisywheel[dir][2], 10);
+        daisy_used=true;
+    }
+    else if (daisy_y.is_pressed(&daisy_y)) {
+        hid_press_multiple(self->daisywheel[dir][3]);
+        hid_release_multiple_later(self->daisywheel[dir][3], 10);
+        daisy_used=true;
+    }
 }
 
 // TODO: Experimental.
 void Thumbstick__report_glyph(Thumbstick *self, ThumbstickPosition pos) {
     static Dir4 input[8] = {0,};
     static uint8_t input_index = 0;
+    static float CUT4 = 45;
+    static float CUT4X = 135;  // 180-45
+    static float CUT8 = 22.5;
     Dir4 dir4 = 0;
     Dir8 dir8 = 0;
     if (pos.radius > 0.7) {
         profile_lock_abxy(true);
         // Detect direction 4.
-        if      (is_between(pos.angle, -CUT4_, -CUT4)) dir4 = DIR4_LEFT;
-        else if (is_between(pos.angle,  CUT4,  CUT4_)) dir4 = DIR4_RIGHT;
+        if      (is_between(pos.angle, -CUT4X, -CUT4)) dir4 = DIR4_LEFT;
+        else if (is_between(pos.angle,  CUT4,  CUT4X)) dir4 = DIR4_RIGHT;
         else if (fabs(pos.angle) <= 90 - CUT4)         dir4 = DIR4_UP;
         else if (fabs(pos.angle) >= 90 + CUT4)         dir4 = DIR4_DOWN;
         // Detect direction 8.
@@ -210,21 +259,14 @@ void Thumbstick__report_glyph(Thumbstick *self, ThumbstickPosition pos) {
         else if (is_between(pos.angle, -CUT8*7, -CUT8*5)) dir8 = DIR8_DOWN_LEFT;
         else if (is_between(pos.angle, -CUT8*5, -CUT8*3)) dir8 = DIR8_LEFT;
         else if (is_between(pos.angle, -CUT8*3, -CUT8*1)) dir8 = DIR8_UP_LEFT;
-        else if (fabs(pos.angle) >= CUT8*7)              dir8 = DIR4_DOWN;
+        else if (fabs(pos.angle) >= CUT8*7)               dir8 = DIR8_DOWN;
         // Record direction 4.
         if (input_index == 0 || dir4 != input[input_index-1]) {
             input[input_index] = dir4;
             input_index += 1;
         }
         // Report daisy keyboard.
-        if      (dir8 == DIR8_UP)         set_daisy(KEY_A, KEY_B, KEY_C, KEY_D);
-        else if (dir8 == DIR8_UP_RIGHT)   set_daisy(KEY_E, KEY_F, KEY_G, KEY_H);
-        else if (dir8 == DIR8_RIGHT)      set_daisy(KEY_O, KEY_M, KEY_N, KEY_NONE);
-        else if (dir8 == DIR8_DOWN_RIGHT) set_daisy(KEY_W, KEY_Z, KEY_X, KEY_Y);
-        else if (dir8 == DIR8_DOWN)       set_daisy(KEY_U, KEY_T, KEY_V, KEY_NONE);
-        else if (dir8 == DIR8_DOWN_LEFT)  set_daisy(KEY_P, KEY_Q, KEY_R, KEY_S);
-        else if (dir8 == DIR8_LEFT)       set_daisy(KEY_I, KEY_J, KEY_K, KEY_L);
-        else if (dir8 == DIR8_UP_LEFT)    set_daisy(KEY_COMMA, KEY_PERIOD, KEY_NONE, KEY_NONE);
+        self->report_daisywheel(self, dir8);
     } else {
         if (input_index > 0) {
             // Glyph-stick match.
@@ -287,6 +329,8 @@ Thumbstick Thumbstick_ (
     thumbstick.report_4dir = Thumbstick__report_4dir;
     thumbstick.report_glyph = Thumbstick__report_glyph;
     thumbstick.reset = Thumbstick__reset;
+    thumbstick.config_daisywheel = Thumbstick__config_daisywheel;
+    thumbstick.report_daisywheel = Thumbstick__report_daisywheel;
     thumbstick.deadzone = deadzone;
     thumbstick.overlap = overlap;
     thumbstick.left = left;

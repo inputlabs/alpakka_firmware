@@ -46,6 +46,19 @@ Profile profile_init_desktop() {
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE))   // Outer.
     );
 
+    profile.thumbstick.config_daisywheel(
+        &profile.thumbstick,
+        ACTIONS(KEY_I), ACTIONS(KEY_J), ACTIONS(KEY_K), ACTIONS(KEY_L),      // Left.
+        ACTIONS(KEY_O), ACTIONS(KEY_M), ACTIONS(KEY_N), ACTIONS(KEY_NONE),   // Right.
+        ACTIONS(KEY_A), ACTIONS(KEY_B), ACTIONS(KEY_C), ACTIONS(KEY_D),      // Up.
+        ACTIONS(KEY_U), ACTIONS(KEY_T), ACTIONS(KEY_V), ACTIONS(KEY_NONE),   // Down.
+        ACTIONS(KEY_COMMA), ACTIONS(KEY_PERIOD),                             // ↖
+        ACTIONS(KEY_LEFT_SHIFT, KEY_2), ACTIONS(KEY_LEFT_SHIFT, KEY_SLASH),
+        ACTIONS(KEY_E), ACTIONS(KEY_F), ACTIONS(KEY_G), ACTIONS(KEY_H),      // ↗
+        ACTIONS(KEY_P), ACTIONS(KEY_Q), ACTIONS(KEY_R), ACTIONS(KEY_S),      // ↙
+        ACTIONS(KEY_W), ACTIONS(KEY_Z), ACTIONS(KEY_X), ACTIONS(KEY_Y)       // ↘
+    );
+
     profile.dhat = Dhat_(
         // Emulating a numeric keypad.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_4)),  // Left.
