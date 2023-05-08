@@ -34,9 +34,9 @@ Profile profile_init_fps_fusion() {
     profile.rotary = Rotary_(NULL, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
-        THUMBSTICK_MODE_4DIR,  // Mode.
-        DEADZONE_FROM_CONFIG,  // Deadzone.
-        0.5,                   // Overlap.
+        THUMBSTICK_MODE_4DIR,                                        // Mode.
+        DEADZONE_FROM_CONFIG,                                        // Deadzone.
+        0.5,                                                         // Overlap.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),  // Left.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),      // Right.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),      // Up.

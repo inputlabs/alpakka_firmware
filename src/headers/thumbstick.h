@@ -7,11 +7,12 @@
 #define ANALOG_FACTOR 32767
 #define TRIGGER_FACTOR 255
 #define DEADZONE_FROM_CONFIG -1
+#define GLYPH(...)  __VA_ARGS__, SENTINEL
 
 typedef enum ThumbstickMode_enum {
     THUMBSTICK_MODE_OFF,
     THUMBSTICK_MODE_4DIR,
-    THUMBSTICK_MODE_GLYPH,
+    THUMBSTICK_MODE_ALPHANUMERIC,
 } ThumbstickMode;
 
 typedef struct ThumbstickPosition_struct {
@@ -45,8 +46,10 @@ typedef struct Thumbstick_struct Thumbstick;
 struct Thumbstick_struct {
     void (*report) (Thumbstick *self);
     void (*report_4dir) (Thumbstick *self, ThumbstickPosition pos, float deadzone);
-    void (*report_glyph) (Thumbstick *self, ThumbstickPosition pos);
+    void (*report_alphanumeric) (Thumbstick *self, ThumbstickPosition pos);
     void (*reset) (Thumbstick *self);
+    void (*config_glyphstick) (Thumbstick *self, ...);
+    void (*report_glyphstick) (Thumbstick *self, uint8_t len, Dir4 *input);
     void (*config_daisywheel) (Thumbstick *self, ...);
     void (*report_daisywheel) (Thumbstick *self, Dir8 dir);
     ThumbstickMode mode;
@@ -59,6 +62,8 @@ struct Thumbstick_struct {
     Button push;
     Button inner;
     Button outer;
+    uint8_t glyphstick_glyphs[64][8];
+    uint8_t glyphstick_actions[64][4];
     uint8_t daisywheel[8][4][4];
 };
 

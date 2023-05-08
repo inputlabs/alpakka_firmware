@@ -5,6 +5,7 @@
 #include "hid.h"
 #include "button.h"
 #include "profile.h"
+#include "thumbstick.h"
 
 Profile profile_init_desktop() {
     Profile profile = Profile_();
@@ -34,9 +35,9 @@ Profile profile_init_desktop() {
     profile.rotary = Rotary_(NULL, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
-        THUMBSTICK_MODE_GLYPH,  // Mode.
-        DEADZONE_FROM_CONFIG,   // Deadzone.
-        0.5,                    // Overlap.
+        THUMBSTICK_MODE_ALPHANUMERIC,                     // Mode.
+        DEADZONE_FROM_CONFIG,                             // Deadzone.
+        0.5,                                              // Overlap.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),  // Left.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),  // Right.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),  // Up.
@@ -44,6 +45,45 @@ Profile profile_init_desktop() {
         Button_(PIN_L3,      NORMAL, ACTIONS(KEY_NONE)),  // Push.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),  // Inner.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE))   // Outer.
+    );
+
+    profile.thumbstick.config_glyphstick(
+        &profile.thumbstick,
+        ACTIONS(KEY_A), GLYPH(DIR4_LEFT),
+        ACTIONS(KEY_E), GLYPH(DIR4_RIGHT),
+        ACTIONS(KEY_I), GLYPH(DIR4_DOWN),
+        ACTIONS(KEY_O), GLYPH(DIR4_UP),
+        ACTIONS(KEY_U), GLYPH(DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT),
+        ACTIONS(KEY_A), GLYPH(DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT, DIR8_UP),
+        ACTIONS(KEY_B), GLYPH(DIR4_DOWN, DIR4_RIGHT, DIR4_UP),
+        ACTIONS(KEY_C), GLYPH(DIR4_UP, DIR4_LEFT, DIR4_DOWN),
+        ACTIONS(KEY_D), GLYPH(DIR4_UP, DIR4_RIGHT, DIR4_DOWN),
+        ACTIONS(KEY_E), GLYPH(DIR4_RIGHT, DIR4_UP, DIR4_LEFT, DIR4_DOWN),
+        ACTIONS(KEY_F), GLYPH(DIR4_UP, DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT),
+        ACTIONS(KEY_G), GLYPH(DIR4_DOWN, DIR4_LEFT, DIR4_UP),
+        ACTIONS(KEY_H), GLYPH(DIR4_DOWN, DIR4_RIGHT, DIR4_DOWN),
+        ACTIONS(KEY_J), GLYPH(DIR4_DOWN, DIR4_LEFT),
+        ACTIONS(KEY_K), GLYPH(DIR4_UP, DIR4_RIGHT, DIR4_UP),
+        ACTIONS(KEY_L), GLYPH(DIR4_DOWN, DIR4_RIGHT),
+        ACTIONS(KEY_M), GLYPH(DIR4_LEFT, DIR4_UP, DIR4_RIGHT),
+        ACTIONS(KEY_N), GLYPH(DIR4_UP, DIR4_RIGHT),
+        ACTIONS(KEY_O), GLYPH(DIR4_UP, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT, DIR4_UP),
+        ACTIONS(KEY_O), GLYPH(DIR4_UP, DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT, DIR4_UP),
+        ACTIONS(KEY_P), GLYPH(DIR4_RIGHT, DIR4_UP, DIR4_LEFT),
+        ACTIONS(KEY_Q), GLYPH(DIR4_UP, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT),
+        ACTIONS(KEY_R), GLYPH(DIR4_RIGHT, DIR4_UP),
+        ACTIONS(KEY_S), GLYPH(DIR4_RIGHT, DIR4_DOWN),
+        ACTIONS(KEY_T), GLYPH(DIR4_UP, DIR4_LEFT),
+        ACTIONS(KEY_V), GLYPH(DIR4_LEFT, DIR4_DOWN),
+        ACTIONS(KEY_W), GLYPH(DIR4_LEFT, DIR4_DOWN, DIR4_LEFT),
+        ACTIONS(KEY_X), GLYPH(DIR4_RIGHT, DIR4_DOWN, DIR4_RIGHT),
+        ACTIONS(KEY_Y), GLYPH(DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT),
+        ACTIONS(KEY_Z), GLYPH(DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT),
+        ACTIONS(KEY_COMMA), GLYPH(DIR4_LEFT, DIR4_UP),
+        ACTIONS(KEY_PERIOD), GLYPH(DIR4_LEFT, DIR4_UP, DIR4_LEFT),
+        ACTIONS(KEY_LEFT_SHIFT, KEY_2), GLYPH(DIR4_DOWN, DIR4_RIGHT, DIR4_UP, DIR4_LEFT, DIR4_DOWN),  // @
+        ACTIONS(KEY_LEFT_SHIFT, KEY_SLASH), GLYPH(DIR4_DOWN, DIR4_RIGHT, DIR4_UP, DIR4_LEFT),  // ?
+        SENTINEL
     );
 
     profile.thumbstick.config_daisywheel(

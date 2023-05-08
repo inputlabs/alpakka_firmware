@@ -34,9 +34,9 @@ Profile profile_init_fps_wasd() {
     profile.rotary = Rotary_(NULL, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
     profile.thumbstick = Thumbstick_(
-        THUMBSTICK_MODE_4DIR,  // Mode.
-        DEADZONE_FROM_CONFIG,  // Deadzone.
-        0.5,                   // Overlap.
+        THUMBSTICK_MODE_4DIR,                                     // Mode.
+        DEADZONE_FROM_CONFIG,                                     // Deadzone.
+        0.5,                                                      // Overlap.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_A)),             // Left.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_D)),             // Right.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_W)),             // Up.

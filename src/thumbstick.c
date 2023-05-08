@@ -20,7 +20,7 @@ float offset_y = 0;
 float config_deadzone = 0;
 
 // Alphanumeric.
-bool daisy_used = false;
+bool daisywheel_used = false;
 Button daisy_a;
 Button daisy_b;
 Button daisy_x;
@@ -129,54 +129,65 @@ void Thumbstick__report_4dir(
     self->push.report(&self->push);
 }
 
-// TODO: Experimental.
-uint8_t glyphs[32][8] = {
-    {ACTIONS(KEY_A, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT, DIR8_UP)},
-    {ACTIONS(KEY_B, DIR4_DOWN, DIR4_RIGHT, DIR4_UP)},
-    {ACTIONS(KEY_C, DIR4_UP, DIR4_LEFT, DIR4_DOWN)},
-    {ACTIONS(KEY_D, DIR4_UP, DIR4_RIGHT, DIR4_DOWN)},
-    {ACTIONS(KEY_E, DIR4_RIGHT, DIR4_UP, DIR4_LEFT, DIR4_DOWN)},
-    {ACTIONS(KEY_F, DIR4_UP, DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT)},
-    {ACTIONS(KEY_G, DIR4_DOWN, DIR4_LEFT, DIR4_UP)},
-    {ACTIONS(KEY_H, DIR4_DOWN, DIR4_RIGHT, DIR4_DOWN)},
-    {ACTIONS(KEY_I, DIR4_DOWN)},
-    {ACTIONS(KEY_J, DIR4_DOWN, DIR4_LEFT)},
-    {ACTIONS(KEY_K, DIR4_UP, DIR4_RIGHT, DIR4_UP)},
-    {ACTIONS(KEY_L, DIR4_DOWN, DIR4_RIGHT)},
-    {ACTIONS(KEY_M, DIR4_LEFT, DIR4_UP, DIR4_RIGHT)},
-    {ACTIONS(KEY_N, DIR4_UP, DIR4_RIGHT)},
-    {ACTIONS(KEY_O, DIR4_UP, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT, DIR4_UP)},
-    {ACTIONS(KEY_P, DIR4_RIGHT, DIR4_UP, DIR4_LEFT)},
-    {ACTIONS(KEY_Q, DIR4_UP, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT)},
-    {ACTIONS(KEY_R, DIR4_RIGHT, DIR4_UP)},
-    {ACTIONS(KEY_S, DIR4_RIGHT, DIR4_DOWN)},
-    {ACTIONS(KEY_T, DIR4_UP, DIR4_LEFT)},
-    {ACTIONS(KEY_U, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT)},
-    {ACTIONS(KEY_V, DIR4_LEFT, DIR4_DOWN)},
-    {ACTIONS(KEY_W, DIR4_LEFT, DIR4_DOWN, DIR4_LEFT)},
-    {ACTIONS(KEY_X, DIR4_RIGHT, DIR4_DOWN, DIR4_RIGHT)},
-    {ACTIONS(KEY_Y, DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT)},
-    {ACTIONS(KEY_Z, DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT)},
-    {ACTIONS(KEY_COMMA, DIR4_LEFT, DIR4_UP)},
-    {ACTIONS(KEY_PERIOD, DIR4_LEFT, DIR4_UP, DIR4_LEFT)},
-    // Shortcuts and alts.
-    {ACTIONS(KEY_A, DIR4_LEFT)},
-    {ACTIONS(KEY_E, DIR4_RIGHT)},
-    {ACTIONS(KEY_O, DIR4_UP, DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT, DIR4_UP)},
-    {ACTIONS(KEY_O, DIR4_UP)},
-};
-
-// TODO: Experimental.
-bool thumbstick_glyph_match(uint8_t len, Dir4 *input, uint8_t *glyph) {
-    for(uint8_t i=0; i<len; i++) {
-        if (input[i] != glyph[i+1]) break;
-        if (i+1==len && glyph[i+2] == SENTINEL) {
-            hid_press(glyph[0]);
-            hid_release_later(glyph[0], 100);
-            return true;
+void Thumbstick__config_glyphstick(Thumbstick *self, ...) {
+    va_list va;
+    va_start(va, 0);
+    uint8_t glyph_index = 0;
+    uint8_t sub_index = 0;
+    uint8_t arg_prev = 0;
+    bool action_phase = true;
+    for(uint8_t i=0; true; i++) {
+        uint8_t arg = va_arg(va, int);
+        if (arg == SENTINEL && arg_prev == SENTINEL) break;
+        if (action_phase) {
+            // Actions.
+            if (arg != SENTINEL) {
+                self->glyphstick_actions[glyph_index][sub_index] = arg;
+                sub_index += 1;
+            } else {
+                for(uint8_t j=sub_index; j<4; j++) {
+                    // Init all remaining slots to avoid undefined behavior.
+                    self->glyphstick_actions[glyph_index][j] = 0;
+                }
+                sub_index = 0;
+                action_phase = false;
+            }
+        } else {
+            // Glyphs.
+            if (arg != SENTINEL) {
+                self->glyphstick_glyphs[glyph_index][sub_index] = arg;
+                sub_index += 1;
+            } else {
+                self->glyphstick_glyphs[glyph_index][sub_index] = SENTINEL;
+                for(uint8_t j=sub_index+1; j<8; j++) {
+                    // Init all remaining slots to avoid undefined behavior.
+                    self->glyphstick_glyphs[glyph_index][j] = 0;
+                }
+                sub_index = 0;
+                glyph_index += 1;
+                action_phase = true;
+            }
         }
+        arg_prev = arg;
     }
-    return false;
+    va_end(va);
+}
+
+void Thumbstick__report_glyphstick(Thumbstick *self, uint8_t len, Dir4 *input) {
+    bool matched = false;
+    for(uint8_t glyph=0; glyph<64; glyph++) {
+        if (self->glyphstick_actions[glyph][0] == 0) break;
+        for(uint8_t i=0; i<len; i++) {
+            if (input[i] != self->glyphstick_glyphs[glyph][i]) break;
+            if (i+1==len && self->glyphstick_glyphs[glyph][i+1] == SENTINEL) {
+                hid_press_multiple(self->glyphstick_actions[glyph]);
+                hid_release_multiple_later(self->glyphstick_actions[glyph], 100);
+                matched = true;
+                break;
+            }
+        }
+        if (matched) break;
+    }
 }
 
 void Thumbstick__config_daisywheel(Thumbstick *self, ...) {
@@ -195,9 +206,9 @@ void Thumbstick__config_daisywheel(Thumbstick *self, ...) {
             dir_index += 1;
         }
         if (dir_index >= 8) break;
-        uint8_t value = va_arg(va, int);
-        if (value != SENTINEL) {
-            self->daisywheel[dir_index][button_index][action_index] = value;
+        uint8_t arg = va_arg(va, int);
+        if (arg != SENTINEL) {
+            self->daisywheel[dir_index][button_index][action_index] = arg;
             action_index += 1;
         } else {
             for(uint8_t j=action_index; j<4; j++) {
@@ -216,27 +227,26 @@ void Thumbstick__report_daisywheel(Thumbstick *self, Dir8 dir) {
     if (daisy_a.is_pressed(&daisy_a)) {
         hid_press_multiple(self->daisywheel[dir][0]);
         hid_release_multiple_later(self->daisywheel[dir][0], 10);
-        daisy_used=true;
+        daisywheel_used=true;
     }
     else if (daisy_b.is_pressed(&daisy_b)) {
         hid_press_multiple(self->daisywheel[dir][1]);
         hid_release_multiple_later(self->daisywheel[dir][1], 10);
-        daisy_used=true;
+        daisywheel_used=true;
     }
     else if (daisy_x.is_pressed(&daisy_x)) {
         hid_press_multiple(self->daisywheel[dir][2]);
         hid_release_multiple_later(self->daisywheel[dir][2], 10);
-        daisy_used=true;
+        daisywheel_used=true;
     }
     else if (daisy_y.is_pressed(&daisy_y)) {
         hid_press_multiple(self->daisywheel[dir][3]);
         hid_release_multiple_later(self->daisywheel[dir][3], 10);
-        daisy_used=true;
+        daisywheel_used=true;
     }
 }
 
-// TODO: Experimental.
-void Thumbstick__report_glyph(Thumbstick *self, ThumbstickPosition pos) {
+void Thumbstick__report_alphanumeric(Thumbstick *self, ThumbstickPosition pos) {
     static Dir4 input[8] = {0,};
     static uint8_t input_index = 0;
     static float CUT4 = 45;
@@ -270,14 +280,12 @@ void Thumbstick__report_glyph(Thumbstick *self, ThumbstickPosition pos) {
     } else {
         if (input_index > 0) {
             // Glyph-stick match.
-            if (!daisy_used) {
-                for(uint8_t i=0; i<32; i++) {
-                    if (thumbstick_glyph_match(input_index, input, glyphs[i])) break;
-                }
+            if (!daisywheel_used) {
+                self->report_glyphstick(self, input_index, input);
             }
             input_index = 0;
             // Daisywheel reset.
-            daisy_used = false;
+            daisywheel_used = false;
             profile_lock_abxy(false);
         }
     }
@@ -298,7 +306,7 @@ void Thumbstick__report(Thumbstick *self) {
     ThumbstickPosition pos = {x, y, angle, radius};
     // Report.
     if (self->mode == THUMBSTICK_MODE_4DIR) self->report_4dir(self, pos, deadzone);
-    else if (self->mode == THUMBSTICK_MODE_GLYPH) self->report_glyph(self, pos);
+    else if (self->mode == THUMBSTICK_MODE_ALPHANUMERIC) self->report_alphanumeric(self, pos);
 }
 
 void Thumbstick__reset(Thumbstick *self) {
@@ -327,8 +335,10 @@ Thumbstick Thumbstick_ (
     thumbstick.mode = mode;
     thumbstick.report = Thumbstick__report;
     thumbstick.report_4dir = Thumbstick__report_4dir;
-    thumbstick.report_glyph = Thumbstick__report_glyph;
+    thumbstick.report_alphanumeric = Thumbstick__report_alphanumeric;
     thumbstick.reset = Thumbstick__reset;
+    thumbstick.config_glyphstick = Thumbstick__config_glyphstick;
+    thumbstick.report_glyphstick = Thumbstick__report_glyphstick;
     thumbstick.config_daisywheel = Thumbstick__config_daisywheel;
     thumbstick.report_daisywheel = Thumbstick__report_daisywheel;
     thumbstick.deadzone = deadzone;
