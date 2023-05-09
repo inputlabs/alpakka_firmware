@@ -11,7 +11,7 @@
 #define HOLD_EXCLUSIVE 3
 #define HOLD_EXCLUSIVE_LONG 4
 #define HOLD_OVERLAP 5
-#define HOLD_OVERLAP_EARLY 6
+#define HOLD_DOUBLE_PRESS 6
 
 #define SENTINEL 255
 #define MACROS_LEN 16
@@ -28,7 +28,7 @@ struct Button_struct {
     void (*handle_sticky) (Button *self);
     void (*handle_hold_exclusive) (Button *self, uint16_t time);
     void (*handle_hold_overlap) (Button *self);
-    void (*handle_hold_overlap_early) (Button *self);
+    void (*handle_hold_double_press) (Button *self);
     uint8_t behavior;
     uint8_t pin;
     uint8_t actions[MACROS_LEN];
