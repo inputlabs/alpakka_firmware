@@ -16,6 +16,7 @@ bool profile_led_lock = false;  // Extern.
 bool profile_pending_reboot = false;  // Extern.
 bool pending_reset = false;
 bool home_is_active = false;
+bool home_gamepad_is_active = false;
 Button home;
 
 void Profile__report(Profile *self) {
@@ -111,6 +112,7 @@ void profile_report_active() {
         pending_reset = false;
     }
     if (home_is_active) profiles[0].report(&profiles[0]);
+    else if (home_gamepad_is_active) profiles[7].report(&profiles[7]);
     else profiles[profile_active_index].report(&profiles[profile_active_index]);
 }
 
@@ -125,11 +127,16 @@ void profile_set_home(bool state) {
     pending_reset = true;
 }
 
+void profile_set_home_gamepad(bool state) {
+    home_gamepad_is_active = state;
+    if (state) led_shape_all_off();
+    else profile_update_leds();
+}
+
 void profile_set_active(uint8_t index) {
     if (index != profile_active_index) {
         printf("Profile: Profile %i\n", index);
         profile_active_index = index;
-        pending_reset = true;
         config_set_profile(index);
     }
     profile_update_leds();
@@ -139,9 +146,9 @@ void profile_init() {
     printf("INIT: Profiles\n");
     home = Button_(
         PIN_HOME,
-        HOLD_OVERLAP_EARLY,
-        ACTIONS(GAMEPAD_HOME),
-        ACTIONS(PROC_HOME)
+        HOLD_DOUBLE_PRESS,
+        ACTIONS(PROC_HOME),
+        ACTIONS(GAMEPAD_HOME, PROC_HOME_GAMEPAD)
     );
     profiles[0] = profile_init_home();
     profiles[1] = profile_init_fps_fusion();
