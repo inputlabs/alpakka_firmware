@@ -64,15 +64,15 @@ void Dhat__reset(Dhat *self) {
 }
 
 Dhat Dhat_ (
-    Button up_left,
-    Button up_center,
-    Button up_right,
     Button mid_left,
-    Button mid_center,
     Button mid_right,
-    Button down_left,
+    Button up_center,
     Button down_center,
-    Button down_right
+    Button up_left,
+    Button up_right,
+    Button down_left,
+    Button down_right,
+    Button mid_center
 ) {
     Dhat dhat;
     dhat.report = Dhat__report;
