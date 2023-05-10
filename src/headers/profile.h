@@ -49,7 +49,9 @@ Profile Profile_ ();
 void profile_init();
 void profile_report_active();
 void profile_set_home(bool state);
+void profile_set_console_legacy(bool state);
 void profile_set_active(uint8_t index);
+void profile_set_active_(uint8_t index, bool state);
 void profile_set_lock_leds(bool lock);
 void profile_update_leds();
 

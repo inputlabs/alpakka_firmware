@@ -34,7 +34,7 @@ void Button__report(Button *self) {
     if (self->behavior == NORMAL) self->handle_normal(self);
     else if (self->behavior == STICKY) self->handle_sticky(self);
     else if (self->behavior == HOLD_OVERLAP) self->handle_hold_overlap(self);
-    else if (self->behavior == HOLD_OVERLAP_EARLY) self->handle_hold_overlap_early(self);
+    else if (self->behavior == HOLD_DOUBLE_PRESS) self->handle_hold_double_press(self);
     else if (self->behavior == HOLD_EXCLUSIVE) {
         self->handle_hold_exclusive(self, CFG_HOLD_EXCLUSIVE_TIME);
     }
@@ -136,21 +136,32 @@ void Button__handle_hold_overlap(Button *self) {
     }
 }
 
-void Button__handle_hold_overlap_early(Button *self) {
+void Button__handle_hold_double_press(Button *self) {
     bool pressed = self->is_pressed(self);
     if(pressed && !self->state && !self->state_secondary) {
-        hid_press_multiple(self->actions_secondary);
-        self->state_secondary = true;
-        self->hold_timestamp = time_us_64();
+        uint64_t now = time_us_64();
+        uint64_t threshold = self->press_timestamp + (CFG_DOUBLE_PRESS * 1000);
+        if (now > threshold) {
+            // Simple press.
+            hid_press_multiple(self->actions);
+            self->state = true;
+            self->press_timestamp = now;
+        } else {
+            // Double press.
+            hid_press_multiple(self->actions_secondary);
+            self->state_secondary = true;
+        }
+        return;
+    }
+    if((!pressed) && self->state) {
+        // Release after simple press.
+        hid_release_multiple(self->actions);
+        self->state = false;
         return;
     }
     if((!pressed) && self->state_secondary) {
+        // Release after double press.
         hid_release_multiple(self->actions_secondary);
-        uint64_t hold_time_us = CFG_HOLD_OVERLAP_EARLY_TIME * 1000;
-        if (time_us_64() < self->hold_timestamp + hold_time_us) {
-            hid_press_multiple_later(self->actions, 10);
-            hid_release_multiple_later(self->actions, 100);
-        }
         self->state_secondary = false;
         return;
     }
@@ -178,7 +189,7 @@ Button Button_ (
     button.handle_sticky = Button__handle_sticky;
     button.handle_hold_exclusive = Button__handle_hold_exclusive;
     button.handle_hold_overlap = Button__handle_hold_overlap;
-    button.handle_hold_overlap_early = Button__handle_hold_overlap_early;
+    button.handle_hold_double_press = Button__handle_hold_double_press;
     button.pin = pin;
     button.behavior = behavior;
     button.state = false;

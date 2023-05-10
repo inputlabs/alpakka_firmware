@@ -125,23 +125,39 @@ void profile_set_home(bool state) {
     pending_reset = true;
 }
 
-void profile_set_active(uint8_t index) {
+// Special procedure for when double clicking and holding home button.
+void profile_set_console_legacy(bool state) {
+    static uint8_t profile_prev = 0;
+    if (state) {
+        profile_prev = profile_active_index;
+        profile_set_active_(7, false);
+        led_shape_all_off();
+    } else {
+        profile_set_active_(profile_prev, true);
+    }
+}
+
+void profile_set_active_(uint8_t index, bool reset) {
     if (index != profile_active_index) {
         printf("Profile: Profile %i\n", index);
         profile_active_index = index;
-        pending_reset = true;
+        pending_reset = reset;
         config_set_profile(index);
     }
     profile_update_leds();
+}
+
+void profile_set_active(uint8_t index) {
+    profile_set_active_(index, true); // Reset=true as default param.
 }
 
 void profile_init() {
     printf("INIT: Profiles\n");
     home = Button_(
         PIN_HOME,
-        HOLD_OVERLAP_EARLY,
-        ACTIONS(GAMEPAD_HOME),
-        ACTIONS(PROC_HOME)
+        HOLD_DOUBLE_PRESS,
+        ACTIONS(PROC_HOME),
+        ACTIONS(GAMEPAD_HOME, PROC_CONSOLE_LEGACY)
     );
     profiles[0] = profile_init_home();
     profiles[1] = profile_init_fps_fusion();

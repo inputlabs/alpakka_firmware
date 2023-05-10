@@ -36,7 +36,8 @@ void hid_matrix_reset() {
 }
 
 void hid_procedure_press(uint8_t procedure){
-    if (procedure == PROC_HOME) profile_set_home(true);
+    if (procedure == PROC_HOME) profile_set_home(true);                      // Hold home.
+    if (procedure == PROC_CONSOLE_LEGACY) profile_set_console_legacy(true);  // Double-click-hold home.
     if (procedure == PROC_PROFILE_1) profile_set_active(1);
     if (procedure == PROC_PROFILE_2) profile_set_active(2);
     if (procedure == PROC_PROFILE_3) profile_set_active(3);
@@ -63,6 +64,7 @@ void hid_procedure_press(uint8_t procedure){
 
 void hid_procedure_release(uint8_t procedure) {
     if (procedure == PROC_HOME) profile_set_home(false);
+    if (procedure == PROC_CONSOLE_LEGACY) profile_set_console_legacy(false);
 }
 
 void hid_press(uint8_t key) {
