@@ -24,10 +24,10 @@ typedef struct ThumbstickPosition_struct {
 
 typedef enum Dir4_enum {
     DIR4_CENTER,
-    DIR4_UP,
-    DIR4_DOWN,
     DIR4_LEFT,
     DIR4_RIGHT,
+    DIR4_UP,
+    DIR4_DOWN,
 } Dir4;
 
 typedef enum Dir8_enum {
@@ -71,9 +71,9 @@ Thumbstick Thumbstick_ (
     ThumbstickMode mode,
     float deadzone,
     float overlap,
-    Button up,
     Button left,
     Button right,
+    Button up,
     Button down,
     Button push,
     Button inner,

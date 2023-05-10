@@ -13,13 +13,13 @@
 #include "helper.h"
 #include "hid.h"
 #include "led.h"
-#include "profile.h" // Experimental.
+#include "profile.h"
 
 float offset_x = 0;
 float offset_y = 0;
 float config_deadzone = 0;
 
-// Alphanumeric.
+// Daisywheel.
 bool daisywheel_used = false;
 Button daisy_a;
 Button daisy_b;
@@ -75,7 +75,7 @@ void thumbstick_init() {
     adc_gpio_init(PIN_TY);
     thumbstick_update_offsets();
     thumbstick_update_deadzone();
-    // TODO: Experimental.
+    // Alternative usage of ABXY while doing daisywheel.
     daisy_a = Button_(PIN_A,  NORMAL, ACTIONS(KEY_NONE));
     daisy_b = Button_(PIN_B,  NORMAL, ACTIONS(KEY_NONE));
     daisy_x = Button_(PIN_X,  NORMAL, ACTIONS(KEY_NONE));
@@ -136,12 +136,14 @@ void Thumbstick__config_glyphstick(Thumbstick *self, ...) {
     uint8_t sub_index = 0;
     uint8_t arg_prev = 0;
     bool action_phase = true;
+    // Iterate over provided glyph+actions definition pairs.
     for(uint8_t i=0; true; i++) {
         uint8_t arg = va_arg(va, int);
         if (arg == SENTINEL && arg_prev == SENTINEL) break;
         if (action_phase) {
             // Actions.
             if (arg != SENTINEL) {
+                // Store action definition.
                 self->glyphstick_actions[glyph_index][sub_index] = arg;
                 sub_index += 1;
             } else {
@@ -155,6 +157,7 @@ void Thumbstick__config_glyphstick(Thumbstick *self, ...) {
         } else {
             // Glyphs.
             if (arg != SENTINEL) {
+                // Store glyph definition.
                 self->glyphstick_glyphs[glyph_index][sub_index] = arg;
                 sub_index += 1;
             } else {
@@ -175,8 +178,11 @@ void Thumbstick__config_glyphstick(Thumbstick *self, ...) {
 
 void Thumbstick__report_glyphstick(Thumbstick *self, uint8_t len, Dir4 *input) {
     bool matched = false;
+    // Iterate over all defined glyphs.
     for(uint8_t glyph=0; glyph<64; glyph++) {
+        // Exit if there is no more glyphs.
         if (self->glyphstick_actions[glyph][0] == 0) break;
+        // Pattern match user input against glyph.
         for(uint8_t i=0; i<len; i++) {
             if (input[i] != self->glyphstick_glyphs[glyph][i]) break;
             if (i+1==len && self->glyphstick_glyphs[glyph][i+1] == SENTINEL) {
@@ -196,6 +202,7 @@ void Thumbstick__config_daisywheel(Thumbstick *self, ...) {
     uint8_t dir_index = 0;
     uint8_t button_index = 0;
     uint8_t action_index = 0;
+    // Iterate over the 8 thumbstick directions.
     for(uint8_t i=0; true; i++) {
         if (action_index >= 4) {
             action_index = 0;
@@ -208,6 +215,7 @@ void Thumbstick__config_daisywheel(Thumbstick *self, ...) {
         if (dir_index >= 8) break;
         uint8_t arg = va_arg(va, int);
         if (arg != SENTINEL) {
+            // Store actions based on sequencial indexes.
             self->daisywheel[dir_index][button_index][action_index] = arg;
             action_index += 1;
         } else {
