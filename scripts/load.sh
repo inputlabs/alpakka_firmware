@@ -52,14 +52,11 @@ while true; do
             cp $UF2 $DRIVE
             break
         else
-            echo $RED"RPI-RP2 drive does not look correct" $RESET
-            echo $RED"Aborting to avoid data loss" $RESET
-            exit 1
+            echo $RED"RPI-RP2 exist but cannot be read" $RESET
         fi
-    else
-        echo $YELLOW"Waiting for RPI-RP2 drive" $RESET
-        sleep 1
     fi
+    echo $YELLOW"Waiting for RPI-RP2 drive" $RESET
+    sleep 1
 done
 echo $GREEN"UF2 loaded into Pico" $RESET
 
