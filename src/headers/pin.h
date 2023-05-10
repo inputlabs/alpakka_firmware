@@ -4,6 +4,7 @@
 #pragma once
 
 #define PIN_NONE 0
+#define PIN_VIRTUAL 1
 #define PIN_HOME 20
 #define PIN_LED_PICO 25
 #define PIN_LED_UP 2

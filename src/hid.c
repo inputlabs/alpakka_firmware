@@ -184,6 +184,10 @@ void hid_release_multiple_later_callback(alarm_id_t alarm, uint8_t *keys) {
     alarms--;
 }
 
+bool hid_is_axis(uint8_t key) {
+    return is_between(key, GAMEPAD_AXIS_INDEX, PROC_INDEX-1);
+}
+
 void hid_mouse_move(int16_t x, int16_t y) {
     mouse_x += x;
     mouse_y += y;

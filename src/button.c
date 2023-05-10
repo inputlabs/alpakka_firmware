@@ -9,9 +9,10 @@
 #include "profile.h"
 #include "hid.h"
 #include "bus.h"
+#include "pin.h"
 
 bool Button__is_pressed(Button *self) {
-    if (self->pin == 0) {
+    if (self->pin == PIN_VIRTUAL) {
         if (self->virtual_press) {
             self->virtual_press = false;
             return true;
