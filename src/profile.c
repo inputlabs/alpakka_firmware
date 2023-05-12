@@ -16,6 +16,7 @@ bool profile_led_lock = false;  // Extern.
 bool profile_pending_reboot = false;  // Extern.
 bool pending_reset = false;
 bool home_is_active = false;
+bool lock_abxy = false;
 Button home;
 
 void Profile__report(Profile *self) {
@@ -25,10 +26,12 @@ void Profile__report(Profile *self) {
     self->select_2.report(&self->select_2);
     self->start_2.report(&self->start_1);
     self->start_1.report(&self->start_2);
-    self->a.report(&self->a);
-    self->b.report(&self->b);
-    self->x.report(&self->x);
-    self->y.report(&self->y);
+    if (!lock_abxy) {
+        self->a.report(&self->a);
+        self->b.report(&self->b);
+        self->x.report(&self->x);
+        self->y.report(&self->y);
+    }
     self->dpad_left.report(&self->dpad_left);
     self->dpad_right.report(&self->dpad_right);
     self->dpad_up.report(&self->dpad_up);
@@ -133,6 +136,10 @@ void profile_set_active(uint8_t index) {
         config_set_profile(index);
     }
     profile_update_leds();
+}
+
+void profile_lock_abxy(bool value) {
+    lock_abxy = value;
 }
 
 void profile_init() {

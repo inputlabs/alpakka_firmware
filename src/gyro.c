@@ -20,10 +20,10 @@ bool Gyro__is_engaged(Gyro *self) {
 void Gyro__report(Gyro *self) {
     // Mode
     if (self->mode == GYRO_MODE_TOUCH_ON) {
-        if (self->is_engaged(self) == false) return;
+        if (!self->is_engaged(self)) return;
     }
     else if (self->mode == GYRO_MODE_TOUCH_OFF) {
-        if (self->is_engaged(self) == true) return;
+        if (self->is_engaged(self)) return;
     }
     else if (self->mode == GYRO_MODE_ALWAYS_OFF) {
         return;
@@ -60,7 +60,7 @@ void Gyro__reset(Gyro *self) {
 }
 
 Gyro Gyro_ (
-    uint8_t mode,
+    GyroMode mode,
     uint8_t pin,
     ...  // Actions
 ) {

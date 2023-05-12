@@ -13,7 +13,7 @@ struct Rotary_struct {
 };
 
 Rotary Rotary_ (
-    uint8_t useless,
+    void *useless,
     ...  // Actions.
 );
 

@@ -28,15 +28,15 @@ struct Dhat_struct {
 };
 
 Dhat Dhat_ (
+    Button left,
+    Button right,
+    Button up,
+    Button down,
     Button up_left,
-    Button up_center,
     Button up_right,
-    Button mid_left,
-    Button mid_center,
-    Button mid_right,
     Button down_left,
-    Button down_center,
-    Button down_right
+    Button down_right,
+    Button push
 );
 
 void dhat_report();
