@@ -37,10 +37,9 @@ jobs:
 
       - name: Build
         run: |
-          mkdir -p build
-          cd build && cmake .. && make
+          make
           ls -l
-          shasum alpakka.uf2
+          shasum build/alpakka.uf2
           echo -e "\
           =================================
           This firmware build was automated
@@ -54,7 +53,7 @@ jobs:
 
           Checksum:
           \$ shasum alpakka.uf2
-          $(cat alpakka.uf2 | shasum | head -c 40)
+          $(cat build/alpakka.uf2 | shasum | head -c 40)
 
           Job:
           ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
@@ -66,4 +65,4 @@ jobs:
           name: alpakka_firmware_artifacts
           path: |
             build/alpakka.uf2
-            build/metadata.txt
+            metadata.txt
