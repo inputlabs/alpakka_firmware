@@ -3,11 +3,8 @@
 
 #pragma once
 
-// SPECIAL PINS.
-#define PIN_NONE 0
-#define PIN_VIRTUAL 1  // Buttons without any hardware associated to them.
-
 // PICO PINS.
+#define PIN_GROUP_PICO 1
 #define PIN_HOME 20
 #define PIN_LED_PICO 25
 #define PIN_LED_UP 2
@@ -29,6 +26,7 @@
 #define PIN_TY 26
 
 // IO EXPANSION 1.
+#define PIN_GROUP_IO1 100
 #define PIN_SELECT_1 114
 #define PIN_SELECT_2 113
 #define PIN_DPAD_LEFT 104
@@ -41,6 +39,7 @@
 #define PIN_L4 109
 
 // IO EXPANSION 2.
+#define PIN_GROUP_IO2 200
 #define PIN_START_1 200
 #define PIN_START_2 201
 #define PIN_A 215
@@ -55,3 +54,8 @@
 #define PIN_R1 212
 #define PIN_R2 214
 #define PIN_R4 207
+
+// SPECIAL PINS.
+#define PIN_GROUP_SPECIAL 250
+#define PIN_NONE 255
+#define PIN_VIRTUAL 254  // Buttons without any hardware associated to them.

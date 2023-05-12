@@ -12,7 +12,9 @@
 #include "pin.h"
 
 bool Button__is_pressed(Button *self) {
-    if (self->pin == PIN_VIRTUAL) {
+    if (self->pin == PIN_NONE) return false;
+    // Virtual buttons.
+    else if (self->pin == PIN_VIRTUAL) {
         if (self->virtual_press) {
             self->virtual_press = false;
             return true;
@@ -20,14 +22,19 @@ bool Button__is_pressed(Button *self) {
             return false;
         }
     }
-    if (self->pin < 100) return !gpio_get(self->pin);
-    if (self->pin < 200) {
-        uint16_t io_cache_0 = bus_i2c_io_get_cache(0);
-        return io_cache_0 & (1 << (self->pin - 100));
+    // Buttons connected directly to Pico.
+    else if (self->pin >= PIN_GROUP_PICO && self->pin < PIN_GROUP_IO1) {
+        return !gpio_get(self->pin);
     }
-    else {
+    // Buttons connected to 1st IO expander.
+    else if (self->pin >= PIN_GROUP_IO1 && self->pin < PIN_GROUP_IO2) {
+        uint16_t io_cache_0 = bus_i2c_io_get_cache(0);
+        return io_cache_0 & (1 << (self->pin - PIN_GROUP_IO1));
+    }
+    // Buttons connected to 2nd IO expander.
+    else if (self->pin >= PIN_GROUP_IO2 && self->pin < PIN_GROUP_SPECIAL) {
         uint16_t io_cache_1 = bus_i2c_io_get_cache(1);
-        return io_cache_1 & (1 << (self->pin - 200));
+        return io_cache_1 & (1 << (self->pin - PIN_GROUP_IO2));
     }
 }
 
