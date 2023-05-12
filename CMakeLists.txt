@@ -3,9 +3,13 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(PICO_SDK_PATH ./deps/pico-sdk)
-set(PICO_TOOLCHAIN_PATH ./deps/arm-toolchain)
-include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
+if (EXISTS ./deps/pico-sdk AND EXISTS ./deps/arm-toolchain)
+    set(PICO_SDK_PATH ./deps/pico-sdk)
+    set(PICO_TOOLCHAIN_PATH ./deps/arm-toolchain)
+    include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
+else()
+    include(pico_sdk_import.cmake)
+endif()
 
 set(PROJECT alpakka)
 project(${PROJECT} C CXX ASM)

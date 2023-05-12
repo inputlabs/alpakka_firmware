@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #pragma once
+#include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
 
