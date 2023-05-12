@@ -65,4 +65,4 @@ jobs:
           name: alpakka_firmware_artifacts
           path: |
             build/alpakka.uf2
-            build/metadata.txt
+            metadata.txt
