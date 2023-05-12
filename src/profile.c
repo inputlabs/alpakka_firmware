@@ -16,6 +16,7 @@ bool profile_led_lock = false;  // Extern.
 bool profile_pending_reboot = false;  // Extern.
 bool pending_reset = false;
 bool home_is_active = false;
+bool home_gamepad_is_active = false;
 bool lock_abxy = false;
 Button home;
 
@@ -113,7 +114,12 @@ void profile_report_active() {
         profile_reset_all();
         pending_reset = false;
     }
-    if (home_is_active) profiles[0].report(&profiles[0]);
+    if (home_is_active) {
+        profiles[PROFILE_HOME].report(&profiles[PROFILE_HOME]);
+    }
+    else if (home_gamepad_is_active) {
+        profiles[PROFILE_CONSOLE_LEGACY].report(&profiles[PROFILE_CONSOLE_LEGACY]);
+    }
     else profiles[profile_active_index].report(&profiles[profile_active_index]);
 }
 
@@ -128,11 +134,16 @@ void profile_set_home(bool state) {
     pending_reset = true;
 }
 
+void profile_set_home_gamepad(bool state) {
+    home_gamepad_is_active = state;
+    if (state) led_shape_all_off();
+    else profile_update_leds();
+}
+
 void profile_set_active(uint8_t index) {
     if (index != profile_active_index) {
         printf("Profile: Profile %i\n", index);
         profile_active_index = index;
-        pending_reset = true;
         config_set_profile(index);
     }
     profile_update_leds();
@@ -146,18 +157,18 @@ void profile_init() {
     printf("INIT: Profiles\n");
     home = Button_(
         PIN_HOME,
-        HOLD_OVERLAP_EARLY,
-        ACTIONS(GAMEPAD_HOME),
-        ACTIONS(PROC_HOME)
+        HOLD_DOUBLE_PRESS,
+        ACTIONS(PROC_HOME),
+        ACTIONS(GAMEPAD_HOME, PROC_HOME_GAMEPAD)
     );
-    profiles[0] = profile_init_home();
-    profiles[1] = profile_init_fps_fusion();
-    profiles[2] = profile_init_none();  // TODO: Racing.
-    profiles[3] = profile_init_console();
-    profiles[4] = profile_init_desktop();
-    profiles[5] = profile_init_fps_wasd();
-    profiles[6] = profile_init_none();  // TODO: Flight
-    profiles[7] = profile_init_console_legacy();
-    profiles[8] = profile_init_none();  // TODO: RTS.
+    profiles[PROFILE_HOME] =           profile_init_home();
+    profiles[PROFILE_FPS_FUSION] =     profile_init_fps_fusion();
+    profiles[PROFILE_FPS_WASD] =       profile_init_fps_wasd();
+    profiles[PROFILE_CONSOLE] =        profile_init_console();
+    profiles[PROFILE_CONSOLE_LEGACY] = profile_init_console_legacy();
+    profiles[PROFILE_DESKTOP] =        profile_init_desktop();
+    profiles[PROFILE_RACING] =         profile_init_none();  // TODO: Racing.
+    profiles[PROFILE_FLIGHT] =         profile_init_none();  // TODO: Flight
+    profiles[PROFILE_RTS] =            profile_init_none();  // TODO: RTS.
     profile_set_active(config_get_profile());
 }

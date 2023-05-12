@@ -199,6 +199,7 @@
 #define PROC_BOOTSEL               PROC_INDEX + 21
 #define PROC_THANKS                PROC_INDEX + 22
 #define PROC_MACRO                 PROC_INDEX + 23
+#define PROC_HOME_GAMEPAD          PROC_INDEX + 24
 
 void hid_thanks();
 void hid_matrix_reset();

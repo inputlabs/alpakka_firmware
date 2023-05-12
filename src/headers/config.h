@@ -36,7 +36,7 @@
 #define CFG_HOLD_EXCLUSIVE_TIME 200  // Milliseconds.
 #define CFG_HOLD_EXCLUSIVE_LONG_TIME 2000  // Milliseconds.
 #define CFG_HOLD_OVERLAP_TIME 250  // Milliseconds.
-#define CFG_HOLD_OVERLAP_EARLY_TIME 150  // Milliseconds.
+#define CFG_DOUBLE_PRESS 300  // Milliseconds.
 
 #define CFG_THUMBSTICK_DEADZONE_LOW 0.07
 #define CFG_THUMBSTICK_DEADZONE_MID 0.10
