@@ -3,7 +3,7 @@
 
 default:
 	mkdir -p build
-	cd build && cmake .. && make
+	cmake . -B build && cd build && make
 
 rebuild:
 	cd build && make
