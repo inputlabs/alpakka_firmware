@@ -17,6 +17,7 @@ bool profile_pending_reboot = false;  // Extern.
 bool pending_reset = false;
 bool home_is_active = false;
 bool home_gamepad_is_active = false;
+bool lock_abxy = false;
 Button home;
 
 void Profile__report(Profile *self) {
