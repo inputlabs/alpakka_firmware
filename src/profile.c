@@ -111,8 +111,12 @@ void profile_report_active() {
         profile_reset_all();
         pending_reset = false;
     }
-    if (home_is_active) profiles[0].report(&profiles[0]);
-    else if (home_gamepad_is_active) profiles[7].report(&profiles[7]);
+    if (home_is_active) {
+        profiles[PROFILE_HOME].report(&profiles[PROFILE_HOME]);
+    }
+    else if (home_gamepad_is_active) {
+        profiles[PROFILE_CONSOLE_LEGACY].report(&profiles[PROFILE_CONSOLE_LEGACY]);
+    }
     else profiles[profile_active_index].report(&profiles[profile_active_index]);
 }
 
@@ -150,14 +154,14 @@ void profile_init() {
         ACTIONS(PROC_HOME),
         ACTIONS(GAMEPAD_HOME, PROC_HOME_GAMEPAD)
     );
-    profiles[0] = profile_init_home();
-    profiles[1] = profile_init_fps_fusion();
-    profiles[2] = profile_init_none();  // TODO: Racing.
-    profiles[3] = profile_init_console();
-    profiles[4] = profile_init_desktop();
-    profiles[5] = profile_init_fps_wasd();
-    profiles[6] = profile_init_none();  // TODO: Flight
-    profiles[7] = profile_init_console_legacy();
-    profiles[8] = profile_init_none();  // TODO: RTS.
+    profiles[PROFILE_HOME] =           profile_init_home();
+    profiles[PROFILE_FPS_FUSION] =     profile_init_fps_fusion();
+    profiles[PROFILE_FPS_WASD] =       profile_init_fps_wasd();
+    profiles[PROFILE_CONSOLE] =        profile_init_console();
+    profiles[PROFILE_CONSOLE_LEGACY] = profile_init_console_legacy();
+    profiles[PROFILE_DESKTOP] =        profile_init_desktop();
+    profiles[PROFILE_RACING] =         profile_init_none();  // TODO: Racing.
+    profiles[PROFILE_FLIGHT] =         profile_init_none();  // TODO: Flight
+    profiles[PROFILE_RTS] =            profile_init_none();  // TODO: RTS.
     profile_set_active(config_get_profile());
 }

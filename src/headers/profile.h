@@ -8,8 +8,19 @@
 #include "rotary.h"
 #include "gyro.h"
 
-typedef struct Profile_struct Profile;
+typedef enum ProfileIndex_enum {
+    PROFILE_HOME,
+    PROFILE_FPS_FUSION,
+    PROFILE_RACING,
+    PROFILE_CONSOLE,
+    PROFILE_DESKTOP,
+    PROFILE_FPS_WASD,
+    PROFILE_FLIGHT,
+    PROFILE_CONSOLE_LEGACY,
+    PROFILE_RTS,
+} ProfileIndex;
 
+typedef struct Profile_struct Profile;
 struct Profile_struct {
     void (*report) (Profile *self);
     void (*reset) (Profile *self);
@@ -51,7 +62,6 @@ void profile_report_active();
 void profile_set_home(bool state);
 void profile_set_home_gamepad(bool state);
 void profile_set_active(uint8_t index);
-void profile_set_active_(uint8_t index, bool state);
 void profile_set_lock_leds(bool lock);
 void profile_update_leds();
 
