@@ -15,6 +15,12 @@
 #include "hid.h"
 #include "uart.h"
 
+#if __has_include("version.h")
+    #include "version.h"
+#else
+    #define VERSION "undefined"
+#endif
+
 void stdio_init() {
     stdio_uart_init();
     stdio_init_all();
@@ -22,10 +28,11 @@ void stdio_init() {
 
 void title() {
     printf("\n");
-    printf("╔═══════════════════════════╗\n");
-    printf("║ Input Labs Oy.            ║\n");
-    printf("║ Alpakka - firmware 0.89.0-dev ║\n");
-    printf("╚═══════════════════════════╝\n");
+    printf("╔════════════════════╗\n");
+    printf("║ Input Labs Oy.     ║\n");
+    printf("║ Alpakka controller ║\n");
+    printf("╚════════════════════╝\n");
+    printf("Firmware version: %s\n", VERSION);
 }
 
 void main_init() {
