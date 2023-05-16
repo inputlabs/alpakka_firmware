@@ -13,6 +13,7 @@ version:
 
 clean:
 	rm -rf build
+	rm -f src/headers/version.h
 
 load:
 	sh -e scripts/load.sh
