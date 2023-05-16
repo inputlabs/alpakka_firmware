@@ -15,5 +15,6 @@ fi
 HEADER_NEW="#define VERSION \"${TAG}\""
 if [ "$HEADER_NEW" != "$HEADER_OLD" ]; then
     echo "Overwriting version file"
+    echo $TAG
     echo $HEADER_NEW > $HEADER_PATH
 fi
