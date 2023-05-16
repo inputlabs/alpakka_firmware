@@ -29,8 +29,8 @@ Profile profile_init_desktop() {
     profile.r1 = Button_(PIN_R1, NORMAL, ACTIONS(KEY_LEFT_ALT));
     profile.l2 = Button_(PIN_L2, NORMAL, ACTIONS(MOUSE_2));
     profile.r2 = Button_(PIN_R2, NORMAL, ACTIONS(MOUSE_1));
-    profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(KEY_LEFT_SHIFT));
-    profile.r4 = Button_(PIN_R4, NORMAL, ACTIONS(KEY_LEFT_CONTROL));
+    profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(KEY_LEFT_CONTROL));
+    profile.r4 = Button_(PIN_R4, NORMAL, ACTIONS(KEY_LEFT_SHIFT));
 
     profile.rotary = Rotary_(NULL, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 
