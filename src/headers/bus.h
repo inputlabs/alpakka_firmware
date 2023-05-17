@@ -26,8 +26,8 @@ uint8_t bus_i2c_read_one(uint8_t device, uint8_t reg);
 uint16_t bus_i2c_read_two(uint8_t device, uint8_t reg);
 // IO expanders.
 void bus_i2c_io_cache_update();
-bool bus_i2c_io_cache_read(uint8_t io_index, uint8_t bit_index);
-bool bus_i2c_io_read(uint8_t io_index, uint8_t bit_index);
+bool bus_i2c_io_cache_read(uint8_t device_index, uint8_t bit_index);
+bool bus_i2c_io_read(uint8_t device_id, uint8_t bit_index);
 // SPI.
 void bus_spi_write(uint8_t cs, uint8_t reg, uint8_t value);
 void bus_spi_read(uint8_t cs, uint8_t reg, uint8_t *buf, uint8_t size);

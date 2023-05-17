@@ -63,12 +63,12 @@ void bus_i2c_io_cache_update() {
     io_cache_1 = bus_i2c_read_two(I2C_IO_1, I2C_IO_REG_INPUT);
 }
 
-bool bus_i2c_io_cache_read(uint8_t io_index, uint8_t bit_index) {
-    return (io_index ? io_cache_1 : io_cache_0) & (1 << bit_index);
+bool bus_i2c_io_cache_read(uint8_t device_index, uint8_t bit_index) {
+    return (device_index ? io_cache_1 : io_cache_0) & (1 << bit_index);
 }
 
-bool bus_i2c_io_read(uint8_t io_index, uint8_t bit_index) {
-    uint16_t value = bus_i2c_read_two(io_index, I2C_IO_REG_INPUT);
+bool bus_i2c_io_read(uint8_t device_id, uint8_t bit_index) {
+    uint16_t value = bus_i2c_read_two(device_id, I2C_IO_REG_INPUT);
     return value & (1 << bit_index);
 }
 
