@@ -40,20 +40,20 @@ void bus_i2c_write(uint8_t device, uint8_t reg, uint8_t value) {
     i2c_write_blocking(i2c1, device, data, 2, false);
 }
 
-uint8_t bus_i2c_io_tristate(uint8_t index) {
+Tristate bus_i2c_io_tristate(uint8_t index) {
     bus_i2c_write(I2C_IO_0, I2C_IO_REG_PULL_DIR+1, 0b00000000);
     bool down = bus_i2c_io_read(I2C_IO_0, index);
     bus_i2c_write(I2C_IO_0, I2C_IO_REG_PULL_DIR+1, 0b11111111);
     bool up = bus_i2c_io_read(I2C_IO_0, index);
-    if ( up !=  down) return 0;  // Float.
-    if (!up && !down) return 1;  // GND.
-    if ( up &&  down) return 2;  // VCC.
+    if ( up !=  down) return TRIESTATE_FLOAT;
+    if (!up && !down) return TRIESTATE_DOWN;
+    if ( up &&  down) return TRIESTATE_UP;
 }
 
 void bus_i2c_io_pcb_gen_determine() {
     bus_i2c_write(I2C_IO_0, I2C_IO_REG_POLARITY+1, 0b00000000);
     bus_i2c_write(I2C_IO_0, I2C_IO_REG_PULL+1,     0b11111111);
-    uint8_t value_0 = bus_i2c_io_tristate(PIN_PCBGEN_0 - PIN_GROUP_IO_0);
+    Tristate value_0 = bus_i2c_io_tristate(PIN_PCBGEN_0 - PIN_GROUP_IO_0);
     // NOTE: Use a ternary mask if versions go over 3.
     config_set_pcb_gen(value_0);
 }
@@ -112,9 +112,9 @@ void bus_i2c_io_init_single(uint8_t id) {
     bus_i2c_write(id, I2C_IO_REG_PULL,   0b11111111);
     bus_i2c_write(id, I2C_IO_REG_PULL+1, 0b11111111);
     printf("  IO id=%i ", id);
-    printf("ack=%i ", bus_i2c_acknowledge(I2C_IO_0));
-    printf("polarity=%i ", bin(bus_i2c_read_one(I2C_IO_0, I2C_IO_REG_POLARITY)));
-    printf("pull=%i\n", bin(bus_i2c_read_one(I2C_IO_0, I2C_IO_REG_PULL)));
+    printf("ack=%i ", bus_i2c_acknowledge(id));
+    printf("polarity=%i ", bin(bus_i2c_read_one(id, I2C_IO_REG_POLARITY)));
+    printf("pull=%i\n", bin(bus_i2c_read_one(id, I2C_IO_REG_PULL)));
 }
 
 void bus_i2c_io_init() {

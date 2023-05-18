@@ -17,6 +17,12 @@
 #define I2C_IO_REG_PULL 0x46
 #define I2C_IO_REG_PULL_DIR 0x48
 
+typedef enum Tristate_enum {
+    TRIESTATE_FLOAT,
+    TRIESTATE_DOWN,
+    TRIESTATE_UP,
+} Tristate;
+
 void bus_init();
 // I2C.
 int8_t bus_i2c_acknowledge(uint8_t device);
