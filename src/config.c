@@ -210,15 +210,15 @@ void config_calibrate() {
 void config_init() {
     char pico_id[64];
     pico_get_unique_board_id_string(pico_id, 64);
-    printf("Pico ID: %s\n", pico_id);
+    printf("Pico UID: %s\n", pico_id);
     printf("INIT: Config\n");
     config_nvm_t config;
     config_read(&config);
     if (
         config.header != NVM_CONFIG_HEADER ||
-        config.config_version < CFG_STRUCT_VERSION
+        config.config_version != CFG_STRUCT_VERSION
     ) {
-        printf("  config not found or outdated, writing default instead\n");
+        printf("  config not found or incompatible, writing default instead\n");
         config_write_init();
     }
     config_print();
