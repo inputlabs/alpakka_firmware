@@ -62,7 +62,7 @@ void main_loop() {
         uint32_t tick_completed = time_us_32() - tick_start;
         uint16_t tick_interval = 1000000 / CFG_TICK_FREQUENCY;
         int32_t tick_idle = tick_interval - (int32_t)tick_completed;
-        // Listen to incomming UART messages.
+        // Listen to incoming UART messages.
         if (!(i % CFG_TICK_FREQUENCY)) {
             uart_listen_char();
         }
