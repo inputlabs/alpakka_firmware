@@ -62,6 +62,7 @@ target_sources(${PROJECT} PUBLIC
     src/profiles/fps_wasd.c
     src/profiles/home.c
     src/profiles/none.c
+    src/self_test.c
     src/rotary.c
     src/thumbstick.c
     src/touch.c

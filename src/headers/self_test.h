@@ -3,5 +3,4 @@
 
 #pragma once
 
-void uart_listen_char();
-void uart_listen_char_limited();
+void self_test();

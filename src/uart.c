@@ -6,8 +6,9 @@
 #include <pico/bootrom.h>
 #include <hardware/watchdog.h>
 #include "config.h"
+#include "self_test.h"
 
-void uart_listen_char() {
+void uart_listen_char_do(bool limited) {
     char input = getchar_timeout_us(0);
     if (input == 'R') {
         printf("UART: Restart\n");
@@ -17,6 +18,11 @@ void uart_listen_char() {
         printf("UART: Bootsel mode\n");
         reset_usb_boot(0, 0);
     }
+
+    if (limited) {
+        return;
+    }
+
     if (input == 'C') {
         printf("UART: Calibrate\n");
         config_calibrate();
@@ -26,4 +32,16 @@ void uart_listen_char() {
         config_write_init();
         config_print();
     }
+    if (input == 'T') {
+        printf("UART: Self-test\n");
+        self_test();
+    }
+}
+
+void uart_listen_char() {
+    uart_listen_char_do(false);
+}
+
+void uart_listen_char_limited() {
+    uart_listen_char_do(true);
 }

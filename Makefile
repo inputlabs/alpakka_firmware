@@ -40,3 +40,6 @@ format:
 
 install:
 	sh -e scripts/install.sh
+
+test:
+	screen -S alpakka -X stuff T
