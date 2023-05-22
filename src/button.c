@@ -10,6 +10,7 @@
 #include "hid.h"
 #include "bus.h"
 #include "pin.h"
+#include "helper.h"
 
 bool Button__is_pressed(Button *self) {
     if (self->pin == PIN_NONE) return false;
@@ -23,18 +24,16 @@ bool Button__is_pressed(Button *self) {
         }
     }
     // Buttons connected directly to Pico.
-    else if (self->pin >= PIN_GROUP_PICO && self->pin < PIN_GROUP_IO1) {
+    else if (is_between(self->pin, PIN_GROUP_PICO, PIN_GROUP_PICO_END)) {
         return !gpio_get(self->pin);
     }
     // Buttons connected to 1st IO expander.
-    else if (self->pin >= PIN_GROUP_IO1 && self->pin < PIN_GROUP_IO2) {
-        uint16_t io_cache_0 = bus_i2c_io_get_cache(0);
-        return io_cache_0 & (1 << (self->pin - PIN_GROUP_IO1));
+    else if (is_between(self->pin, PIN_GROUP_IO_0, PIN_GROUP_IO_0_END)) {
+        return bus_i2c_io_cache_read(0, self->pin - PIN_GROUP_IO_0);
     }
     // Buttons connected to 2nd IO expander.
-    else if (self->pin >= PIN_GROUP_IO2 && self->pin < PIN_GROUP_SPECIAL) {
-        uint16_t io_cache_1 = bus_i2c_io_get_cache(1);
-        return io_cache_1 & (1 << (self->pin - PIN_GROUP_IO2));
+    else if (is_between(self->pin, PIN_GROUP_IO_1, PIN_GROUP_IO_1_END)) {
+        return bus_i2c_io_cache_read(1, self->pin - PIN_GROUP_IO_1);
     }
 }
 

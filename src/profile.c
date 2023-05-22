@@ -21,7 +21,7 @@ bool lock_abxy = false;
 Button home;
 
 void Profile__report(Profile *self) {
-    bus_i2c_io_update_cache();
+    bus_i2c_io_cache_update();
     home.report(&home);
     self->select_1.report(&self->select_1);
     self->select_2.report(&self->select_2);

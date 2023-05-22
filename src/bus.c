@@ -6,21 +6,12 @@
 #include <hardware/i2c.h>
 #include <hardware/spi.h>
 #include "bus.h"
+#include "config.h"
 #include "pin.h"
 #include "helper.h"
 
-void bus_i2c_init() {
-    printf("INIT: I2C bus\n");
-    i2c_init(i2c1, I2C_FREQ);
-    gpio_set_function(PIN_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(PIN_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(PIN_SDA);
-    gpio_pull_up(PIN_SCL);
-    if (!gpio_get(PIN_SDA) || !gpio_get(PIN_SCL)) {
-        printf("ERROR: I2C bus is not clean\n");
-        sleep_ms(1000000000);
-    }
-}
+uint16_t io_cache_0;
+uint16_t io_cache_1;
 
 int8_t bus_i2c_acknowledge(uint8_t device) {
     uint8_t buf = 0;
@@ -49,50 +40,36 @@ void bus_i2c_write(uint8_t device, uint8_t reg, uint8_t value) {
     i2c_write_blocking(i2c1, device, data, 2, false);
 }
 
-void bus_i2c_io_init() {
-    printf("INIT: I2C IO\n");
-    bus_i2c_write(I2C_IO_0, I2C_IO_REG_POLARITY,   0b11111111);
-    bus_i2c_write(I2C_IO_0, I2C_IO_REG_POLARITY+1, 0b11111111);
-    bus_i2c_write(I2C_IO_1, I2C_IO_REG_POLARITY,   0b11111111);
-    bus_i2c_write(I2C_IO_1, I2C_IO_REG_POLARITY+1, 0b11111111);
-    bus_i2c_write(I2C_IO_0, I2C_IO_REG_PULLUP,     0b11111111);
-    bus_i2c_write(I2C_IO_0, I2C_IO_REG_PULLUP+1,   0b11111111);
-    bus_i2c_write(I2C_IO_1, I2C_IO_REG_PULLUP,     0b11111111);
-    bus_i2c_write(I2C_IO_1, I2C_IO_REG_PULLUP+1,   0b11111111);
-    printf("  I2C_IO_0 ");
-    printf("ack=%i ", bus_i2c_acknowledge(I2C_IO_0));
-    printf("polarity=%i ", bin(bus_i2c_read_one(I2C_IO_0, I2C_IO_REG_POLARITY)));
-    printf("pullup=%i\n", bin(bus_i2c_read_one(I2C_IO_0, I2C_IO_REG_PULLUP)));
-    printf("  I2C_IO_1 ");
-    printf("ack=%i ", bus_i2c_acknowledge(I2C_IO_1));
-    printf("polarity=%i ", bin(bus_i2c_read_one(I2C_IO_1, I2C_IO_REG_POLARITY)));
-    printf("pullup=%i\n", bin(bus_i2c_read_one(I2C_IO_1, I2C_IO_REG_PULLUP)));
+Tristate bus_i2c_io_tristate(uint8_t index) {
+    bus_i2c_write(I2C_IO_0, I2C_IO_REG_PULL_DIR+1, 0b00000000);
+    bool down = bus_i2c_io_read(I2C_IO_0, index);
+    bus_i2c_write(I2C_IO_0, I2C_IO_REG_PULL_DIR+1, 0b11111111);
+    bool up = bus_i2c_io_read(I2C_IO_0, index);
+    if ( up !=  down) return TRIESTATE_FLOAT;
+    if (!up && !down) return TRIESTATE_DOWN;
+    if ( up &&  down) return TRIESTATE_UP;
 }
 
-uint16_t io_cache_0;
-uint16_t io_cache_1;
+void bus_i2c_io_pcb_gen_determine() {
+    bus_i2c_write(I2C_IO_0, I2C_IO_REG_POLARITY+1, 0b00000000);
+    bus_i2c_write(I2C_IO_0, I2C_IO_REG_PULL+1,     0b11111111);
+    Tristate value_0 = bus_i2c_io_tristate(PIN_PCBGEN_0 - PIN_GROUP_IO_0);
+    // NOTE: Use a ternary mask if versions go over 3.
+    config_set_pcb_gen(value_0);
+}
 
-void bus_i2c_io_update_cache() {
+void bus_i2c_io_cache_update() {
     io_cache_0 = bus_i2c_read_two(I2C_IO_0, I2C_IO_REG_INPUT);
     io_cache_1 = bus_i2c_read_two(I2C_IO_1, I2C_IO_REG_INPUT);
 }
 
-uint16_t bus_i2c_io_get_cache(uint8_t index) {
-    return index ? io_cache_1 : io_cache_0;
+bool bus_i2c_io_cache_read(uint8_t device_index, uint8_t bit_index) {
+    return (device_index ? io_cache_1 : io_cache_0) & (1 << bit_index);
 }
 
-void bus_spi_init() {
-    printf("INIT: SPI bus\n");
-    spi_init(spi1, SPI_FREQ);
-    gpio_set_function(PIN_SPI_CK, GPIO_FUNC_SPI);
-    gpio_set_function(PIN_SPI_TX, GPIO_FUNC_SPI);
-    gpio_set_function(PIN_SPI_RX, GPIO_FUNC_SPI);
-    gpio_init(PIN_SPI_CS0);
-    gpio_init(PIN_SPI_CS1);
-    gpio_set_dir(PIN_SPI_CS0, GPIO_OUT);
-    gpio_set_dir(PIN_SPI_CS1, GPIO_OUT);
-    gpio_put(PIN_SPI_CS0, true);
-    gpio_put(PIN_SPI_CS1, true);
+bool bus_i2c_io_read(uint8_t device_id, uint8_t bit_index) {
+    uint16_t value = bus_i2c_read_two(device_id, I2C_IO_REG_INPUT);
+    return value & (1 << bit_index);
 }
 
 void bus_spi_write(uint8_t cs, uint8_t reg, uint8_t value) {
@@ -114,6 +91,52 @@ uint8_t bus_spi_read_one(uint8_t cs, uint8_t reg) {
     uint8_t buf[1] = {0};
     bus_spi_read(cs, reg, buf, 1);
     return buf[0];
+}
+
+void bus_i2c_init() {
+    printf("INIT: I2C bus\n");
+    i2c_init(i2c1, I2C_FREQ);
+    gpio_set_function(PIN_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(PIN_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(PIN_SDA);
+    gpio_pull_up(PIN_SCL);
+    if (!gpio_get(PIN_SDA) || !gpio_get(PIN_SCL)) {
+        printf("ERROR: I2C bus is not clean\n");
+        sleep_ms(1000000000);
+    }
+}
+
+void bus_i2c_io_init_single(uint8_t id) {
+    bus_i2c_write(id, I2C_IO_REG_POLARITY,   0b11111111);
+    bus_i2c_write(id, I2C_IO_REG_POLARITY+1, 0b11111111);
+    bus_i2c_write(id, I2C_IO_REG_PULL,   0b11111111);
+    bus_i2c_write(id, I2C_IO_REG_PULL+1, 0b11111111);
+    printf("  IO id=%i ", id);
+    printf("ack=%i ", bus_i2c_acknowledge(id));
+    printf("polarity=%i ", bin(bus_i2c_read_one(id, I2C_IO_REG_POLARITY)));
+    printf("pull=%i\n", bin(bus_i2c_read_one(id, I2C_IO_REG_PULL)));
+}
+
+void bus_i2c_io_init() {
+    printf("INIT: I2C IO\n");
+    bus_i2c_io_pcb_gen_determine();
+    printf("  PCB GEN: gen-%i\n", config_get_pcb_gen());
+    bus_i2c_io_init_single(I2C_IO_0);
+    bus_i2c_io_init_single(I2C_IO_1);
+}
+
+void bus_spi_init() {
+    printf("INIT: SPI bus\n");
+    spi_init(spi1, SPI_FREQ);
+    gpio_set_function(PIN_SPI_CK, GPIO_FUNC_SPI);
+    gpio_set_function(PIN_SPI_TX, GPIO_FUNC_SPI);
+    gpio_set_function(PIN_SPI_RX, GPIO_FUNC_SPI);
+    gpio_init(PIN_SPI_CS0);
+    gpio_init(PIN_SPI_CS1);
+    gpio_set_dir(PIN_SPI_CS0, GPIO_OUT);
+    gpio_set_dir(PIN_SPI_CS1, GPIO_OUT);
+    gpio_put(PIN_SPI_CS0, true);
+    gpio_put(PIN_SPI_CS1, true);
 }
 
 void bus_init() {

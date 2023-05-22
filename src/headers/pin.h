@@ -5,6 +5,7 @@
 
 // PICO PINS.
 #define PIN_GROUP_PICO 1
+#define PIN_GROUP_PICO_END 99
 #define PIN_HOME 20
 #define PIN_LED_PICO 25
 #define PIN_LED_UP 2
@@ -26,7 +27,8 @@
 #define PIN_TY 26
 
 // IO EXPANSION 1.
-#define PIN_GROUP_IO1 100
+#define PIN_GROUP_IO_0 100
+#define PIN_GROUP_IO_0_END 199
 #define PIN_SELECT_1 114
 #define PIN_SELECT_2 113
 #define PIN_DPAD_LEFT 104
@@ -37,9 +39,12 @@
 #define PIN_L2 115
 #define PIN_L3 112
 #define PIN_L4 109
+#define PIN_PCBGEN_0 111
+#define PIN_PCBGEN_1 110
 
 // IO EXPANSION 2.
-#define PIN_GROUP_IO2 200
+#define PIN_GROUP_IO_1 200
+#define PIN_GROUP_IO_1_END 249
 #define PIN_START_1 200
 #define PIN_START_2 201
 #define PIN_A 215

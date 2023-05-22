@@ -17,6 +17,7 @@
 #include "helper.h"
 
 uint8_t config_tune_mode = 0;
+uint8_t pcb_gen = 255;
 
 void config_read(config_nvm_t* config) {
     nvm_read(XIP_BASE + NVM_CONFIG_ADDR, (uint8_t*)config, 256);
@@ -205,6 +206,18 @@ void config_calibrate() {
     led_shape_all_off();
     led_blink_mask(LED_MASK_LEFT | LED_MASK_RIGHT);
     add_alarm_in_ms(5000, (alarm_callback_t)config_calibrate_execute, NULL, true);
+}
+
+void config_set_pcb_gen(uint8_t gen) {
+    pcb_gen = gen;
+}
+
+uint8_t config_get_pcb_gen() {
+    if (pcb_gen == 255) {
+        printf("ERROR: PCB gen could not be determined\n");
+        sleep_ms(1000000000);
+    }
+    return pcb_gen;
 }
 
 void config_init() {
