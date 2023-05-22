@@ -106,7 +106,7 @@ bool touch_status() {
         touch_get_dynamic_threshold(elapsed)
     );
     // In case of timeout.
-    if (elapsed == 0) elapsed = threshold + 1;
+    if (elapsed == 0) elapsed = threshold / CFG_TOUCH_DYNAMIC_PEAK_RATIO;
     // Debug.
     if (loglevel >= 2) {
         static uint16_t x= 0;
