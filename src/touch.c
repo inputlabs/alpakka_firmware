@@ -12,8 +12,8 @@
 uint8_t loglevel = 0;
 uint8_t threshold_from_config = 0;
 uint8_t dynamic_min = 0;
-uint32_t pushdown_interval = 0;
 uint8_t timeout = 0;
+float threshold = 0;
 
 void touch_update_threshold() {
     config_nvm_t config;
@@ -55,6 +55,23 @@ void touch_init() {
     touch_update_threshold();
 }
 
+uint32_t touch_get_elapsed() {
+    uint32_t time_low;
+    time_low = time_us_32();
+    gpio_put(PIN_TOUCH_OUT, true);
+    bool timedout = false;
+    while(gpio_get(PIN_TOUCH_IN) == false) {
+        if ((time_us_32() - time_low) > timeout) {
+            timedout = true;
+            break;
+        }
+    };
+    uint32_t elapsed = timedout ? 0 : time_us_32() - time_low;
+    if (loglevel >= 1 && timedout) printf("T");
+    gpio_put(PIN_TOUCH_OUT, false); // Send low (so is ready for next cycle).
+    return elapsed;
+}
+
 float touch_get_dynamic_threshold(uint8_t elapsed) {
     static float peak = 0;
     static uint8_t elapsed_prev = 0;
@@ -80,36 +97,21 @@ float touch_get_dynamic_threshold(uint8_t elapsed) {
     return max(dynamic_min, peak * CFG_TOUCH_DYNAMIC_PEAK_RATIO);
 }
 
-uint32_t touch_get_elapsed() {
-    // Send high.
-    uint32_t time_low;
-    time_low = time_us_32();
-    gpio_put(PIN_TOUCH_OUT, true);
-    while(gpio_get(PIN_TOUCH_IN) == false) {
-        if ((time_us_32() - time_low) > timeout) {
-            if (loglevel >= 1) printf("Touch timeout\n");
-            return 0;
-        }
-    };
-    // Send low (so is ready for next cycle).
-    gpio_put(PIN_TOUCH_OUT, false);
-    // Return elapsed.
-    return time_us_32() - time_low;
-}
-
 bool touch_status() {
     uint32_t elapsed = touch_get_elapsed();
     // Determine threshold.
-    float threshold = (
-        threshold_from_config > 0 ?
-        threshold_from_config :
-        touch_get_dynamic_threshold(elapsed)
-    );
-    // In case of timeout.
-    if (elapsed == 0) elapsed = threshold / CFG_TOUCH_DYNAMIC_PEAK_RATIO;
+    if (elapsed != 0) {
+        threshold = (
+            threshold_from_config > 0 ?
+            threshold_from_config :
+            touch_get_dynamic_threshold(elapsed)
+        );
+    } else {
+        elapsed = threshold + 1;  // Using threshold from previous cycle.
+    }
     // Debug.
     if (loglevel >= 2) {
-        static uint16_t x= 0;
+        static uint16_t x = 0;
         x++;
         if (!(x % 40)) printf("%i %.2f\n", elapsed, threshold);
     }
