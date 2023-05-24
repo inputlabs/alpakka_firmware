@@ -11,7 +11,7 @@
 #include "led.h"
 
 Profile profiles[16];
-uint8_t profile_active_index = -1;
+uint8_t profile_active_index = -1;  // Extern.
 bool profile_led_lock = false;  // Extern.
 bool profile_pending_reboot = false;  // Extern.
 bool pending_reset = false;
@@ -170,5 +170,6 @@ void profile_init() {
     profiles[PROFILE_RACING] =         profile_init_none();  // TODO: Racing.
     profiles[PROFILE_FLIGHT] =         profile_init_none();  // TODO: Flight
     profiles[PROFILE_RTS] =            profile_init_none();  // TODO: RTS.
+    profiles[PROFILE_NONE] =           profile_init_none();
     profile_set_active(config_get_profile());
 }

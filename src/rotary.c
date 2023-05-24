@@ -12,10 +12,9 @@
 #include "rotary.h"
 #include "hid.h"
 
-bool rotary_pending = false;
+int8_t rotary_increment = 0;  // Extern.
 uint32_t rotary_ts = 0;
-int32_t rotary_value = 0;
-int8_t rotary_increment = 0;
+bool rotary_pending = false;
 
 void rotary_callback(uint gpio, uint32_t events) {
     rotary_ts = time_us_32();

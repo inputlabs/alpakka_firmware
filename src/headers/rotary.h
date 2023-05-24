@@ -18,3 +18,5 @@ Rotary Rotary_ (
 );
 
 void rotary_init();
+
+extern int8_t rotary_increment;
