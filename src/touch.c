@@ -32,6 +32,7 @@ void touch_update_threshold() {
         CFG_GEN1_TOUCH_SENS_3,
         CFG_GEN1_TOUCH_SENS_4
     };
+    // See https://github.com/inputlabs/alpakka_pcb/blob/main/generations.md
     if (config_get_pcb_gen() == 0) {
          // PCB gen 0.
         sens_from_config = values_gen0[config.touch_threshold];
