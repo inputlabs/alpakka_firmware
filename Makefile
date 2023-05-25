@@ -11,6 +11,9 @@ rebuild: version
 version:
 	sh -e scripts/version.sh
 
+install:
+	sh -e scripts/install.sh
+
 clean:
 	rm -rf build
 	rm -f src/headers/version.h
@@ -37,9 +40,6 @@ calibrate:
 
 format:
 	screen -S alpakka -X stuff F
-
-install:
-	sh -e scripts/install.sh
 
 test:
 	screen -S alpakka -X stuff T
