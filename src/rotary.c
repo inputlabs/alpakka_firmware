@@ -8,18 +8,17 @@
 #include <hardware/gpio.h>
 #include "config.h"
 #include "pin.h"
+#include "profile.h"
 #include "button.h"
 #include "rotary.h"
 #include "hid.h"
 
-int8_t rotary_increment = 0;  // Extern.
-uint32_t rotary_ts = 0;
-bool rotary_pending = false;
-
 void rotary_callback(uint gpio, uint32_t events) {
-    rotary_ts = time_us_32();
-    rotary_increment = gpio_get(PIN_ROTARY_A) ^ gpio_get(PIN_ROTARY_B) ? -1 : 1;
-    rotary_pending = true;
+    Profile* profile = profile_get_active();
+    Rotary* rotary = &(profile->rotary);
+    rotary->timestamp = time_us_32();
+    rotary->increment = gpio_get(PIN_ROTARY_A) ^ gpio_get(PIN_ROTARY_B) ? -1 : 1;
+    rotary->pending = true;
 }
 
 void rotary_init() {
@@ -40,14 +39,14 @@ void rotary_init() {
 
 void Rotary__report(Rotary *self) {
     if (
-        rotary_pending &&
-        (time_us_32() > (rotary_ts + CFG_MOUSE_WHEEL_DEBOUNCE))
+        self->pending &&
+        (time_us_32() > (self->timestamp + CFG_MOUSE_WHEEL_DEBOUNCE))
     ) {
         uint8_t actions[8] = {0,};
-        for(uint8_t r=0; r<abs(rotary_increment); r++) {
+        for(uint8_t r=0; r<abs(self->increment); r++) {
             for(uint8_t i=0; i<ACTIONS_LEN; i++) {
                 uint8_t action = (
-                    rotary_increment > 0
+                    self->increment > 0
                     ? self->actions_up[i]
                     : self->actions_down[i]
                 );
@@ -55,12 +54,15 @@ void Rotary__report(Rotary *self) {
                 hid_release_later(action, 100);
             }
         }
-        rotary_increment = 0;
-        rotary_pending = false;
+        self->increment = 0;
+        self->pending = false;
     }
 }
 
 void Rotary__reset(Rotary *self) {
+    self->pending = false;
+    self->increment = 0;
+    self->timestamp = 0;
 }
 
 Rotary Rotary_ (
@@ -70,6 +72,9 @@ Rotary Rotary_ (
     Rotary rotary;
     rotary.report = Rotary__report;
     rotary.reset = Rotary__reset;
+    rotary.pending = false;
+    rotary.increment = 0;
+    rotary.timestamp = 0;
     rotary.actions_up[0] = 0;
     rotary.actions_up[1] = 0;
     rotary.actions_up[2] = 0;

@@ -67,31 +67,32 @@ void self_test_thumbstick(Thumbstick* thumbstick) {
     thumbstick->reset(thumbstick);
 }
 
-void self_test_rotary_direction(const char *name, int8_t direction) {
-    rotary_increment = 0;
+void self_test_rotary_direction(Rotary* rotary, const char *name, int8_t direction) {
+    rotary->increment = 0;
     printf("Scroll %s: WAITING", name);
-    while (rotary_increment != direction) {
+    while (rotary->increment != direction) {
         uart_listen_char_limited();
         sleep_ms(1);
     }
     printf("\rScroll %s: OK     \n", name);
 }
 
-void self_test_rotary() {
-    self_test_rotary_direction("up", 1);
-    self_test_rotary_direction("down", -1);
+void self_test_rotary(Rotary* rotary) {
+    self_test_rotary_direction(rotary, "up", 1);
+    self_test_rotary_direction(rotary, "down", -1);
+    rotary->reset(rotary);
 }
 
 void self_test() {
-    uint8_t profile_last = profile_active_index;
-    profile_set_active(PROFILE_NONE);
-    Profile profile = profile_init_none();
+    profile_enable_all(false);
     printf("Tests start\n");
     printf("===========\n");
-    self_test_buttons(&profile);
-    self_test_thumbstick(&profile.thumbstick);
-    self_test_rotary();
+    Profile* profile = profile_get_active();
+    self_test_buttons(profile);
+    self_test_thumbstick(&(profile->thumbstick));
+    self_test_rotary(&(profile->rotary));
     printf("Tests done\n");
     printf("==========\n");
-    profile_set_active(profile_last);
+    profile->reset(profile);
+    profile_enable_all(true);
 }

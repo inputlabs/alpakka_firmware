@@ -263,7 +263,7 @@ void Thumbstick__report_alphanumeric(Thumbstick *self, ThumbstickPosition pos) {
     Dir4 dir4 = 0;
     Dir8 dir8 = 0;
     if (pos.radius > 0.7) {
-        profile_lock_abxy(true);
+        profile_enable_abxy(false);
         // Detect direction 4.
         if      (is_between(pos.angle, -CUT4X, -CUT4)) dir4 = DIR4_LEFT;
         else if (is_between(pos.angle,  CUT4,  CUT4X)) dir4 = DIR4_RIGHT;
@@ -294,7 +294,7 @@ void Thumbstick__report_alphanumeric(Thumbstick *self, ThumbstickPosition pos) {
             input_index = 0;
             // Daisywheel reset.
             daisywheel_used = false;
-            profile_lock_abxy(false);
+            profile_enable_abxy(true);
         }
     }
 }

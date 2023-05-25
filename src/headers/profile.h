@@ -18,7 +18,6 @@ typedef enum ProfileIndex_enum {
     PROFILE_FLIGHT,
     PROFILE_CONSOLE_LEGACY,
     PROFILE_RTS,
-    PROFILE_NONE,
 } ProfileIndex;
 
 typedef struct Profile_struct Profile;
@@ -65,7 +64,9 @@ void profile_set_home_gamepad(bool state);
 void profile_set_active(uint8_t index);
 void profile_set_lock_leds(bool lock);
 void profile_update_leds();
-void profile_lock_abxy(bool value);
+void profile_enable_all(bool value);
+void profile_enable_abxy(bool value);
+Profile* profile_get_active();
 
 Profile profile_init_none();
 Profile profile_init_home();
@@ -75,6 +76,5 @@ Profile profile_init_console();
 Profile profile_init_console_legacy();
 Profile profile_init_desktop();
 
-extern uint8_t profile_active_index;
 extern bool profile_led_lock;
 extern bool profile_pending_reboot;
