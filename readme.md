@@ -28,10 +28,13 @@ With `apt`, `rpm`, `pacman`, `brew`, or the equivalent package manager of your s
 - `make reload`: Do both `rebuild` and `load` commands (for dev convenience).
 - `make clean`: Delete previous build files.
 - `make session`: Connect to UART serial stdio, and display controller log.
-- `make restart`: Restart the controller (requires active session).
-- `make bootsel`: Put the controller in bootsel mode (requires active session).
-- `make calibrate`: Calibrate thumbstick and IMUs (requires active session).
-- `make format`: Format NVM sector and reset to initial values (requires active session).
+
+While having an active session:
+- `make restart`: Restart the controller.
+- `make bootsel`: Put the controller in bootsel mode.
+- `make calibrate`: Calibrate thumbstick and IMUs.
+- `make format`: Format NVM sector and reset to initial values.
+- `make test`: Start a semi-manual testing procedure for the buttons and axis.
 
 ## Devkit button
 - Single press: Restart the controller.
