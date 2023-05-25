@@ -10,7 +10,7 @@
 #include "helper.h"
 
 uint8_t loglevel = 0;
-uint8_t threshold_from_config = 0;
+uint8_t sens_from_config = 0;
 uint8_t dynamic_min = 0;
 uint8_t timeout = 0;
 float threshold = 0;
@@ -34,12 +34,12 @@ void touch_update_threshold() {
     };
     if (config_get_pcb_gen() == 0) {
          // PCB gen 0.
-        threshold_from_config = values_gen0[config.touch_threshold];
+        sens_from_config = values_gen0[config.touch_threshold];
         timeout = CFG_GEN0_TOUCH_TIMEOUT;
         dynamic_min = CFG_GEN0_TOUCH_DYNAMIC_MIN;
     } else {
         // PCB gen 1+.
-        threshold_from_config = values_gen1[config.touch_threshold];
+        sens_from_config = values_gen1[config.touch_threshold];
         timeout = CFG_GEN1_TOUCH_TIMEOUT;
         dynamic_min = CFG_GEN1_TOUCH_DYNAMIC_MIN;
     }
@@ -102,8 +102,8 @@ bool touch_status() {
     // Determine threshold.
     if (elapsed != 0) {
         threshold = (
-            threshold_from_config > 0 ?
-            threshold_from_config :
+            sens_from_config > 0 ?
+            sens_from_config :
             touch_get_dynamic_threshold(elapsed)
         );
     } else {
@@ -113,7 +113,9 @@ bool touch_status() {
     if (loglevel >= 2) {
         static uint16_t x = 0;
         x++;
-        if (!(x % 40)) printf("%i %.2f\n", elapsed, threshold);
+        if (!(x % DEBUG_TOUCH_ELAPSED_PERIOD)) {
+            printf("%i %.2f\n", elapsed, threshold);
+        }
     }
     // Determine if the surface is considered touched and report.
     static bool touched = false;
