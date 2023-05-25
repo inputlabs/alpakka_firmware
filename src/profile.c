@@ -17,17 +17,19 @@ bool profile_pending_reboot = false;  // Extern.
 bool pending_reset = false;
 bool home_is_active = false;
 bool home_gamepad_is_active = false;
-bool lock_abxy = false;
+bool enabled_all = true;
+bool enabled_abxy = true;
 Button home;
 
 void Profile__report(Profile *self) {
+    if (!enabled_all) return;
     bus_i2c_io_cache_update();
     home.report(&home);
     self->select_1.report(&self->select_1);
     self->select_2.report(&self->select_2);
     self->start_2.report(&self->start_1);
     self->start_1.report(&self->start_2);
-    if (!lock_abxy) {
+    if (enabled_abxy) {
         self->a.report(&self->a);
         self->b.report(&self->b);
         self->x.report(&self->x);
@@ -67,6 +69,7 @@ void Profile__reset(Profile *self) {
     self->r1.reset(&self->r1);
     self->r2.reset(&self->r2);
     self->thumbstick.reset(&self->thumbstick);
+    self->rotary.reset(&self->rotary);
 }
 
 Profile Profile_ () {
@@ -149,8 +152,16 @@ void profile_set_active(uint8_t index) {
     profile_update_leds();
 }
 
-void profile_lock_abxy(bool value) {
-    lock_abxy = value;
+Profile* profile_get_active() {
+    return &(profiles[profile_active_index]);
+}
+
+void profile_enable_all(bool value) {
+    enabled_all = value;
+}
+
+void profile_enable_abxy(bool value) {
+    enabled_abxy = value;
 }
 
 void profile_init() {
