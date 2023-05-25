@@ -34,7 +34,7 @@
 #define CFG_TOUCH_DYNAMIC_PUSHDOWN_HYPERBOLIC 6
 
 // Debug.
-#define DEBUG_TOUCH_ELAPSED_PERIOD 40  // Ticks.
+#define DEBUG_TOUCH_ELAPSED_FREQ 40  // Ticks.
 
 void touch_init();
 void touch_update_threshold();

@@ -114,7 +114,7 @@ bool touch_status() {
     if (loglevel >= 2) {
         static uint16_t x = 0;
         x++;
-        if (!(x % DEBUG_TOUCH_ELAPSED_PERIOD)) {
+        if (!(x % DEBUG_TOUCH_ELAPSED_FREQ)) {
             printf("%i %.2f\n", elapsed, threshold);
         }
     }
