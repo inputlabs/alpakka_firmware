@@ -87,7 +87,7 @@ void self_test() {
     profile_enable_all(false);
     printf("Tests start\n");
     printf("===========\n");
-    Profile* profile = profile_get_active();
+    Profile* profile = profile_get_active(true);
     self_test_buttons(profile);
     self_test_thumbstick(&(profile->thumbstick));
     self_test_rotary(&(profile->rotary));
