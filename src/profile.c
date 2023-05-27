@@ -117,13 +117,8 @@ void profile_report_active() {
         profile_reset_all();
         pending_reset = false;
     }
-    if (home_is_active) {
-        profiles[PROFILE_HOME].report(&profiles[PROFILE_HOME]);
-    }
-    else if (home_gamepad_is_active) {
-        profiles[PROFILE_CONSOLE_LEGACY].report(&profiles[PROFILE_CONSOLE_LEGACY]);
-    }
-    else profiles[profile_active_index].report(&profiles[profile_active_index]);
+    Profile* profile = profile_get_active(false);
+    profile->report(profile);
 }
 
 void profile_set_home(bool state) {
@@ -152,8 +147,14 @@ void profile_set_active(uint8_t index) {
     profile_update_leds();
 }
 
-Profile* profile_get_active() {
-    return &(profiles[profile_active_index]);
+Profile* profile_get_active(bool strict) {
+    if (strict) {
+        return &profiles[profile_active_index];
+    } else {
+        if (home_is_active) return &profiles[PROFILE_HOME];
+        else if (home_gamepad_is_active) return &profiles[PROFILE_CONSOLE_LEGACY];
+        else return &profiles[profile_active_index];
+    }
 }
 
 void profile_enable_all(bool value) {

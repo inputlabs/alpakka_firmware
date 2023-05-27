@@ -14,7 +14,7 @@
 #include "hid.h"
 
 void rotary_callback(uint gpio, uint32_t events) {
-    Profile* profile = profile_get_active();
+    Profile* profile = profile_get_active(false);
     Rotary* rotary = &(profile->rotary);
     rotary->timestamp = time_us_32();
     rotary->increment = gpio_get(PIN_ROTARY_A) ^ gpio_get(PIN_ROTARY_B) ? -1 : 1;
