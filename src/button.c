@@ -38,15 +38,12 @@ bool Button__is_pressed(Button *self) {
 }
 
 void Button__report(Button *self) {
-    if (self->behavior == NORMAL) self->handle_normal(self);
-    else if (self->behavior == STICKY) self->handle_sticky(self);
-    else if (self->behavior == HOLD_OVERLAP) self->handle_hold_overlap(self);
-    else if (self->behavior == HOLD_DOUBLE_PRESS) self->handle_hold_double_press(self);
-    else if (self->behavior == HOLD_EXCLUSIVE) {
-        self->handle_hold_exclusive(self, CFG_HOLD_EXCLUSIVE_TIME);
-    }
-    else if (self->behavior == HOLD_EXCLUSIVE_LONG) {
-        self->handle_hold_exclusive(self, CFG_HOLD_EXCLUSIVE_LONG_TIME);
+    switch (self->behavior) {
+        case NORMAL: self->handle_normal(self); break;
+        case STICKY: self->handle_sticky(self); break;
+        case HOLD_DOUBLE_PRESS: self->handle_hold_overlap(self); break;
+        case HOLD_EXCLUSIVE: self->handle_hold_exclusive(self, CFG_HOLD_EXCLUSIVE_TIME); break;
+        case HOLD_EXCLUSIVE_LONG: self->handle_hold_exclusive(self, CFG_HOLD_EXCLUSIVE_LONG_TIME); break;
     }
 }
 

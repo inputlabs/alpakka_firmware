@@ -83,16 +83,18 @@ void thumbstick_init() {
 }
 
 void thumbstick_report_axis(uint8_t axis, float value) {
-    if      (axis == GAMEPAD_AXIS_LX)     hid_gamepad_lx( value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_LY)     hid_gamepad_ly(-value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_RX)     hid_gamepad_rx( value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_RY)     hid_gamepad_ry(-value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_LZ) hid_gamepad_lz(max(0, value) * TRIGGER_FACTOR);
-    else if (axis == GAMEPAD_AXIS_RZ) hid_gamepad_rz(max(0, value) * TRIGGER_FACTOR);
+    switch (axis) {
+        case GAMEPAD_AXIS_LX: hid_gamepad_lx( value * ANALOG_FACTOR); break;
+        case GAMEPAD_AXIS_LY: hid_gamepad_ly(-value * ANALOG_FACTOR); break;
+        case GAMEPAD_AXIS_RX: hid_gamepad_rx( value * ANALOG_FACTOR); break;
+        case GAMEPAD_AXIS_RY: hid_gamepad_ry(-value * ANALOG_FACTOR); break;
+        case GAMEPAD_AXIS_LX_NEG: hid_gamepad_lx(-value * ANALOG_FACTOR); break;
+        case GAMEPAD_AXIS_LY_NEG: hid_gamepad_ly( value * ANALOG_FACTOR); break;
+        case GAMEPAD_AXIS_RX_NEG: hid_gamepad_rx(-value * ANALOG_FACTOR); break;
+        case GAMEPAD_AXIS_RY_NEG: hid_gamepad_ry( value * ANALOG_FACTOR); break;
+        case GAMEPAD_AXIS_LZ: hid_gamepad_lz(max(0, value) * TRIGGER_FACTOR); break;
+        case GAMEPAD_AXIS_RZ: hid_gamepad_rz(max(0, value) * TRIGGER_FACTOR); break;
+    }
 }
 
 void Thumbstick__report_4dir(

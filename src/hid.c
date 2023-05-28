@@ -36,35 +36,39 @@ void hid_matrix_reset() {
 }
 
 void hid_procedure_press(uint8_t procedure){
-    if (procedure == PROC_HOME) profile_set_home(true);                  // Hold home.
-    if (procedure == PROC_HOME_GAMEPAD) profile_set_home_gamepad(true);  // Double-click-hold home.
-    if (procedure == PROC_PROFILE_1) profile_set_active(1);
-    if (procedure == PROC_PROFILE_2) profile_set_active(2);
-    if (procedure == PROC_PROFILE_3) profile_set_active(3);
-    if (procedure == PROC_PROFILE_4) profile_set_active(4);
-    if (procedure == PROC_PROFILE_5) profile_set_active(5);
-    if (procedure == PROC_PROFILE_6) profile_set_active(6);
-    if (procedure == PROC_PROFILE_7) profile_set_active(7);
-    if (procedure == PROC_PROFILE_8) profile_set_active(8);
-    if (procedure == PROC_PROFILE_9) profile_set_active(9);
-    if (procedure == PROC_PROFILE_10) profile_set_active(10);
-    if (procedure == PROC_PROFILE_11) profile_set_active(11);
-    if (procedure == PROC_PROFILE_12) profile_set_active(12);
-    if (procedure == PROC_TUNE_UP) config_tune(1);
-    if (procedure == PROC_TUNE_DOWN) config_tune(0);
-    if (procedure == PROC_TUNE_OS) config_tune_set_mode(procedure);
-    if (procedure == PROC_TUNE_SENSITIVITY) config_tune_set_mode(procedure);
-    if (procedure == PROC_TUNE_DEADZONE) config_tune_set_mode(procedure);
-    if (procedure == PROC_TUNE_TOUCH_THRESHOLD) config_tune_set_mode(procedure);
-    if (procedure == PROC_TUNE_VIBRATION) config_tune_set_mode(procedure);
-    if (procedure == PROC_CALIBRATE) config_calibrate();
-    if (procedure == PROC_BOOTSEL) config_bootsel();
-    if (procedure == PROC_THANKS) hid_thanks();
+    switch (procedure){
+        case PROC_HOME: profile_set_home(true); break;                  // Hold home. 
+        case PROC_HOME_GAMEPAD: profile_set_home_gamepad(true); break;  // Double-click-hold home.
+        case PROC_PROFILE_1: profile_set_active(1); break;
+        case PROC_PROFILE_2: profile_set_active(2); break;
+        case PROC_PROFILE_3: profile_set_active(3); break;
+        case PROC_PROFILE_4: profile_set_active(4); break;
+        case PROC_PROFILE_5: profile_set_active(5); break;
+        case PROC_PROFILE_6: profile_set_active(6); break;
+        case PROC_PROFILE_7: profile_set_active(7); break;
+        case PROC_PROFILE_8: profile_set_active(8); break;
+        case PROC_PROFILE_9: profile_set_active(9); break;
+        case PROC_PROFILE_10: profile_set_active(10); break;
+        case PROC_PROFILE_11: profile_set_active(11); break;
+        case PROC_PROFILE_12: profile_set_active(12); break;
+        case PROC_TUNE_UP: config_tune(1); break;
+        case PROC_TUNE_DOWN: config_tune(0); break;
+        case PROC_TUNE_OS: config_tune_set_mode(procedure); break;
+        case PROC_TUNE_SENSITIVITY: config_tune_set_mode(procedure); break;
+        case PROC_TUNE_DEADZONE: config_tune_set_mode(procedure); break;
+        case PROC_TUNE_TOUCH_THRESHOLD: config_tune_set_mode(procedure); break;
+        case PROC_TUNE_VIBRATION: config_tune_set_mode(procedure); break;
+        case PROC_CALIBRATE: config_calibrate(); break;
+        case PROC_BOOTSEL: config_bootsel(); break;
+        case PROC_THANKS: hid_thanks(); break;
+    }
 }
 
 void hid_procedure_release(uint8_t procedure) {
-    if (procedure == PROC_HOME) profile_set_home(false);
-    if (procedure == PROC_HOME_GAMEPAD) profile_set_home_gamepad(false);
+    switch (procedure) {
+        case PROC_HOME: profile_set_home(false); break;
+        case PROC_HOME_GAMEPAD: profile_set_home_gamepad(false); break; 
+    }
 }
 
 void hid_press(uint8_t key) {
