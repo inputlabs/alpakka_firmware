@@ -6,6 +6,7 @@
 typedef struct Dhat_struct Dhat;
 
 struct Dhat_struct {
+    void (*update) (Dhat *self);
     void (*report) (Dhat *self);
     void (*reset) (Dhat *self);
     uint64_t timestamp;
