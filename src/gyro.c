@@ -5,11 +5,69 @@
 #include <stdarg.h>
 #include "config.h"
 #include "pin.h"
+#include "profile.h"
 #include "button.h"
 #include "gyro.h"
 #include "imu.h"
 #include "hid.h"
 #include "touch.h"
+#include "helper.h"
+#include "led.h"
+
+double antideadzone = 0; // TODO ALPHA
+double absx = 0;  // TODO ALPHA
+
+void gyro_antideadzone(int8_t increment) {
+    if (increment > 0) antideadzone += 0.05;
+    else antideadzone -= 0.05;
+    antideadzone = limit_between(antideadzone, 0, 0.50);
+    printf("antideadzone=%f\n", antideadzone);
+    uint8_t adz = (antideadzone * 100) + 0.001;
+    led_shape_all_off();
+    if      (adz == 5)  led_blink_mask(0b0001);
+    else if (adz == 10) led_blink_mask(0b0010);
+    else if (adz == 15) led_blink_mask(0b0100);
+    else if (adz == 20) led_blink_mask(0b1000);
+    else if (adz == 25) led_blink_mask(0b0011);
+    else if (adz == 30) led_blink_mask(0b0110);
+    else if (adz == 35) led_blink_mask(0b1100);
+    else if (adz == 40) led_blink_mask(0b1001);
+    else if (adz == 45) led_blink_mask(0b1011);
+    else if (adz == 50) led_blink_mask(0b0111);
+}
+
+void gyro_correct_(double value) {
+    static double threshold = 5000;
+    static double speed = 500;
+    // printf("\r%6.0f %6.0f", absx, value);
+    if (fabs(value) > threshold) return;
+    double delta = value - absx;
+    absx += (delta / speed);
+}
+
+void gyro_correct() {
+    static double smooth = 0;
+    static double s = 20;
+    vector_t accel = imu_read_accel();
+    smooth = ((smooth * (s-1)) + accel.x) / s;
+    double final = limit_between(smooth * 32768, -32767, 32767);
+    gyro_correct_(final);
+}
+
+void Gyro__report_absolute(Gyro *self) {
+    vector_t gyro = imu_read_gyro_alt();
+    absx += gyro.x * 10;
+    // printf("\r%6.0f %6.0f", absx), finalx;
+    double finalx = limit_between(absx, -32767, 32767);
+    finalx = finalx > 0 ? ramp_inv(finalx, antideadzone, 32767) : -ramp_inv(-finalx, antideadzone, 32767);
+    gyro_correct();
+    hid_gamepad_lx(finalx);
+    // printf("\r%7.0f\n", finalx);
+    // if (self->engage_button.is_pressed(&(self->engage_button))) {
+    //     absx = 0;
+    //     // printf("RECENTER\n");
+    // }
+}
 
 bool Gyro__is_engaged(Gyro *self) {
     if (self->pin == PIN_NONE) return false;
@@ -26,6 +84,10 @@ void Gyro__report(Gyro *self) {
         if (self->is_engaged(self)) return;
     }
     else if (self->mode == GYRO_MODE_ALWAYS_OFF) {
+        return;
+    }
+    else if (self->mode == GYRO_MODE_AXIS_RELATIVE) {
+        self->report_absolute(self);
         return;
     }
     // Report.
@@ -67,6 +129,7 @@ Gyro Gyro_ (
     Gyro gyro;
     gyro.is_engaged = Gyro__is_engaged;
     gyro.report = Gyro__report;
+    gyro.report_absolute = Gyro__report_absolute;
     gyro.reset = Gyro__reset;
     gyro.mode = mode;
     gyro.pin = pin;
