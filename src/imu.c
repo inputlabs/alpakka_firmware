@@ -28,9 +28,12 @@ double offset_1_z;
 
 void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     uint8_t id = bus_spi_read_one(cs, IMU_WHO_AM_I);
+    bus_spi_write(cs, IMU_CTRL1_XL, 0b10100010);
+    bus_spi_write(cs, IMU_CTRL8_XL, 0b00000000);
     bus_spi_write(cs, IMU_CTRL2_G, gyro_conf);
-    uint8_t ctrl = bus_spi_read_one(cs, IMU_CTRL2_G);
-    printf("  IMU cs=%i id=0x%02x ctrl2_g=0x%i\n", cs, id, bin(ctrl));
+    uint8_t ctrl1 = bus_spi_read_one(cs, IMU_CTRL1_XL);
+    uint8_t ctrl2 = bus_spi_read_one(cs, IMU_CTRL2_G);
+    printf("  IMU cs=%i id=0x%02x xl=0x%08i g=0x%08i\n", cs, id, bin(ctrl1), bin(ctrl2));
 }
 
 void imu_init() {
@@ -61,6 +64,22 @@ vector_t imu_read_gyro_bits(uint8_t cs) {
         (double)x - offset_x,
         (double)y - offset_y,
         (double)z - offset_z,
+    };
+}
+
+vector_t imu_read_accel_bits(uint8_t cs) {
+    uint8_t buf[6];
+    bus_spi_read(cs, IMU_OUTX_L_XL, buf, 6);
+    int16_t x =  (((int8_t)buf[1] << 8) + (int8_t)buf[0]);
+    int16_t y =  (((int8_t)buf[3] << 8) + (int8_t)buf[2]);
+    int16_t z =  (((int8_t)buf[5] << 8) + (int8_t)buf[4]);
+    // double offset_x = (cs==PIN_SPI_CS0) ? offset_0_x : offset_1_x;
+    // double offset_y = (cs==PIN_SPI_CS0) ? offset_0_y : offset_1_y;
+    // double offset_z = (cs==PIN_SPI_CS0) ? offset_0_z : offset_1_z;
+    return (vector_t){
+        limit_between(-1, (double)x / 16384.0, 1),
+        limit_between(-1, (double)y / 16384.0, 1),
+        limit_between(-1, (double)z / 16384.0, 1),
     };
 }
 
@@ -126,6 +145,26 @@ vector_t imu_read_gyro() {
     sub_z = modf(z, &z);
     // Return 3d vector.
     return (vector_t){x, y, z};
+}
+
+vector_t imu_read_gyro_alt() {
+    // Read gyro values.
+    vector_t gyro = imu_read_gyros();
+    double x = gyro.x * CFG_GYRO_SENSITIVITY_X;
+    double y = gyro.y * CFG_GYRO_SENSITIVITY_Y;
+    double z = gyro.z * CFG_GYRO_SENSITIVITY_Z;
+    // Return 3d vector.
+    return (vector_t){x, y, z};
+}
+
+vector_t imu_read_accel() {
+    vector_t accel0 = imu_read_accel_bits(PIN_SPI_CS0);
+    vector_t accel1 = imu_read_accel_bits(PIN_SPI_CS1);
+    return (vector_t){
+        (accel0.x + accel1.x) / 2,
+        (accel0.y + accel1.y) / 2,
+        (accel0.z + accel1.z) / 2
+    };
 }
 
 void imu_calibrate_single(uint8_t cs) {

@@ -60,6 +60,13 @@ void hid_procedure_press(uint8_t procedure){
     if (procedure == PROC_CALIBRATE) config_calibrate();
     if (procedure == PROC_BOOTSEL) config_bootsel();
     if (procedure == PROC_THANKS) hid_thanks();
+    if (procedure == PROC_ADZ) gyro_antideadzone(1);
+    if (procedure == PROC_ADZN) gyro_antideadzone(-1);
+    if (procedure == PROC_ROTARY_MODE_0) rotary_set_mode(0);
+    if (procedure == PROC_ROTARY_MODE_1) rotary_set_mode(1);
+    if (procedure == PROC_ROTARY_MODE_2) rotary_set_mode(2);
+    if (procedure == PROC_ROTARY_MODE_3) rotary_set_mode(3);
+    if (procedure == PROC_ROTARY_MODE_4) rotary_set_mode(4);
 }
 
 void hid_procedure_release(uint8_t procedure) {
@@ -306,24 +313,36 @@ int16_t hid_axis(
 }
 
 void hid_gamepad_report() {
-    int32_t buttons = 0;
-    for(int i=0; i<16; i++) {
-        buttons += state_matrix[GAMEPAD_INDEX + i] << i;
-    }
+    int32_t buttons = (
+        (state_matrix[GAMEPAD_A]      <<  0) +
+        (state_matrix[GAMEPAD_B]      <<  1) +
+        (state_matrix[GAMEPAD_X]      <<  2) +
+        (state_matrix[GAMEPAD_Y]      <<  3) +
+        (state_matrix[GAMEPAD_L1]     <<  4) +
+        (state_matrix[GAMEPAD_R1]     <<  5) +
+        (state_matrix[GAMEPAD_L3]     <<  6) +
+        (state_matrix[GAMEPAD_R3]     <<  7) +
+        (state_matrix[GAMEPAD_LEFT]   <<  8) +
+        (state_matrix[GAMEPAD_RIGHT]  <<  9) +
+        (state_matrix[GAMEPAD_UP]     << 10) +
+        (state_matrix[GAMEPAD_DOWN]   << 11) +
+        (state_matrix[GAMEPAD_SELECT] << 12) +
+        (state_matrix[GAMEPAD_START]  << 13) +
+        (state_matrix[GAMEPAD_HOME]   << 14)
+    );
     int16_t lx_report = hid_axis(gamepad_lx, GAMEPAD_AXIS_LX, GAMEPAD_AXIS_LX_NEG);
     int16_t ly_report = hid_axis(gamepad_ly, GAMEPAD_AXIS_LY, GAMEPAD_AXIS_LY_NEG);
     int16_t rx_report = hid_axis(gamepad_rx, GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RX_NEG);
     int16_t ry_report = hid_axis(gamepad_ry, GAMEPAD_AXIS_RY, GAMEPAD_AXIS_RY_NEG);
-    int16_t lz_report = hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0);
-    int16_t rz_report = hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0);
-    hid_gamepad_report_t report = {
-        lx_report / 256,
-        ly_report / 256,
-        rx_report / 256,
-        ry_report / 256,
-        lz_report / 256,
-        rz_report / 256,
-        0,
+    uint16_t lz_report = hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0);
+    uint16_t rz_report = hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0);
+    hid_gamepad_custom_report_t report = {
+        lx_report,
+        ly_report,
+        rx_report,
+        ry_report,
+        lz_report,
+        rz_report,
         buttons,
     };
     tud_hid_report(REPORT_GAMEPAD, &report, sizeof(report));

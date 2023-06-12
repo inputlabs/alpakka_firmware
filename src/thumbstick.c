@@ -18,6 +18,7 @@
 float offset_x = 0;
 float offset_y = 0;
 float config_deadzone = 0;
+float trigger_factor = 0;
 
 // Daisywheel.
 bool daisywheel_used = false;
@@ -42,6 +43,9 @@ void thumbstick_update_deadzone() {
         CFG_THUMBSTICK_DEADZONE_HIGH
     };
     config_deadzone = deadzones[config.deadzone];
+
+    if (config_get_os_mode() <= 1) trigger_factor = TRIGGER_FACTOR;   // TODO
+    else trigger_factor = ANALOG_FACTOR;
 }
 
 void thumbstick_update_offsets() {
@@ -91,8 +95,8 @@ void thumbstick_report_axis(uint8_t axis, float value) {
     else if (axis == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( value * ANALOG_FACTOR);
     else if (axis == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value * ANALOG_FACTOR);
     else if (axis == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_LZ) hid_gamepad_lz(max(0, value) * TRIGGER_FACTOR);
-    else if (axis == GAMEPAD_AXIS_RZ) hid_gamepad_rz(max(0, value) * TRIGGER_FACTOR);
+    else if (axis == GAMEPAD_AXIS_LZ) hid_gamepad_lz(max(0, value) * trigger_factor);
+    else if (axis == GAMEPAD_AXIS_RZ) hid_gamepad_rz(max(0, value) * trigger_factor);
 }
 
 void Thumbstick__report_4dir(

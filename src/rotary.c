@@ -13,6 +13,12 @@
 #include "rotary.h"
 #include "hid.h"
 
+void rotary_set_mode(uint8_t value) {
+    Profile* profile = profile_get_active(false);
+    Rotary* rotary = &(profile->rotary);
+    rotary->mode = value;
+}
+
 void rotary_callback(uint gpio, uint32_t events) {
     Profile* profile = profile_get_active(false);
     Rotary* rotary = &(profile->rotary);
@@ -42,17 +48,14 @@ void Rotary__report(Rotary *self) {
         self->pending &&
         (time_us_32() > (self->timestamp + CFG_MOUSE_WHEEL_DEBOUNCE))
     ) {
-        uint8_t actions[8] = {0,};
-        for(uint8_t r=0; r<abs(self->increment); r++) {
-            for(uint8_t i=0; i<ACTIONS_LEN; i++) {
-                uint8_t action = (
-                    self->increment > 0
-                    ? self->actions_up[i]
-                    : self->actions_down[i]
-                );
-                hid_press(action);
-                hid_release_later(action, 100);
-            }
+        for(uint8_t rotated=0; rotated<abs(self->increment); rotated++) {
+            uint8_t *actions = (
+                self->increment > 0 ?
+                self->actions[self->mode][0] :
+                self->actions[self->mode][1]
+            );
+            hid_press_multiple(actions);
+            hid_release_multiple_later(actions, 10);
         }
         self->increment = 0;
         self->pending = false;
@@ -62,7 +65,22 @@ void Rotary__report(Rotary *self) {
 void Rotary__reset(Rotary *self) {
     self->pending = false;
     self->increment = 0;
+    self->mode = 0;
     self->timestamp = 0;
+}
+
+void Rotary__config_mode(Rotary *self, uint8_t mode, ...) {
+    va_list va;
+    va_start(va, 0);
+    for(uint8_t dir=0; dir<2; dir++) {
+        bool valid = true;
+        for(uint8_t action=0; action<4; action++) {
+            uint8_t value = valid ? va_arg(va, int) : KEY_NONE;
+            if (value == SENTINEL) valid = false;
+            self->actions[mode][dir][action] = value;
+        }
+    }
+    va_end(va);
 }
 
 Rotary Rotary_ (
@@ -72,28 +90,19 @@ Rotary Rotary_ (
     Rotary rotary;
     rotary.report = Rotary__report;
     rotary.reset = Rotary__reset;
+    rotary.config_mode = Rotary__config_mode;
     rotary.pending = false;
     rotary.increment = 0;
     rotary.timestamp = 0;
-    rotary.actions_up[0] = 0;
-    rotary.actions_up[1] = 0;
-    rotary.actions_up[2] = 0;
-    rotary.actions_up[3] = 0;
-    rotary.actions_down[0] = 0;
-    rotary.actions_down[1] = 0;
-    rotary.actions_down[2] = 0;
-    rotary.actions_down[3] = 0;
     va_list va;
     va_start(va, 0);
-    for(uint8_t i=0; true; i++) {
-        uint8_t value = va_arg(va, int);
-        if (value == SENTINEL) break;
-        rotary.actions_up[i] = value;
-    }
-    for(uint8_t i=0; true; i++) {
-        uint8_t value = va_arg(va, int);
-        if (value == SENTINEL) break;
-        rotary.actions_down[i] = value;
+    for(uint8_t dir=0; dir<2; dir++) {
+        bool valid = true;
+        for(uint8_t action=0; action<4; action++) {
+            uint8_t value = valid ? va_arg(va, int) : KEY_NONE;
+            if (value == SENTINEL) valid = false;
+            rotary.actions[0][dir][action] = value;
+        }
     }
     va_end(va);
     return rotary;

@@ -75,6 +75,7 @@ Profile profile_init_fps_wasd();
 Profile profile_init_console();
 Profile profile_init_console_legacy();
 Profile profile_init_desktop();
+Profile profile_init_racing();
 
 extern bool profile_led_lock;
 extern bool profile_pending_reboot;
