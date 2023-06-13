@@ -5,6 +5,11 @@
 #include <pico/stdlib.h>
 #include <math.h>
 
+#define BIT_16 65535
+#define BIT_15 32767
+#define BIT_8 255
+#define BIT_7 127
+
 #define min(a, b)  ((a < b) ? a : b)
 #define max(a, b)  ((a > b) ? a : b)
 #define limit_between(value, low, high)  max(low, min(high, value))

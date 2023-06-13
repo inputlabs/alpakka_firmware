@@ -21,10 +21,10 @@ int16_t mouse_x = 0;
 int16_t mouse_y = 0;
 int16_t gamepad_lx = 0;
 int16_t gamepad_ly = 0;
-int16_t gamepad_lz = 0;
 int16_t gamepad_rx = 0;
 int16_t gamepad_ry = 0;
-int16_t gamepad_rz = 0;
+uint16_t gamepad_lz = 0;
+uint16_t gamepad_rz = 0;
 
 void hid_matrix_reset() {
     for(uint8_t i=0; i<255; i++) {
@@ -215,12 +215,6 @@ void hid_gamepad_ly(int16_t value) {
     synced_gamepad = false;
 }
 
-void hid_gamepad_lz(int16_t value) {
-    if (value == gamepad_lz) return;
-    gamepad_lz = value;
-    synced_gamepad = false;
-}
-
 void hid_gamepad_rx(int16_t value) {
     if (value == gamepad_rx) return;
     gamepad_rx = value;
@@ -233,9 +227,15 @@ void hid_gamepad_ry(int16_t value) {
     synced_gamepad = false;
 }
 
-void hid_gamepad_rz(int16_t value) {
+void hid_gamepad_rz(uint16_t value) {
     if (value == gamepad_rz) return;
     gamepad_rz = value;
+    synced_gamepad = false;
+}
+
+void hid_gamepad_lz(uint16_t value) {
+    if (value == gamepad_lz) return;
+    gamepad_lz = value;
     synced_gamepad = false;
 }
 
@@ -307,8 +307,18 @@ int16_t hid_axis(
     uint8_t matrix_index_pos,
     uint8_t matrix_index_neg
 ) {
-    if (state_matrix[matrix_index_pos]) return 32767;
-    if (matrix_index_neg != 0 && state_matrix[matrix_index_neg]) return -32767;
+    if (state_matrix[matrix_index_pos]) return BIT_15;
+    if (matrix_index_neg != 0 && state_matrix[matrix_index_neg]) return -BIT_15;
+    return value;
+}
+
+uint16_t hid_axis_unsigned(
+    uint16_t value,
+    uint8_t matrix_index_pos,
+    uint8_t matrix_index_neg
+) {
+    if (state_matrix[matrix_index_pos]) return BIT_16;
+    if (matrix_index_neg != 0 && state_matrix[matrix_index_neg]) return 0;
     return value;
 }
 
@@ -334,8 +344,8 @@ void hid_gamepad_report() {
     int16_t ly_report = hid_axis(gamepad_ly, GAMEPAD_AXIS_LY, GAMEPAD_AXIS_LY_NEG);
     int16_t rx_report = hid_axis(gamepad_rx, GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RX_NEG);
     int16_t ry_report = hid_axis(gamepad_ry, GAMEPAD_AXIS_RY, GAMEPAD_AXIS_RY_NEG);
-    uint16_t lz_report = hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0);
-    uint16_t rz_report = hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0);
+    uint16_t lz_report = hid_axis_unsigned(gamepad_lz, GAMEPAD_AXIS_LZ, 0);
+    uint16_t rz_report = hid_axis_unsigned(gamepad_rz, GAMEPAD_AXIS_RZ, 0);
     hid_gamepad_custom_report_t report = {
         lx_report,
         ly_report,
@@ -345,6 +355,7 @@ void hid_gamepad_report() {
         rz_report,
         buttons,
     };
+    printf("\rG %6.0f %6.0f", (double)lz_report, (double)rz_report );
     tud_hid_report(REPORT_GAMEPAD, &report, sizeof(report));
 }
 
@@ -361,8 +372,8 @@ void hid_xinput_report() {
     int16_t ly_report = hid_axis(gamepad_ly, GAMEPAD_AXIS_LY, GAMEPAD_AXIS_LY_NEG);
     int16_t rx_report = hid_axis(gamepad_rx, GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RX_NEG);
     int16_t ry_report = hid_axis(gamepad_ry, GAMEPAD_AXIS_RY, GAMEPAD_AXIS_RY_NEG);
-    int16_t lz_report = hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0);
-    int16_t rz_report = hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0);
+    uint16_t lz_report = hid_axis_unsigned(gamepad_lz, GAMEPAD_AXIS_LZ, 0);
+    uint16_t rz_report = hid_axis_unsigned(gamepad_rz, GAMEPAD_AXIS_RZ, 0);
     xinput_report report = {
         .report_id   = 0,
         .report_size = XINPUT_REPORT_SIZE,
@@ -376,6 +387,7 @@ void hid_xinput_report() {
         .ry          = -ry_report,
         .reserved    = {0, 0, 0, 0, 0, 0}
     };
+    printf("\rX %6.0f %6.0f", (double)lz_report, (double)rz_report );
     xinput_send_report(&report);
 }
 

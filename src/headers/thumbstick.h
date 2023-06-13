@@ -4,8 +4,6 @@
 #pragma once
 #include "button.h"
 
-#define ANALOG_FACTOR 32767
-#define TRIGGER_FACTOR 255
 #define DEADZONE_FROM_CONFIG -1
 #define GLYPH(...)  __VA_ARGS__, SENTINEL
 
