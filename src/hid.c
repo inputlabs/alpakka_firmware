@@ -355,7 +355,6 @@ void hid_gamepad_report() {
         rz_report,
         buttons,
     };
-    printf("\rG %6.0f %6.0f", (double)lz_report, (double)rz_report );
     tud_hid_report(REPORT_GAMEPAD, &report, sizeof(report));
 }
 
@@ -387,7 +386,6 @@ void hid_xinput_report() {
         .ry          = -ry_report,
         .reserved    = {0, 0, 0, 0, 0, 0}
     };
-    printf("\rX %6.0f %6.0f", (double)lz_report, (double)rz_report );
     xinput_send_report(&report);
 }
 

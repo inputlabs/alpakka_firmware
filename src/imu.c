@@ -18,7 +18,6 @@
 #include "led.h"
 #include "helper.h"
 
-double sensitivity_multiplier;
 double offset_0_x;
 double offset_0_y;
 double offset_0_z;
@@ -48,7 +47,6 @@ void imu_init() {
     offset_1_x = config.imu_1_offset_x;
     offset_1_y = config.imu_1_offset_y;
     offset_1_z = config.imu_1_offset_z;
-    imu_update_sensitivity();
 }
 
 vector_t imu_read_gyro_bits(uint8_t cs) {
@@ -99,7 +97,7 @@ vector_t imu_read_gyro_burst(uint8_t cs, uint8_t samples) {
     return (vector_t){x, y, z};
 }
 
-vector_t imu_read_gyros() {
+vector_t imu_read_gyro() {
     vector_t imu0 = imu_read_gyro_burst(PIN_SPI_CS0, CFG_IMU_TICK_SAMPLES/8*1);
     vector_t imu1 = imu_read_gyro_burst(PIN_SPI_CS1, CFG_IMU_TICK_SAMPLES/8*7);
     double weight = max(abs(imu1.x), abs(imu1.y)) / 32768.0;
@@ -108,52 +106,6 @@ vector_t imu_read_gyros() {
     double x = (imu0.x * weight_0) + (imu1.x * weight_1 / 4);
     double y = (imu0.y * weight_0) + (imu1.y * weight_1 / 4);
     double z = (imu0.z * weight_0) + (imu1.z * weight_1 / 4);
-    return (vector_t){x, y, z};
-}
-
-double hssnf(double t, double k, double x) {
-    double a = x - (x * k);
-    double b = 1 - (x * k * (1/t));
-    return a / b;
-}
-
-vector_t imu_read_gyro() {
-    static double sub_x = 0;
-    static double sub_y = 0;
-    static double sub_z = 0;
-    // Read gyro values.
-    vector_t gyro = imu_read_gyros();
-    double x = gyro.x * CFG_GYRO_SENSITIVITY_X * sensitivity_multiplier;
-    double y = gyro.y * CFG_GYRO_SENSITIVITY_Y * sensitivity_multiplier;
-    double z = gyro.z * CFG_GYRO_SENSITIVITY_Z * sensitivity_multiplier;
-    // Magic happens.
-    double t = 1.0;
-    double k = 0.5;
-    if      (x > 0 && x <  t) x =  hssnf(t, k,  x);
-    else if (x < 0 && x > -t) x = -hssnf(t, k, -x);
-    if      (y > 0 && y <  t) y =  hssnf(t, k,  y);
-    else if (y < 0 && y > -t) y = -hssnf(t, k, -y);
-    if      (z > 0 && z <  t) z =  hssnf(t, k,  z);
-    else if (z < 0 && z > -t) z = -hssnf(t, k, -z);
-    // Reintroduce subpixel leftovers.
-    x += sub_x;
-    y += sub_y;
-    z += sub_z;
-    // Round down and save leftovers.
-    sub_x = modf(x, &x);
-    sub_y = modf(y, &y);
-    sub_z = modf(z, &z);
-    // Return 3d vector.
-    return (vector_t){x, y, z};
-}
-
-vector_t imu_read_gyro_alt() {
-    // Read gyro values.
-    vector_t gyro = imu_read_gyros();
-    double x = gyro.x * CFG_GYRO_SENSITIVITY_X;
-    double y = gyro.y * CFG_GYRO_SENSITIVITY_Y;
-    double z = gyro.z * CFG_GYRO_SENSITIVITY_Z;
-    // Return 3d vector.
     return (vector_t){x, y, z};
 }
 
@@ -219,15 +171,4 @@ void imu_calibrate() {
         offset_1_y,
         offset_1_z
     );
-}
-
-void imu_update_sensitivity() {
-    config_nvm_t config;
-    config_read(&config);
-    float multipliers[3] = {
-        CFG_GYRO_SENSITIVITY_MULTIPLIER_LOW,
-        CFG_GYRO_SENSITIVITY_MULTIPLIER_MID,
-        CFG_GYRO_SENSITIVITY_MULTIPLIER_HIGH
-    };
-    sensitivity_multiplier = multipliers[config.sensitivity];
 }
