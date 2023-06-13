@@ -50,12 +50,12 @@ void thumbstick_update_deadzone() {
 void thumbstick_update_offsets() {
     config_nvm_t config;
     config_read(&config);
-    offset_x = config.ts_offset_x;
-    offset_y = config.ts_offset_y;
+    offset_x = config.offset_ts_x;
+    offset_y = config.offset_ts_y;
 }
 
 void thumbstick_calibrate() {
-    printf("Thumbstick: calibrating...\n");
+    printf("Thumbstick: calibrating...");
     float x = 0;
     float y = 0;
     uint32_t len = 100000;
@@ -66,7 +66,7 @@ void thumbstick_calibrate() {
     }
     x /= len;
     y /= len;
-    printf("Thumbstick: calibration x=%f y=%f\n", x, y);
+    printf("\rThumbstick: calibration x=%f y=%f\n", x, y);
     config_set_thumbstick_offset(x, y);
     thumbstick_update_offsets();
 }

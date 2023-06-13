@@ -18,12 +18,18 @@
 #include "led.h"
 #include "helper.h"
 
-double offset_0_x;
-double offset_0_y;
-double offset_0_z;
-double offset_1_x;
-double offset_1_y;
-double offset_1_z;
+double offset_gyro_0_x;
+double offset_gyro_0_y;
+double offset_gyro_0_z;
+double offset_gyro_1_x;
+double offset_gyro_1_y;
+double offset_gyro_1_z;
+double offset_accel_0_x;
+double offset_accel_0_y;
+double offset_accel_0_z;
+double offset_accel_1_x;
+double offset_accel_1_y;
+double offset_accel_1_z;
 
 void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     uint8_t id = bus_spi_read_one(cs, IMU_WHO_AM_I);
@@ -41,12 +47,18 @@ void imu_init() {
     imu_init_single(PIN_SPI_CS1, IMU_CTRL2_G_125);
     config_nvm_t config;
     config_read(&config);
-    offset_0_x = config.imu_0_offset_x;
-    offset_0_y = config.imu_0_offset_y;
-    offset_0_z = config.imu_0_offset_z;
-    offset_1_x = config.imu_1_offset_x;
-    offset_1_y = config.imu_1_offset_y;
-    offset_1_z = config.imu_1_offset_z;
+    offset_gyro_0_x = config.offset_gyro_0_x;
+    offset_gyro_0_y = config.offset_gyro_0_y;
+    offset_gyro_0_z = config.offset_gyro_0_z;
+    offset_gyro_1_x = config.offset_gyro_1_x;
+    offset_gyro_1_y = config.offset_gyro_1_y;
+    offset_gyro_1_z = config.offset_gyro_1_z;
+    offset_accel_0_x = config.offset_accel_0_x;
+    offset_accel_0_y = config.offset_accel_0_y;
+    offset_accel_0_z = config.offset_accel_0_z;
+    offset_accel_1_x = config.offset_accel_1_x;
+    offset_accel_1_y = config.offset_accel_1_y;
+    offset_accel_1_z = config.offset_accel_1_z;
 }
 
 vector_t imu_read_gyro_bits(uint8_t cs) {
@@ -55,9 +67,9 @@ vector_t imu_read_gyro_bits(uint8_t cs) {
     int16_t y =  (((int8_t)buf[1] << 8) + (int8_t)buf[0]);
     int16_t z =  (((int8_t)buf[3] << 8) + (int8_t)buf[2]);
     int16_t x = -(((int8_t)buf[5] << 8) + (int8_t)buf[4]);
-    double offset_x = (cs==PIN_SPI_CS0) ? offset_0_x : offset_1_x;
-    double offset_y = (cs==PIN_SPI_CS0) ? offset_0_y : offset_1_y;
-    double offset_z = (cs==PIN_SPI_CS0) ? offset_0_z : offset_1_z;
+    double offset_x = (cs==PIN_SPI_CS0) ? offset_gyro_0_x : offset_gyro_1_x;
+    double offset_y = (cs==PIN_SPI_CS0) ? offset_gyro_0_y : offset_gyro_1_y;
+    double offset_z = (cs==PIN_SPI_CS0) ? offset_gyro_0_z : offset_gyro_1_z;
     return (vector_t){
         (double)x - offset_x,
         (double)y - offset_y,
@@ -71,13 +83,13 @@ vector_t imu_read_accel_bits(uint8_t cs) {
     int16_t x =  (((int8_t)buf[1] << 8) + (int8_t)buf[0]);
     int16_t y =  (((int8_t)buf[3] << 8) + (int8_t)buf[2]);
     int16_t z =  (((int8_t)buf[5] << 8) + (int8_t)buf[4]);
-    // double offset_x = (cs==PIN_SPI_CS0) ? offset_0_x : offset_1_x;
-    // double offset_y = (cs==PIN_SPI_CS0) ? offset_0_y : offset_1_y;
-    // double offset_z = (cs==PIN_SPI_CS0) ? offset_0_z : offset_1_z;
+    double offset_x = (cs==PIN_SPI_CS0) ? offset_accel_0_x : offset_accel_1_x;
+    double offset_y = (cs==PIN_SPI_CS0) ? offset_accel_0_y : offset_accel_1_y;
+    double offset_z = (cs==PIN_SPI_CS0) ? offset_accel_0_z : offset_accel_1_z;
     return (vector_t){
-        limit_between(-1, (double)x / 16384.0, 1),
-        limit_between(-1, (double)y / 16384.0, 1),
-        limit_between(-1, (double)z / 16384.0, 1),
+        (double)x - offset_x,
+        (double)y - offset_y,
+        (double)z - offset_z,
     };
 }
 
@@ -119,56 +131,51 @@ vector_t imu_read_accel() {
     };
 }
 
-void imu_calibrate_single(uint8_t cs) {
-    printf("IMU: cs=%i calibrating...\n", cs);
+vector_t imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double* z) {
+    char *mode_str = mode ? "accel" : "gyro";
+    printf("IMU: cs=%i calibrating %s...", cs, mode_str);
+    *x = 0;
+    *y = 0;
+    *z = 0;
+    double tx = 0;
+    double ty = 0;
+    double tz = 0;
     uint32_t len = 200000;
-    if (cs == PIN_SPI_CS0) {
-        offset_0_x = 0;
-        offset_0_y = 0;
-        offset_0_z = 0;
-    }
-    if (cs == PIN_SPI_CS1) {
-        offset_1_x = 0;
-        offset_1_y = 0;
-        offset_1_z = 0;
-    }
-    double x = 0;
-    double y = 0;
-    double z = 0;
     uint32_t i = 0;
     while(i < len) {
         if (!(i % 5000)) led_cycle_step();
-        vector_t sample = imu_read_gyro_bits(cs);
-        x += sample.x;
-        y += sample.y;
-        z += sample.z;
+        vector_t sample = mode ? imu_read_accel_bits(cs) : imu_read_gyro_bits(cs);
+        tx += sample.x;
+        ty += sample.y;
+        tz += sample.z;
         i++;
     }
-    x /= len;
-    y /= len;
-    z /= len;
-    printf("IMU: cs=%i calibration x=%f y=%f z=%f\n", cs, x, y, z);
-    if (cs == PIN_SPI_CS0) {
-        offset_0_x = x;
-        offset_0_y = y;
-        offset_0_z = z;
-    }
-    if (cs == PIN_SPI_CS1) {
-        offset_1_x = x;
-        offset_1_y = y;
-        offset_1_z = z;
-    }
+    *x = tx / len;
+    *y = ty / len;
+    *z = tz / len;
+    printf("\rIMU: cs=%i %s calibration x=%f y=%f z=%f\n", cs, mode_str, *x, *y, *z);
 }
 
 void imu_calibrate() {
-    imu_calibrate_single(PIN_SPI_CS0);
-    imu_calibrate_single(PIN_SPI_CS1);
-    config_set_imu_offset(
-        offset_0_x,
-        offset_0_y,
-        offset_0_z,
-        offset_1_x,
-        offset_1_y,
-        offset_1_z
+    imu_calibrate_single(PIN_SPI_CS0, 0, &offset_gyro_0_x, &offset_gyro_0_y, &offset_gyro_0_z);
+    imu_calibrate_single(PIN_SPI_CS1, 0, &offset_gyro_1_x, &offset_gyro_1_y, &offset_gyro_1_z);
+    imu_calibrate_single(PIN_SPI_CS0, 1, &offset_accel_0_x, &offset_accel_0_y, &offset_accel_0_z);
+    imu_calibrate_single(PIN_SPI_CS1, 1, &offset_accel_1_x, &offset_accel_1_y, &offset_accel_1_z);
+    config_set_gyro_offset(
+        offset_gyro_0_x,
+        offset_gyro_0_y,
+        offset_gyro_0_z,
+        offset_gyro_1_x,
+        offset_gyro_1_y,
+        offset_gyro_1_z
     );
+    config_set_accel_offset(
+        offset_accel_0_x,
+        offset_accel_0_y,
+        offset_accel_0_z,
+        offset_accel_1_x,
+        offset_accel_1_y,
+        offset_accel_1_z
+    );
+    printf("Calibration done\n");
 }

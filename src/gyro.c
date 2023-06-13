@@ -55,7 +55,7 @@ void gyro_wheel_recenter() {
     static double smoothed = 0;
     vector_t accel = imu_read_accel();
     smoothed = ((smoothed * (smoothing-1)) + accel.x) / smoothing;
-    double correction = limit_between(smoothed * BIT_15, -BIT_15, BIT_15);
+    double correction = limit_between(smoothed * 2, -BIT_15, BIT_15);
     if (fabs(correction) > threshold) return;
     double delta = correction - absx;
     absx += (delta / speed);
