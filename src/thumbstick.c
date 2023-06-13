@@ -18,7 +18,7 @@
 float offset_x = 0;
 float offset_y = 0;
 float config_deadzone = 0;
-float trigger_factor = 0;
+float trigger_resolution = 0;
 
 // Daisywheel.
 bool daisywheel_used = false;
@@ -44,8 +44,7 @@ void thumbstick_update_deadzone() {
     };
     config_deadzone = deadzones[config.deadzone];
 
-    if (config_get_os_mode() <= 1) trigger_factor = TRIGGER_FACTOR;   // TODO
-    else trigger_factor = ANALOG_FACTOR;
+    trigger_resolution = config_get_os_mode() <= 1 ? BIT_8 : BIT_16; // TODO
 }
 
 void thumbstick_update_offsets() {
@@ -87,16 +86,16 @@ void thumbstick_init() {
 }
 
 void thumbstick_report_axis(uint8_t axis, float value) {
-    if      (axis == GAMEPAD_AXIS_LX)     hid_gamepad_lx( value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_LY)     hid_gamepad_ly(-value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_RX)     hid_gamepad_rx( value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_RY)     hid_gamepad_ry(-value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_LZ) hid_gamepad_lz(value * trigger_factor);
-    else if (axis == GAMEPAD_AXIS_RZ) hid_gamepad_rz(value * trigger_factor);
+    if      (axis == GAMEPAD_AXIS_LX)     hid_gamepad_lx( value * BIT_15);
+    else if (axis == GAMEPAD_AXIS_LY)     hid_gamepad_ly(-value * BIT_15);
+    else if (axis == GAMEPAD_AXIS_RX)     hid_gamepad_rx( value * BIT_15);
+    else if (axis == GAMEPAD_AXIS_RY)     hid_gamepad_ry(-value * BIT_15);
+    else if (axis == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-value * BIT_15);
+    else if (axis == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( value * BIT_15);
+    else if (axis == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value * BIT_15);
+    else if (axis == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( value * BIT_15);
+    else if (axis == GAMEPAD_AXIS_LZ) hid_gamepad_lz(value * trigger_resolution);
+    else if (axis == GAMEPAD_AXIS_RZ) hid_gamepad_rz(value * trigger_resolution);
 }
 
 void Thumbstick__report_4dir(

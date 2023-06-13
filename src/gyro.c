@@ -43,7 +43,7 @@ void gyro_wheel_recenter() {
     static double smoothed = 0;
     vector_t accel = imu_read_accel();
     smoothed = ((smoothed * (smoothing-1)) + accel.x) / smoothing;
-    double correction = limit_between(smoothed * 32768, -32767, 32767);
+    double correction = limit_between(smoothed * BIT_15, -BIT_15, BIT_15);
     if (fabs(correction) > threshold) return;
     double delta = correction - absx;
     absx += (delta / speed);
@@ -53,8 +53,8 @@ void Gyro__report_relative(Gyro *self) {
     vector_t gyro = imu_read_gyro_alt();
     absx += gyro.x * 10;
     gyro_wheel_recenter();
-    double finalx = limit_between(absx, -32767, 32767);
-    finalx = finalx > 0 ? ramp_inv(finalx, antideadzone, 32767) : -ramp_inv(-finalx, antideadzone, 32767);
+    double finalx = limit_between(absx, -BIT_15, BIT_15);
+    finalx = finalx > 0 ? ramp_inv(finalx, antideadzone, BIT_15) : -ramp_inv(-finalx, antideadzone, BIT_15);
     hid_gamepad_lx(finalx);
 }
 

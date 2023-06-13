@@ -38,7 +38,7 @@
 #define USB_UNIX_PRODUCT 0x028E  // 360 controller product.
 
 #define USB_GENERIC_VENDOR  0x0170  // Input Labs.
-#define USB_GENERIC_PRODUCT 0xAE02  // Alpakka (HID complilant gamepad)
+#define USB_GENERIC_PRODUCT 0xAE03  // Alpakka (HID complilant gamepad)
 
 
 #define DESCRIPTOR_DEVICE \
@@ -149,11 +149,17 @@
     HID_USAGE         ( HID_USAGE_DESKTOP_Y                    ) ,\
     HID_USAGE         ( HID_USAGE_DESKTOP_RX                   ) ,\
     HID_USAGE         ( HID_USAGE_DESKTOP_RY                   ) ,\
-    HID_USAGE         ( HID_USAGE_DESKTOP_Z                    ) ,\
-    HID_USAGE         ( HID_USAGE_DESKTOP_RZ                   ) ,\
     HID_LOGICAL_MIN_N ( -32767, 2                              ) ,\
     HID_LOGICAL_MAX_N ( 32767, 2                               ) ,\
-    HID_REPORT_COUNT  ( 6                                      ) ,\
+    HID_REPORT_COUNT  ( 4                                      ) ,\
+    HID_REPORT_SIZE   ( 16                                     ) ,\
+    HID_INPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
+    /* Axis */ \
+    HID_USAGE         ( HID_USAGE_DESKTOP_Z                    ) ,\
+    HID_USAGE         ( HID_USAGE_DESKTOP_RZ                   ) ,\
+    HID_LOGICAL_MIN_N ( 0, 2                                   ) ,\
+    HID_LOGICAL_MAX_N ( 65535, 2                               ) ,\
+    HID_REPORT_COUNT  ( 2                                      ) ,\
     HID_REPORT_SIZE   ( 16                                     ) ,\
     HID_INPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
     /* Button mask */ \
