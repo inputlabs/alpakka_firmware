@@ -63,7 +63,7 @@ Profile profile_init_racing() {
     );
 
     profile.gyro = Gyro_(
-        GYRO_MODE_AXIS_RELATIVE,
+        GYRO_MODE_AXIS_ABSOLUTE,
         PIN_NONE,
         ACTIONS(GAMEPAD_AXIS_LX),
         ACTIONS(KEY_NONE),

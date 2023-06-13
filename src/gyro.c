@@ -14,8 +14,20 @@
 #include "helper.h"
 #include "led.h"
 
+double sensitivity_multiplier;
 double antideadzone = 0; // TODO ALPHA
 double absx = 0;  // TODO ALPHA
+
+void gyro_update_sensitivity() {
+    config_nvm_t config;
+    config_read(&config);
+    float multipliers[3] = {
+        CFG_GYRO_SENSITIVITY_MULTIPLIER_LOW,
+        CFG_GYRO_SENSITIVITY_MULTIPLIER_MID,
+        CFG_GYRO_SENSITIVITY_MULTIPLIER_HIGH
+    };
+    sensitivity_multiplier = multipliers[config.sensitivity];
+}
 
 void gyro_wheel_antideadzone(int8_t increment) {
     if (increment > 0) antideadzone += 0.05;
@@ -49,41 +61,52 @@ void gyro_wheel_recenter() {
     absx += (delta / speed);
 }
 
-void Gyro__report_relative(Gyro *self) {
-    vector_t gyro = imu_read_gyro_alt();
-    absx += gyro.x * 10;
+double hssnf(double t, double k, double x) {
+    double a = x - (x * k);
+    double b = 1 - (x * k * (1/t));
+    return a / b;
+}
+
+void Gyro__report_absolute(Gyro *self) {
+    vector_t gyro = imu_read_gyro();
+    absx += gyro.x * CFG_GYRO_SENSITIVITY_X * 10;
     gyro_wheel_recenter();
     double finalx = limit_between(absx, -BIT_15, BIT_15);
-    finalx = finalx > 0 ? ramp_inv(finalx, antideadzone, BIT_15) : -ramp_inv(-finalx, antideadzone, BIT_15);
+    finalx = (
+        finalx > 0 ?
+        ramp_inv(finalx, antideadzone, BIT_15) :
+        -ramp_inv(-finalx, antideadzone, BIT_15)
+    );
     hid_gamepad_lx(finalx);
 }
 
-bool Gyro__is_engaged(Gyro *self) {
-    if (self->pin == PIN_NONE) return false;
-    if (self->pin == PIN_TOUCH_IN) return touch_status();
-    return self->engage_button.is_pressed(&(self->engage_button));
-}
-
-void Gyro__report(Gyro *self) {
-    // Mode
-    if (self->mode == GYRO_MODE_TOUCH_ON) {
-        if (!self->is_engaged(self)) return;
-    }
-    else if (self->mode == GYRO_MODE_TOUCH_OFF) {
-        if (self->is_engaged(self)) return;
-    }
-    else if (self->mode == GYRO_MODE_ALWAYS_OFF) {
-        return;
-    }
-    else if (self->mode == GYRO_MODE_AXIS_RELATIVE) {
-        self->report_relative(self);
-        return;
-    }
-    // Report.
+void Gyro__report_incremental(Gyro *self) {
+    static double sub_x = 0;
+    static double sub_y = 0;
+    static double sub_z = 0;
+     // Read gyro values.
     vector_t imu_gyro = imu_read_gyro();
-    int16_t x = (int16_t)imu_gyro.x;
-    int16_t y = (int16_t)imu_gyro.y;
-    int16_t z = (int16_t)imu_gyro.z;
+    double x = imu_gyro.x * CFG_GYRO_SENSITIVITY_X * sensitivity_multiplier;
+    double y = imu_gyro.y * CFG_GYRO_SENSITIVITY_Y * sensitivity_multiplier;
+    double z = imu_gyro.z * CFG_GYRO_SENSITIVITY_Z * sensitivity_multiplier;
+    // Magic happens.
+    double t = 1.0;
+    double k = 0.5;
+    if      (x > 0 && x <  t) x =  hssnf(t, k,  x);
+    else if (x < 0 && x > -t) x = -hssnf(t, k, -x);
+    if      (y > 0 && y <  t) y =  hssnf(t, k,  y);
+    else if (y < 0 && y > -t) y = -hssnf(t, k, -y);
+    if      (z > 0 && z <  t) z =  hssnf(t, k,  z);
+    else if (z < 0 && z > -t) z = -hssnf(t, k, -z);
+    // Reintroduce subpixel leftovers.
+    x += sub_x;
+    y += sub_y;
+    z += sub_z;
+    // Round down and save leftovers.
+    sub_x = modf(x, &x);
+    sub_y = modf(y, &y);
+    sub_z = modf(z, &z);
+    // Report.
     for(uint8_t i=0; i<4; i++) {
         uint8_t action = self->actions_x[i];
         if (action == MOUSE_X) hid_mouse_move(x, 0);
@@ -107,6 +130,27 @@ void Gyro__report(Gyro *self) {
     }
 }
 
+bool Gyro__is_engaged(Gyro *self) {
+    if (self->pin == PIN_NONE) return false;
+    if (self->pin == PIN_TOUCH_IN) return touch_status();
+    return self->engage_button.is_pressed(&(self->engage_button));
+}
+
+void Gyro__report(Gyro *self) {
+    if (self->mode == GYRO_MODE_TOUCH_ON) {
+        if (self->is_engaged(self)) self->report_incremental(self);
+    }
+    else if (self->mode == GYRO_MODE_TOUCH_OFF) {
+        if (!self->is_engaged(self)) self->report_incremental(self);
+    }
+    else if (self->mode == GYRO_MODE_AXIS_ABSOLUTE) {
+        self->report_absolute(self);
+    }
+    else if (self->mode == GYRO_MODE_ALWAYS_OFF) {
+        return;
+    }
+}
+
 void Gyro__reset(Gyro *self) {
 }
 
@@ -118,7 +162,8 @@ Gyro Gyro_ (
     Gyro gyro;
     gyro.is_engaged = Gyro__is_engaged;
     gyro.report = Gyro__report;
-    gyro.report_relative = Gyro__report_relative;
+    gyro.report_incremental = Gyro__report_incremental;
+    gyro.report_absolute = Gyro__report_absolute;
     gyro.reset = Gyro__reset;
     gyro.mode = mode;
     gyro.pin = pin;
@@ -155,5 +200,6 @@ Gyro Gyro_ (
         gyro.actions_z[i] = value;
     }
     va_end(va);
+    gyro_update_sensitivity();
     return gyro;
 }

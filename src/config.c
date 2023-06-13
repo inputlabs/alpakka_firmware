@@ -166,7 +166,7 @@ void config_tune(bool direction) {
         config.sensitivity = limit_between(config.sensitivity + value, 0, 2);
         config_write(&config);
         printf("Tune: Mouse sensitivity set to preset %i\n", config.sensitivity);
-        imu_update_sensitivity();
+        gyro_update_sensitivity();
     }
     if (config_tune_mode == PROC_TUNE_DEADZONE) {
         config.deadzone = limit_between(config.deadzone + value, 0, 2);

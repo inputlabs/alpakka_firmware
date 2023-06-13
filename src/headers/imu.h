@@ -27,8 +27,6 @@ typedef struct vector {
 
 void imu_init();
 vector_t imu_read_gyro();
-vector_t imu_read_gyro_alt();
 vector_t imu_read_accel();
 void imu_calibrate();
-void imu_update_sensitivity();
 
