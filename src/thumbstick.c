@@ -95,8 +95,8 @@ void thumbstick_report_axis(uint8_t axis, float value) {
     else if (axis == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( value * ANALOG_FACTOR);
     else if (axis == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value * ANALOG_FACTOR);
     else if (axis == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( value * ANALOG_FACTOR);
-    else if (axis == GAMEPAD_AXIS_LZ) hid_gamepad_lz(max(0, value) * trigger_factor);
-    else if (axis == GAMEPAD_AXIS_RZ) hid_gamepad_rz(max(0, value) * trigger_factor);
+    else if (axis == GAMEPAD_AXIS_LZ) hid_gamepad_lz(value * trigger_factor);
+    else if (axis == GAMEPAD_AXIS_RZ) hid_gamepad_rz(value * trigger_factor);
 }
 
 void Thumbstick__report_4dir(
@@ -117,11 +117,11 @@ void Thumbstick__report_4dir(
     }
     // Report directional virtual buttons or axis.
     if (!hid_is_axis(self->left.actions[0])) self->left.report(&self->left);
-    else if (pos.x < 0) thumbstick_report_axis(self->left.actions[0], -pos.x);
+    else if (pos.x <= 0) thumbstick_report_axis(self->left.actions[0], -pos.x);
     if (!hid_is_axis(self->right.actions[0])) self->right.report(&self->right);
     else if (pos.x >= 0) thumbstick_report_axis(self->right.actions[0], pos.x);
     if (!hid_is_axis(self->up.actions[0])) self->up.report(&self->up);
-    else if (pos.y < 0) thumbstick_report_axis(self->up.actions[0], -pos.y);
+    else if (pos.y <= 0) thumbstick_report_axis(self->up.actions[0], -pos.y);
     if (!hid_is_axis(self->down.actions[0])) self->down.report(&self->down);
     else if (pos.y >= 0) thumbstick_report_axis(self->down.actions[0], pos.y);
     // Report inner and outer (only if calibrated).
