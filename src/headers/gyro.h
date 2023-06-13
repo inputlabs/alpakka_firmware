@@ -15,7 +15,7 @@ typedef struct Gyro_struct Gyro;
 struct Gyro_struct {
     bool (*is_engaged) (Gyro *self);
     void (*report) (Gyro *self);
-    void (*report_absolute) (Gyro *self);
+    void (*report_relative) (Gyro *self);
     void (*reset) (Gyro *self);
     uint8_t mode;
     uint8_t pin;
@@ -31,4 +31,4 @@ Gyro Gyro_ (
     ...  // Actions.
 );
 
-void gyro_antideadzone(int8_t increment);
+void gyro_wheel_antideadzone(int8_t increment);

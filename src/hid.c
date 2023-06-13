@@ -60,8 +60,8 @@ void hid_procedure_press(uint8_t procedure){
     if (procedure == PROC_CALIBRATE) config_calibrate();
     if (procedure == PROC_BOOTSEL) config_bootsel();
     if (procedure == PROC_THANKS) hid_thanks();
-    if (procedure == PROC_ADZ) gyro_antideadzone(1);
-    if (procedure == PROC_ADZN) gyro_antideadzone(-1);
+    if (procedure == PROC_ADZ) gyro_wheel_antideadzone(1);
+    if (procedure == PROC_ADZN) gyro_wheel_antideadzone(-1);
     if (procedure == PROC_ROTARY_MODE_0) rotary_set_mode(0);
     if (procedure == PROC_ROTARY_MODE_1) rotary_set_mode(1);
     if (procedure == PROC_ROTARY_MODE_2) rotary_set_mode(2);
