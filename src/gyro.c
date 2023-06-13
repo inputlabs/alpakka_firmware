@@ -17,7 +17,7 @@
 double antideadzone = 0; // TODO ALPHA
 double absx = 0;  // TODO ALPHA
 
-void gyro_antideadzone(int8_t increment) {
+void gyro_wheel_antideadzone(int8_t increment) {
     if (increment > 0) antideadzone += 0.05;
     else antideadzone -= 0.05;
     antideadzone = limit_between(antideadzone, 0, 0.50);
@@ -36,37 +36,26 @@ void gyro_antideadzone(int8_t increment) {
     else if (adz == 50) led_blink_mask(0b0111);
 }
 
-void gyro_correct_(double value) {
+void gyro_wheel_recenter() {
+    static double smoothing = 20;
     static double threshold = 5000;
     static double speed = 500;
-    // printf("\r%6.0f %6.0f", absx, value);
-    if (fabs(value) > threshold) return;
-    double delta = value - absx;
+    static double smoothed = 0;
+    vector_t accel = imu_read_accel();
+    smoothed = ((smoothed * (smoothing-1)) + accel.x) / smoothing;
+    double correction = limit_between(smoothed * 32768, -32767, 32767);
+    if (fabs(correction) > threshold) return;
+    double delta = correction - absx;
     absx += (delta / speed);
 }
 
-void gyro_correct() {
-    static double smooth = 0;
-    static double s = 20;
-    vector_t accel = imu_read_accel();
-    smooth = ((smooth * (s-1)) + accel.x) / s;
-    double final = limit_between(smooth * 32768, -32767, 32767);
-    gyro_correct_(final);
-}
-
-void Gyro__report_absolute(Gyro *self) {
+void Gyro__report_relative(Gyro *self) {
     vector_t gyro = imu_read_gyro_alt();
     absx += gyro.x * 10;
-    // printf("\r%6.0f %6.0f", absx), finalx;
+    gyro_wheel_recenter();
     double finalx = limit_between(absx, -32767, 32767);
     finalx = finalx > 0 ? ramp_inv(finalx, antideadzone, 32767) : -ramp_inv(-finalx, antideadzone, 32767);
-    gyro_correct();
     hid_gamepad_lx(finalx);
-    // printf("\r%7.0f\n", finalx);
-    // if (self->engage_button.is_pressed(&(self->engage_button))) {
-    //     absx = 0;
-    //     // printf("RECENTER\n");
-    // }
 }
 
 bool Gyro__is_engaged(Gyro *self) {
@@ -87,7 +76,7 @@ void Gyro__report(Gyro *self) {
         return;
     }
     else if (self->mode == GYRO_MODE_AXIS_RELATIVE) {
-        self->report_absolute(self);
+        self->report_relative(self);
         return;
     }
     // Report.
@@ -129,7 +118,7 @@ Gyro Gyro_ (
     Gyro gyro;
     gyro.is_engaged = Gyro__is_engaged;
     gyro.report = Gyro__report;
-    gyro.report_absolute = Gyro__report_absolute;
+    gyro.report_relative = Gyro__report_relative;
     gyro.reset = Gyro__reset;
     gyro.mode = mode;
     gyro.pin = pin;
