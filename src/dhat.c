@@ -11,7 +11,7 @@
 #include "hid.h"
 #include "led.h"
 
-void Dhat__update(Dhat *self) {
+bool Dhat__update(Dhat *self) {
     // Evaluate real buttons.
     bool left = self->left.is_pressed(&self->left);
     bool right = self->right.is_pressed(&self->right);
@@ -21,7 +21,7 @@ void Dhat__update(Dhat *self) {
     // Debounce.
     if (left || right || up || down || push) {
         if (time_us_64() <= self->timestamp + CFG_DHAT_DEBOUNCE_TIME*1000) {
-            return;
+            return true;
         }
         self->timestamp = time_us_64();
     }
@@ -35,10 +35,12 @@ void Dhat__update(Dhat *self) {
     self->down_right.virtual_press = (down && right);
     self->down_center.virtual_press = (down && !left && !right);
     self->mid_center.virtual_press = (push && !left && !right && !up && !down);
+    return false;
 }
 
 void Dhat__report(Dhat *self) {
-    self->update(self);
+    bool was_debounced = self->update(self);
+    if (was_debounced) return;
     self->up_left.report(&self->up_left);
     self->up_center.report(&self->up_center);
     self->up_right.report(&self->up_right);
