@@ -227,12 +227,12 @@ void hid_release_multiple_later_callback(alarm_id_t alarm, uint8_t *keys);
 bool hid_is_axis(uint8_t key);
 void hid_mouse_move(int16_t x, int16_t y);
 void hid_mouse_wheel(int8_t z);
-void hid_gamepad_lx(int16_t value);
-void hid_gamepad_ly(int16_t value);
-void hid_gamepad_rx(int16_t value);
-void hid_gamepad_ry(int16_t value);
-void hid_gamepad_lz(int16_t value);
-void hid_gamepad_rz(int16_t value);
+void hid_gamepad_lx(double value);
+void hid_gamepad_ly(double value);
+void hid_gamepad_rx(double value);
+void hid_gamepad_ry(double value);
+void hid_gamepad_lz(double value);
+void hid_gamepad_rz(double value);
 void hid_report();
 void hid_init();
 

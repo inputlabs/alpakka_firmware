@@ -19,12 +19,12 @@ alarm_pool_t *alarm_pool;
 uint8_t state_matrix[256] = {0,};
 int16_t mouse_x = 0;
 int16_t mouse_y = 0;
-int16_t gamepad_lx = 0;
-int16_t gamepad_ly = 0;
-int16_t gamepad_rx = 0;
-int16_t gamepad_ry = 0;
-int16_t gamepad_lz = 0;
-int16_t gamepad_rz = 0;
+double gamepad_lx = 0;
+double gamepad_ly = 0;
+double gamepad_rx = 0;
+double gamepad_ry = 0;
+double gamepad_lz = 0;
+double gamepad_rz = 0;
 
 void hid_matrix_reset() {
     for(uint8_t i=0; i<255; i++) {
@@ -203,37 +203,37 @@ void hid_mouse_move(int16_t x, int16_t y) {
     synced_mouse = false;
 }
 
-void hid_gamepad_lx(int16_t value) {
+void hid_gamepad_lx(double value) {
     if (value == gamepad_lx) return;
     gamepad_lx = value;
     synced_gamepad = false;
 }
 
-void hid_gamepad_ly(int16_t value) {
+void hid_gamepad_ly(double value) {
     if (value == gamepad_ly) return;
     gamepad_ly = value;
     synced_gamepad = false;
 }
 
-void hid_gamepad_rx(int16_t value) {
+void hid_gamepad_rx(double value) {
     if (value == gamepad_rx) return;
     gamepad_rx = value;
     synced_gamepad = false;
 }
 
-void hid_gamepad_ry(int16_t value) {
+void hid_gamepad_ry(double value) {
     if (value == gamepad_ry) return;
     gamepad_ry = value;
     synced_gamepad = false;
 }
 
-void hid_gamepad_rz(int16_t value) {
+void hid_gamepad_rz(double value) {
     if (value == gamepad_rz) return;
     gamepad_rz = value;
     synced_gamepad = false;
 }
 
-void hid_gamepad_lz(int16_t value) {
+void hid_gamepad_lz(double value) {
     if (value == gamepad_lz) return;
     gamepad_lz = value;
     synced_gamepad = false;
@@ -302,13 +302,13 @@ void hid_keyboard_report() {
     );
 }
 
-int16_t hid_axis(
-    int16_t value,
+double hid_axis(
+    double value,
     uint8_t matrix_index_pos,
     uint8_t matrix_index_neg
 ) {
-    if (state_matrix[matrix_index_pos]) return BIT_15;
-    if (matrix_index_neg != 0 && state_matrix[matrix_index_neg]) return -BIT_15;
+    if (state_matrix[matrix_index_pos]) return 1;
+    if (matrix_index_neg != 0 && state_matrix[matrix_index_neg]) return -1;
     return value;
 }
 
@@ -330,12 +330,15 @@ void hid_gamepad_report() {
         (state_matrix[GAMEPAD_START]  << 13) +
         (state_matrix[GAMEPAD_HOME]   << 14)
     );
-    int16_t lx_report = hid_axis(gamepad_lx, GAMEPAD_AXIS_LX, GAMEPAD_AXIS_LX_NEG);
-    int16_t ly_report = hid_axis(gamepad_ly, GAMEPAD_AXIS_LY, GAMEPAD_AXIS_LY_NEG);
-    int16_t rx_report = hid_axis(gamepad_rx, GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RX_NEG);
-    int16_t ry_report = hid_axis(gamepad_ry, GAMEPAD_AXIS_RY, GAMEPAD_AXIS_RY_NEG);
-    int16_t lz_report = hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0);
-    int16_t rz_report = hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0);
+    int16_t lx_report = hid_axis(gamepad_lx, GAMEPAD_AXIS_LX, GAMEPAD_AXIS_LX_NEG) * BIT_15;
+    int16_t ly_report = hid_axis(gamepad_ly, GAMEPAD_AXIS_LY, GAMEPAD_AXIS_LY_NEG) * BIT_15;
+    int16_t rx_report = hid_axis(gamepad_rx, GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RX_NEG) * BIT_15;
+    int16_t ry_report = hid_axis(gamepad_ry, GAMEPAD_AXIS_RY, GAMEPAD_AXIS_RY_NEG) * BIT_15;
+    // HID triggers are also defined as unsigned, and has to be manually value-shifted from
+    // unsigned to signed, otherwise Windows is having erratic behavior / inconsistencies between
+    // games (not sure if a bug in Windows or TinyUSB).
+    int16_t lz_report = ((hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0) * 2) - 1) * BIT_15;
+    int16_t rz_report = ((hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0) * 2) - 1) * BIT_15;
     hid_gamepad_custom_report_t report = {
         lx_report,
         ly_report,
@@ -357,12 +360,12 @@ void hid_xinput_report() {
     for(int i=0; i<8; i++) {
         buttons_1 += state_matrix[GAMEPAD_INDEX + i + 8] << i;
     }
-    int16_t lx_report = hid_axis(gamepad_lx, GAMEPAD_AXIS_LX, GAMEPAD_AXIS_LX_NEG);
-    int16_t ly_report = hid_axis(gamepad_ly, GAMEPAD_AXIS_LY, GAMEPAD_AXIS_LY_NEG);
-    int16_t rx_report = hid_axis(gamepad_rx, GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RX_NEG);
-    int16_t ry_report = hid_axis(gamepad_ry, GAMEPAD_AXIS_RY, GAMEPAD_AXIS_RY_NEG);
-    uint16_t lz_report = hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0);
-    uint16_t rz_report = hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0);
+    int16_t lx_report = hid_axis(gamepad_lx, GAMEPAD_AXIS_LX, GAMEPAD_AXIS_LX_NEG) * BIT_15;
+    int16_t ly_report = hid_axis(gamepad_ly, GAMEPAD_AXIS_LY, GAMEPAD_AXIS_LY_NEG) * BIT_15;
+    int16_t rx_report = hid_axis(gamepad_rx, GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RX_NEG) * BIT_15;
+    int16_t ry_report = hid_axis(gamepad_ry, GAMEPAD_AXIS_RY, GAMEPAD_AXIS_RY_NEG) * BIT_15;
+    uint16_t lz_report = hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0) * BIT_8;
+    uint16_t rz_report = hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0) * BIT_8;
     xinput_report report = {
         .report_id   = 0,
         .report_size = XINPUT_REPORT_SIZE,

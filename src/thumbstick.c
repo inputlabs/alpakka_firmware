@@ -86,21 +86,16 @@ void thumbstick_init() {
 }
 
 void thumbstick_report_axis(uint8_t axis, float value) {
-    if      (axis == GAMEPAD_AXIS_LX)     hid_gamepad_lx( value * BIT_15);
-    else if (axis == GAMEPAD_AXIS_LY)     hid_gamepad_ly(-value * BIT_15);
-    else if (axis == GAMEPAD_AXIS_RX)     hid_gamepad_rx( value * BIT_15);
-    else if (axis == GAMEPAD_AXIS_RY)     hid_gamepad_ry(-value * BIT_15);
-    else if (axis == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-value * BIT_15);
-    else if (axis == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( value * BIT_15);
-    else if (axis == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value * BIT_15);
-    else if (axis == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( value * BIT_15);
-    else if (config_get_os_mode() <= 1) {
-        if (axis == GAMEPAD_AXIS_LZ) hid_gamepad_lz(fabs(value) * BIT_8);
-        if (axis == GAMEPAD_AXIS_RZ) hid_gamepad_rz(fabs(value) * BIT_8);
-    } else {
-        if (axis == GAMEPAD_AXIS_LZ) hid_gamepad_lz(((fabs(value) * 2) - 1) * BIT_15);
-        if (axis == GAMEPAD_AXIS_RZ) hid_gamepad_rz(((fabs(value) * 2) - 1) * BIT_15);
-    }
+    if      (axis == GAMEPAD_AXIS_LX)     hid_gamepad_lx( value);
+    else if (axis == GAMEPAD_AXIS_LY)     hid_gamepad_ly(-value);
+    else if (axis == GAMEPAD_AXIS_RX)     hid_gamepad_rx( value);
+    else if (axis == GAMEPAD_AXIS_RY)     hid_gamepad_ry(-value);
+    else if (axis == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-value);
+    else if (axis == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( value);
+    else if (axis == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value);
+    else if (axis == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( value);
+    else if (axis == GAMEPAD_AXIS_LZ)     hid_gamepad_lz(fabs(value));
+    else if (axis == GAMEPAD_AXIS_RZ)     hid_gamepad_rz(fabs(value));
 }
 
 void Thumbstick__report_4dir(

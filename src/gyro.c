@@ -50,12 +50,13 @@ void gyro_wheel_antideadzone(int8_t increment) {
 
 void gyro_wheel_recenter() {
     static double smoothing = 20;
-    static double threshold = 5000;
+    static double threshold = 0.07;
     static double speed = 500;
     static double smoothed = 0;
     vector_t accel = imu_read_accel();
-    smoothed = ((smoothed * (smoothing-1)) + accel.x) / smoothing;
-    double correction = limit_between(smoothed * 2, -BIT_15, BIT_15);
+    double x = accel.x / BIT_14;
+    smoothed = ((smoothed * (smoothing-1)) + x) / smoothing;
+    double correction = limit_between(smoothed, -1, 1);
     if (fabs(correction) > threshold) return;
     double delta = correction - absx;
     absx += (delta / speed);
@@ -69,15 +70,11 @@ double hssnf(double t, double k, double x) {
 
 void Gyro__report_absolute(Gyro *self) {
     vector_t gyro = imu_read_gyro();
-    absx += gyro.x * CFG_GYRO_SENSITIVITY_X * 10;
+    absx += (gyro.x * CFG_GYRO_SENSITIVITY_X) / 3500;
     gyro_wheel_recenter();
-    double finalx = limit_between(absx, -BIT_15, BIT_15);
-    finalx = (
-        finalx > 0 ?
-        ramp_inv(finalx, antideadzone, BIT_15) :
-        -ramp_inv(-finalx, antideadzone, BIT_15)
-    );
-    hid_gamepad_lx(finalx);
+    double x = limit_between(absx, -1, 1);
+    x = x > 0 ? ramp_inv(x, antideadzone) : -ramp_inv(-x, antideadzone);
+    hid_gamepad_lx(x);
 }
 
 void Gyro__report_incremental(Gyro *self) {
