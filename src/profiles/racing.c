@@ -31,10 +31,10 @@ Profile profile_init_racing() {
     profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(GAMEPAD_LEFT));
     profile.r4 = Button_(PIN_R4, NORMAL, ACTIONS(GAMEPAD_RIGHT));
 
-    profile.rotary = Rotary_(NULL, ACTIONS(KEY_1), ACTIONS(KEY_2));
-    profile.rotary.config_mode(&profile.rotary, 1, ACTIONS(KEY_3), ACTIONS(KEY_4));
-    profile.rotary.config_mode(&profile.rotary, 2, ACTIONS(KEY_5), ACTIONS(KEY_6));
-    profile.rotary.config_mode(&profile.rotary, 3, ACTIONS(KEY_7), ACTIONS(KEY_8));
+    profile.rotary = Rotary_(NULL, ACTIONS(KEY_PAD_1), ACTIONS(KEY_PAD_2));
+    profile.rotary.config_mode(&profile.rotary, 1, ACTIONS(KEY_PAD_3), ACTIONS(KEY_PAD_4));
+    profile.rotary.config_mode(&profile.rotary, 2, ACTIONS(KEY_PAD_5), ACTIONS(KEY_PAD_6));
+    profile.rotary.config_mode(&profile.rotary, 3, ACTIONS(KEY_PAD_7), ACTIONS(KEY_PAD_8));
     profile.rotary.config_mode(&profile.rotary, 4, ACTIONS(PROC_ADZ), ACTIONS(PROC_ADZN));
 
     profile.thumbstick = Thumbstick_(

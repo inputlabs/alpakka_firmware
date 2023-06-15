@@ -231,8 +231,8 @@ void hid_gamepad_lx(int16_t value);
 void hid_gamepad_ly(int16_t value);
 void hid_gamepad_rx(int16_t value);
 void hid_gamepad_ry(int16_t value);
-void hid_gamepad_lz(uint16_t value);
-void hid_gamepad_rz(uint16_t value);
+void hid_gamepad_lz(int16_t value);
+void hid_gamepad_rz(int16_t value);
 void hid_report();
 void hid_init();
 
