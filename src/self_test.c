@@ -39,11 +39,6 @@ void self_test_buttons(Profile* profile) {
     self_test_button_press("R2", &profile->r2);
     self_test_button_press("L4", &profile->l4);
     self_test_button_press("R4", &profile->r4);
-    self_test_button_press("D-Hat Push", &profile->dhat.push);
-    self_test_button_press("D-Hat Left", &profile->dhat.left);
-    self_test_button_press("D-Hat Right", &profile->dhat.right);
-    self_test_button_press("D-Hat Up", &profile->dhat.up);
-    self_test_button_press("D-Hat Down", &profile->dhat.down);
     home.reset(&home);
     profile->reset(profile);
 }
@@ -65,6 +60,25 @@ void self_test_thumbstick(Thumbstick* thumbstick) {
     self_test_thumbstick_direction("up", &thumbstick->up, thumbstick);
     self_test_thumbstick_direction("down", &thumbstick->down, thumbstick);
     thumbstick->reset(thumbstick);
+}
+
+void self_test_dhat_press(Dhat* dhat, const char *buttonName, Button* button) {
+    printf("Press DHat '%s': WAITING", buttonName);
+    while (!button->is_pressed(button)) {
+        uart_listen_char_limited();
+        bus_i2c_io_cache_update();
+        dhat->update(dhat);
+        sleep_ms(1);
+    }
+    printf("\rPress DHat '%s': OK     \n", buttonName);
+}
+
+void self_test_dhat(Dhat* dhat) {
+    self_test_dhat_press(dhat, "left", &(dhat->mid_left));
+    self_test_dhat_press(dhat, "right", &(dhat->mid_right));
+    self_test_dhat_press(dhat, "up", &(dhat->up_center));
+    self_test_dhat_press(dhat, "down", &(dhat->down_center));
+    self_test_dhat_press(dhat, "push", &(dhat->mid_center));
 }
 
 void self_test_rotary_direction(Rotary* rotary, const char *name, int8_t direction) {
@@ -90,6 +104,7 @@ void self_test() {
     Profile* profile = profile_get_active(true);
     self_test_buttons(profile);
     self_test_thumbstick(&(profile->thumbstick));
+    self_test_dhat(&(profile->dhat));
     self_test_rotary(&(profile->rotary));
     printf("Tests done\n");
     printf("==========\n");
