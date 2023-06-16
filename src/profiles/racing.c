@@ -38,9 +38,9 @@ Profile profile_init_racing() {
     profile.rotary.config_mode(&profile.rotary, 4, ACTIONS(PROC_ADZ), ACTIONS(PROC_ADZN));
 
     profile.thumbstick = Thumbstick_(
-        THUMBSTICK_MODE_4DIR,                                    // Mode.
+        THUMBSTICK_MODE_RADIAL,                                  // Mode.
         DEADZONE_FROM_CONFIG,                                    // Deadzone.
-        0.5,                                                     // Overlap.
+        0.8,                                                     // Overlap.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),         // Left.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),         // Right.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RZ)),  // Up.
