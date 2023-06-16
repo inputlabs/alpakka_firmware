@@ -39,8 +39,8 @@ Profile profile_init_fps_fusion() {
         0.5,                                                         // Overlap.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),  // Left.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),      // Right.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),      // Up.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),  // Down.
+        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),  // Up.
+        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),      // Down.
         Button_(PIN_L3,      NORMAL, ACTIONS(KEY_LEFT_SHIFT)),       // Push.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),     // Inner.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_RIGHT_BRACKET))     // Outer.

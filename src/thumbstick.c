@@ -18,7 +18,6 @@
 float offset_x = 0;
 float offset_y = 0;
 float config_deadzone = 0;
-float trigger_resolution = 0;
 
 // Daisywheel.
 bool daisywheel_used = false;
@@ -29,9 +28,9 @@ Button daisy_y;
 
 float thumbstick_adc(uint8_t adc_index, float offset) {
     adc_select_input(adc_index);
-    float value = (float)adc_read() - 2048;
-    value = value / 2048 * CFG_THUMBSTICK_SATURATION;
-    return limit_between(value - offset, -1, 1);
+    float value = (float)adc_read() - BIT_11;
+    value = value / BIT_11 * CFG_THUMBSTICK_SATURATION;
+    return constrain(value - offset, -1, 1);
 }
 
 void thumbstick_update_deadzone() {
@@ -43,8 +42,6 @@ void thumbstick_update_deadzone() {
         CFG_THUMBSTICK_DEADZONE_HIGH
     };
     config_deadzone = deadzones[config.deadzone];
-
-    trigger_resolution = config_get_os_mode() <= 1 ? BIT_8 : BIT_16; // TODO
 }
 
 void thumbstick_update_offsets() {
@@ -86,16 +83,16 @@ void thumbstick_init() {
 }
 
 void thumbstick_report_axis(uint8_t axis, float value) {
-    if      (axis == GAMEPAD_AXIS_LX)     hid_gamepad_lx( value);
-    else if (axis == GAMEPAD_AXIS_LY)     hid_gamepad_ly(-value);
-    else if (axis == GAMEPAD_AXIS_RX)     hid_gamepad_rx( value);
-    else if (axis == GAMEPAD_AXIS_RY)     hid_gamepad_ry(-value);
+    if      (axis == GAMEPAD_AXIS_LX)     hid_gamepad_lx(value);
+    else if (axis == GAMEPAD_AXIS_LY)     hid_gamepad_ly(value);
+    else if (axis == GAMEPAD_AXIS_RX)     hid_gamepad_rx(value);
+    else if (axis == GAMEPAD_AXIS_RY)     hid_gamepad_ry(value);
     else if (axis == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-value);
-    else if (axis == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly( value);
+    else if (axis == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly(-value);
     else if (axis == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value);
-    else if (axis == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry( value);
-    else if (axis == GAMEPAD_AXIS_LZ)     hid_gamepad_lz(fabs(value));
-    else if (axis == GAMEPAD_AXIS_RZ)     hid_gamepad_rz(fabs(value));
+    else if (axis == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry(-value);
+    else if (axis == GAMEPAD_AXIS_LZ)     hid_gamepad_lz(value);
+    else if (axis == GAMEPAD_AXIS_RZ)     hid_gamepad_rz(value);
 }
 
 void Thumbstick__report_4dir(
@@ -115,14 +112,18 @@ void Thumbstick__report_4dir(
         if (fabs(pos.angle) >= 90 + cutA) self->down.virtual_press = true;
     }
     // Report directional virtual buttons or axis.
+    //// Left.
     if (!hid_is_axis(self->left.actions[0])) self->left.report(&self->left);
-    else if (pos.x <= 0) thumbstick_report_axis(self->left.actions[0], -pos.x);
+    else thumbstick_report_axis(self->left.actions[0], -constrain(pos.x, -1, 0));
+    //// Right.
     if (!hid_is_axis(self->right.actions[0])) self->right.report(&self->right);
-    else if (pos.x >= 0) thumbstick_report_axis(self->right.actions[0], pos.x);
+    else thumbstick_report_axis(self->right.actions[0], constrain(pos.x, 0, 1));
+    //// Up.
     if (!hid_is_axis(self->up.actions[0])) self->up.report(&self->up);
-    else if (pos.y <= 0) thumbstick_report_axis(self->up.actions[0], -pos.y);
+    else thumbstick_report_axis(self->up.actions[0], -constrain(pos.y, -1, 0));
+    //// Down.
     if (!hid_is_axis(self->down.actions[0])) self->down.report(&self->down);
-    else if (pos.y >= 0) thumbstick_report_axis(self->down.actions[0], pos.y);
+    else thumbstick_report_axis(self->down.actions[0], constrain(pos.y, 0, 1));
     // Report inner and outer (only if calibrated).
     if (offset_x != 0 && offset_y != 0) {
         self->inner.report(&self->inner);
@@ -310,7 +311,7 @@ void Thumbstick__report(Thumbstick *self) {
     float angle = atan2(x, -y) * (180 / M_PI);
     float radius = sqrt(powf(x, 2) + powf(y, 2));
     float deadzone = self->deadzone == DEADZONE_FROM_CONFIG ? config_deadzone : self->deadzone;
-    radius = limit_between(radius, 0, 1);
+    radius = constrain(radius, 0, 1);
     radius = ramp_low(radius, deadzone);
     x = sin(radians(angle)) * radius;
     y = -cos(radians(angle)) * radius;

@@ -205,37 +205,37 @@ void hid_mouse_move(int16_t x, int16_t y) {
 
 void hid_gamepad_lx(double value) {
     if (value == gamepad_lx) return;
-    gamepad_lx = value;
+    gamepad_lx += value;
     synced_gamepad = false;
 }
 
 void hid_gamepad_ly(double value) {
     if (value == gamepad_ly) return;
-    gamepad_ly = value;
-    synced_gamepad = false;
-}
-
-void hid_gamepad_rx(double value) {
-    if (value == gamepad_rx) return;
-    gamepad_rx = value;
-    synced_gamepad = false;
-}
-
-void hid_gamepad_ry(double value) {
-    if (value == gamepad_ry) return;
-    gamepad_ry = value;
-    synced_gamepad = false;
-}
-
-void hid_gamepad_rz(double value) {
-    if (value == gamepad_rz) return;
-    gamepad_rz = value;
+    gamepad_ly += value;
     synced_gamepad = false;
 }
 
 void hid_gamepad_lz(double value) {
     if (value == gamepad_lz) return;
-    gamepad_lz = value;
+    gamepad_lz += value;
+    synced_gamepad = false;
+}
+
+void hid_gamepad_rx(double value) {
+    if (value == gamepad_rx) return;
+    gamepad_rx += value;
+    synced_gamepad = false;
+}
+
+void hid_gamepad_ry(double value) {
+    if (value == gamepad_ry) return;
+    gamepad_ry += value;
+    synced_gamepad = false;
+}
+
+void hid_gamepad_rz(double value) {
+    if (value == gamepad_rz) return;
+    gamepad_rz += value;
     synced_gamepad = false;
 }
 
@@ -307,9 +307,13 @@ double hid_axis(
     uint8_t matrix_index_pos,
     uint8_t matrix_index_neg
 ) {
-    if (state_matrix[matrix_index_pos]) return 1;
-    if (matrix_index_neg != 0 && state_matrix[matrix_index_neg]) return -1;
-    return value;
+    if (!matrix_index_neg) {
+        if (state_matrix[matrix_index_pos]) return 1;
+        else return constrain(fabs(value), 0, 1);
+    } else {
+        if (state_matrix[matrix_index_neg]) return -1;
+        else return constrain(value, -1, 1);
+    }
 }
 
 void hid_gamepad_report() {
@@ -382,6 +386,15 @@ void hid_xinput_report() {
     xinput_send_report(&report);
 }
 
+void hid_gamepad_reset() {
+    gamepad_lx = 0;
+    gamepad_ly = 0;
+    gamepad_rx = 0;
+    gamepad_ry = 0;
+    gamepad_lz = 0;
+    gamepad_rz = 0;
+}
+
 void hid_report() {
     static bool is_tud_ready = false;
     static bool is_tud_ready_logged = false;
@@ -400,38 +413,31 @@ void hid_report() {
             // hid_matrix_reset();
             printf("USB: tud_ready TRUE\n");
         }
-
         // xinput_receive_report();
-
         if (tud_hid_ready()) {
             if (!synced_keyboard) {
                 hid_keyboard_report();
                 synced_keyboard = true;
-                return;
             }
-            if (!synced_mouse && (priority_mouse > priority_gamepad)) {
+            else if (!synced_mouse && (priority_mouse > priority_gamepad)) {
                 hid_mouse_report();
                 synced_mouse = true;
                 priority_mouse = 0;
-                return;
             }
-            if (!synced_gamepad && config_get_os_mode() == OS_MODE_GENERIC) {
+            else if (!synced_gamepad && config_get_os_mode() == OS_MODE_GENERIC) {
                 hid_gamepad_report();
                 synced_gamepad = true;
                 priority_gamepad = 0;
-                return;
             }
         }
-
         if (!synced_gamepad && config_get_os_mode() != OS_MODE_GENERIC) {
             if (tud_suspended()) {
                 tud_remote_wakeup();
             }
             hid_xinput_report();
-            synced_gamepad = true;
             priority_gamepad = 0;
-            return;
         }
+        hid_gamepad_reset();
     } else {
         is_tud_ready = false;
         if (is_tud_ready_logged) {

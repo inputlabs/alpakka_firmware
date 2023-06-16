@@ -180,26 +180,26 @@ void config_tune(bool direction) {
     config_read(&config);
     int8_t value = direction ? 1 : -1;
     if (config_tune_mode == PROC_TUNE_OS) {
-        config.os_mode = limit_between(config.os_mode + value, 0, 2);
+        config.os_mode = constrain(config.os_mode + value, 0, 2);
         printf("Tune: OS mode set to preset %i\n", config.os_mode);
         config_write(&config);
         profile_pending_reboot = true;
         hid_allow_communication = false;
     }
     if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
-        config.sensitivity = limit_between(config.sensitivity + value, 0, 2);
+        config.sensitivity = constrain(config.sensitivity + value, 0, 2);
         config_write(&config);
         printf("Tune: Mouse sensitivity set to preset %i\n", config.sensitivity);
         gyro_update_sensitivity();
     }
     if (config_tune_mode == PROC_TUNE_DEADZONE) {
-        config.deadzone = limit_between(config.deadzone + value, 0, 2);
+        config.deadzone = constrain(config.deadzone + value, 0, 2);
         config_write(&config);
         printf("Tune: Thumbstick deadzone set to preset %i\n", config.deadzone);
         thumbstick_update_deadzone();
     }
     if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
-        config.touch_threshold = limit_between(config.touch_threshold + value, 0, 4);
+        config.touch_threshold = constrain(config.touch_threshold + value, 0, 4);
         printf("Tune: Touch threshold set to preset %i\n", config.touch_threshold);
         config_write(&config);
         touch_update_threshold();
