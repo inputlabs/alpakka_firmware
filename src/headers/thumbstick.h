@@ -11,6 +11,7 @@ typedef enum ThumbstickMode_enum {
     THUMBSTICK_MODE_OFF,
     THUMBSTICK_MODE_4DIR,
     THUMBSTICK_MODE_ALPHANUMERIC,
+    THUMBSTICK_MODE_RADIAL,
 } ThumbstickMode;
 
 typedef struct ThumbstickPosition_struct {
@@ -21,11 +22,11 @@ typedef struct ThumbstickPosition_struct {
 } ThumbstickPosition;
 
 typedef enum Dir4_enum {
-    DIR4_CENTER,
-    DIR4_LEFT,
-    DIR4_RIGHT,
-    DIR4_UP,
-    DIR4_DOWN,
+    DIR4_CENTER = 0,
+    DIR4_LEFT = 1,
+    DIR4_RIGHT = 2,
+    DIR4_UP = 4,
+    DIR4_DOWN = 8,
 } Dir4;
 
 typedef enum Dir8_enum {
@@ -44,6 +45,7 @@ typedef struct Thumbstick_struct Thumbstick;
 struct Thumbstick_struct {
     void (*report) (Thumbstick *self);
     void (*report_4dir) (Thumbstick *self, ThumbstickPosition pos, float deadzone);
+    void (*report_radial) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_alphanumeric) (Thumbstick *self, ThumbstickPosition pos);
     void (*reset) (Thumbstick *self);
     void (*config_glyphstick) (Thumbstick *self, ...);
