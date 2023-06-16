@@ -39,8 +39,8 @@ Profile profile_init_console() {
         0.5,                                                         // Overlap.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),  // Left.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),      // Right.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),      // Up.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),  // Down.
+        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),  // Up.
+        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),      // Down.
         Button_(PIN_L3,      NORMAL, ACTIONS(GAMEPAD_L3)),           // Push.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),             // Inner.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE))              // Outer.

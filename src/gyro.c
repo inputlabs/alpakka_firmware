@@ -32,7 +32,7 @@ void gyro_update_sensitivity() {
 void gyro_wheel_antideadzone(int8_t increment) {
     if (increment > 0) antideadzone += 0.05;
     else antideadzone -= 0.05;
-    antideadzone = limit_between(antideadzone, 0, 0.50);
+    antideadzone = constrain(antideadzone, 0, 0.50);
     printf("antideadzone=%f\n", antideadzone);
     uint8_t adz = (antideadzone * 100) + 0.001;
     led_shape_all_off();
@@ -56,7 +56,7 @@ void gyro_wheel_recenter() {
     vector_t accel = imu_read_accel();
     double x = accel.x / BIT_14;
     smoothed = ((smoothed * (smoothing-1)) + x) / smoothing;
-    double correction = limit_between(smoothed, -1, 1);
+    double correction = constrain(smoothed, -1, 1);
     if (fabs(correction) > threshold) return;
     double delta = correction - absx;
     absx += (delta / speed);
@@ -72,7 +72,7 @@ void Gyro__report_absolute(Gyro *self) {
     vector_t gyro = imu_read_gyro();
     absx += (gyro.x * CFG_GYRO_SENSITIVITY_X) / 3500;
     gyro_wheel_recenter();
-    double x = limit_between(absx, -1, 1);
+    double x = constrain(absx, -1, 1);
     x = x > 0 ? ramp_inv(x, antideadzone) : -ramp_inv(-x, antideadzone);
     hid_gamepad_lx(x);
 }
