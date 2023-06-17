@@ -25,7 +25,7 @@ Profile profile_init_desktop() {
     profile.x = Button_(PIN_X, NORMAL, ACTIONS(KEY_BACKSPACE));
     profile.y = Button_(PIN_Y, NORMAL, ACTIONS(KEY_SPACE));
 
-    profile.l1 = Button_(PIN_L1, NORMAL, ACTIONS(KEY_NONE));
+    profile.l1 = Button_(PIN_L1, NORMAL, ACTIONS(MOUSE_3));
     profile.r1 = Button_(PIN_R1, NORMAL, ACTIONS(KEY_LEFT_ALT));
     profile.l2 = Button_(PIN_L2, NORMAL, ACTIONS(MOUSE_2));
     profile.r2 = Button_(PIN_R2, NORMAL, ACTIONS(MOUSE_1));
