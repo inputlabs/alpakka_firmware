@@ -45,21 +45,59 @@ Profile profile_init_racing() {
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),         // Right.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RZ)),  // Up.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LZ)),  // Down.
-        Button_(PIN_L3,      NORMAL, ACTIONS(GAMEPAD_L3)),       // Push.
+        Button_(PIN_L3,      NORMAL, ACTIONS(GAMEPAD_UP)),       // Push.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),         // Inner.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE))          // Outer.
     );
 
     profile.dhat = Dhat_(
-        Button_(PIN_VIRTUAL, HOLD_OVERLAP, ACTIONS(GAMEPAD_AXIS_RX_NEG, PROC_ROTARY_MODE_0), ACTIONS(PROC_ROTARY_MODE_4)),   // Left.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RX, PROC_ROTARY_MODE_2)),       // Right.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RY_NEG, PROC_ROTARY_MODE_3)),   // Up.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RY, PROC_ROTARY_MODE_1)),       // Down.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY_NEG)),  // ↖
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY_NEG)),      // ↗
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY)),      // ↙
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY)),          // ↘
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_R3))                                 // Push.
+        // Left.
+        Button_(
+            PIN_VIRTUAL,
+            HOLD_OVERLAP,
+            ACTIONS(GAMEPAD_AXIS_RX_NEG, PROC_ROTARY_MODE_0),
+            ACTIONS(PROC_ROTARY_MODE_4)
+        ),
+        // Right.
+        Button_(PIN_VIRTUAL,
+            NORMAL,
+            ACTIONS(GAMEPAD_AXIS_RX, PROC_ROTARY_MODE_2)
+        ),
+        // Up.
+        Button_(PIN_VIRTUAL,
+            NORMAL,
+            ACTIONS(GAMEPAD_AXIS_RY_NEG, PROC_ROTARY_MODE_3)
+        ),
+        // Down.
+        Button_(PIN_VIRTUAL,
+            NORMAL,
+            ACTIONS(GAMEPAD_AXIS_RY, PROC_ROTARY_MODE_1)
+        ),
+        // ↖
+        Button_(PIN_VIRTUAL,
+            NORMAL,
+            ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY_NEG)
+        ),
+        // ↗
+        Button_(PIN_VIRTUAL,
+            NORMAL,
+            ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY_NEG)
+        ),
+        // ↙
+        Button_(PIN_VIRTUAL,
+            NORMAL,
+            ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY)
+        ),
+        // ↘
+        Button_(PIN_VIRTUAL,
+            NORMAL,
+            ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY)
+        ),
+        // Push.
+        Button_(PIN_VIRTUAL,
+            NORMAL,
+            ACTIONS(GAMEPAD_DOWN)
+        )
     );
 
     profile.gyro = Gyro_(
