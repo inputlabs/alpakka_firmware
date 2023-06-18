@@ -67,6 +67,7 @@ void hid_procedure_press(uint8_t procedure){
     if (procedure == PROC_ROTARY_MODE_2) rotary_set_mode(2);
     if (procedure == PROC_ROTARY_MODE_3) rotary_set_mode(3);
     if (procedure == PROC_ROTARY_MODE_4) rotary_set_mode(4);
+    if (procedure == PROC_ROTARY_MODE_5) rotary_set_mode(5);
 }
 
 void hid_procedure_release(uint8_t procedure) {

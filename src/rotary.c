@@ -92,6 +92,7 @@ Rotary Rotary_ (
     rotary.reset = Rotary__reset;
     rotary.config_mode = Rotary__config_mode;
     rotary.pending = false;
+    rotary.mode = 0;
     rotary.increment = 0;
     rotary.timestamp = 0;
     va_list va;

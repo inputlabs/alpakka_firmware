@@ -209,6 +209,7 @@
 #define PROC_ROTARY_MODE_2  PROC_INDEX + 29
 #define PROC_ROTARY_MODE_3  PROC_INDEX + 30
 #define PROC_ROTARY_MODE_4  PROC_INDEX + 31
+#define PROC_ROTARY_MODE_5  PROC_INDEX + 32
 
 void hid_thanks();
 void hid_matrix_reset();
