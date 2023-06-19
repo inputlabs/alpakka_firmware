@@ -308,12 +308,13 @@ double hid_axis(
     uint8_t matrix_index_pos,
     uint8_t matrix_index_neg
 ) {
-    if (!matrix_index_neg) {
+    if (matrix_index_neg) {
+        if (state_matrix[matrix_index_neg]) return -1;
+        else if (state_matrix[matrix_index_pos]) return 1;
+        else return constrain(value, -1, 1);
+    } else {
         if (state_matrix[matrix_index_pos]) return 1;
         else return constrain(fabs(value), 0, 1);
-    } else {
-        if (state_matrix[matrix_index_neg]) return -1;
-        else return constrain(value, -1, 1);
     }
 }
 
