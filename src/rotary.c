@@ -65,8 +65,8 @@ void Rotary__report(Rotary *self) {
 void Rotary__reset(Rotary *self) {
     self->pending = false;
     self->increment = 0;
-    self->mode = 0;
     self->timestamp = 0;
+    // self->mode = 0;
 }
 
 void Rotary__config_mode(Rotary *self, uint8_t mode, ...) {
