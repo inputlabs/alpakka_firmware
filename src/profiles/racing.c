@@ -46,7 +46,7 @@ Profile profile_init_racing() {
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),         // Right.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RZ)),  // Up.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LZ)),  // Down.
-        Button_(PIN_L3,      NORMAL, ACTIONS(GAMEPAD_UP)),       // Push.
+        Button_(PIN_L3,      NORMAL, ACTIONS(KEY_L)),            // Push.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),         // Inner.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE))          // Outer.
     );
@@ -104,7 +104,7 @@ Profile profile_init_racing() {
         Button_(
             PIN_VIRTUAL,
             HOLD_OVERLAP,
-            ACTIONS(GAMEPAD_DOWN, PROC_ROTARY_MODE_0),
+            ACTIONS(KEY_R, PROC_ROTARY_MODE_0),
             ACTIONS(PROC_ROTARY_MODE_5)
         )
     );
