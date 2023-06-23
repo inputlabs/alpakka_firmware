@@ -31,7 +31,7 @@ Profile profile_init_racing() {
     profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(GAMEPAD_LEFT));
     profile.r4 = Button_(PIN_R4, NORMAL, ACTIONS(GAMEPAD_RIGHT));
 
-    profile.rotary = Rotary_(NULL, ACTIONS(KEY_UP), ACTIONS(KEY_DOWN));
+    profile.rotary = Rotary_(NULL, ACTIONS(GAMEPAD_UP), ACTIONS(GAMEPAD_DOWN));
     profile.rotary.config_mode(&profile.rotary, 1, ACTIONS(KEY_PAD_1), ACTIONS(KEY_PAD_2));
     profile.rotary.config_mode(&profile.rotary, 2, ACTIONS(KEY_PAD_3), ACTIONS(KEY_PAD_4));
     profile.rotary.config_mode(&profile.rotary, 3, ACTIONS(KEY_PAD_5), ACTIONS(KEY_PAD_6));
