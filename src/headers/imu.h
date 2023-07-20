@@ -24,6 +24,13 @@ typedef struct vector {
     double z;
 } vector_t;
 
+typedef struct Vector4_struct {
+    double x;
+    double y;
+    double z;
+    double r;
+} Vector4;
+
 void imu_init();
 vector_t imu_read_gyro();
 vector_t imu_read_accel();

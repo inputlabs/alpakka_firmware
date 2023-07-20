@@ -89,7 +89,7 @@ vector_t imu_read_accel_bits(uint8_t cs) {
     return (vector_t){
         (double)x - offset_x,
         (double)y - offset_y,
-        (double)z - offset_z,
+        (double)-z - offset_z,
     };
 }
 
@@ -153,6 +153,7 @@ vector_t imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, doubl
     *x = tx / len;
     *y = ty / len;
     *z = tz / len;
+    if (mode==1) *z += BIT_14;  // Newton's fault for inventing the gravity.
     printf("\rIMU: cs=%i %s calibration x=%f y=%f z=%f\n", cs, mode_str, *x, *y, *z);
 }
 
