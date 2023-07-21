@@ -25,10 +25,10 @@ typedef struct vector {
 } vector_t;
 
 typedef struct Vector4_struct {
-    double x;
-    double y;
-    double z;
-    double r;
+    float x;
+    float y;
+    float z;
+    float r;
 } Vector4;
 
 void imu_init();
