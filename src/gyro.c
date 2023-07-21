@@ -55,15 +55,11 @@ void gyro_wheel_antideadzone(int8_t increment) {
 
 vector_t normalize(vector_t v) {
     float mag = (v.x*v.x) + (v.y*v.y) + (v.z*v.z);
-    if (fabs(mag - 1.0) > 0.00001) {  // Tolerance.
+    if (fabs(mag - 1.0) > 0.0001) {  // Tolerance.
         mag = sqrt(mag);
         return (vector_t){v.x/mag, v.y/mag, v.z/mag};
     }
     return v;
-}
-
-vector_t invert(vector_t v) {
-    return (vector_t){-v.x, -v.y, -v.z};
 }
 
 vector_t cross_product(vector_t a, vector_t b) {
@@ -98,11 +94,12 @@ vector_t q_to_euler(Vector4 q) {
 }
 
 Vector4 qmatrix(Vector4 q1, Vector4 q2) {
-    float x = q1.r * q2.x + q1.x * q2.r + q1.y * q2.z - q1.z * q2.y;
-    float y = q1.r * q2.y + q1.y * q2.r + q1.z * q2.x - q1.x * q2.z;
-    float z = q1.r * q2.z + q1.z * q2.r + q1.x * q2.y - q1.y * q2.x;
-    float r = q1.r * q2.r - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
-    return (Vector4){x, y, z, r};
+    return (Vector4){
+        q1.r * q2.x + q1.x * q2.r + q1.y * q2.z - q1.z * q2.y,
+        q1.r * q2.y + q1.y * q2.r + q1.z * q2.x - q1.x * q2.z,
+        q1.r * q2.z + q1.z * q2.r + q1.x * q2.y - q1.y * q2.x,
+        q1.r * q2.r - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z
+    };
 }
 
 Vector4 qconjugate(Vector4 q) {
@@ -114,41 +111,7 @@ Vector4 qrotate(Vector4 q1, vector_t v) {
     return qmatrix(qmatrix(q1, q2), qconjugate(q1));
 }
 
-vector_t slerp(vector_t a, vector_t b, double t) {
-    // Normalize A and B (make them unit vectors)
-    double norm_a = sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
-    double norm_b = sqrt(b.x * b.x + b.y * b.y + b.z * b.z);
-    a.x /= norm_a;
-    a.y /= norm_a;
-    a.z /= norm_a;
-    b.x /= norm_b;
-    b.y /= norm_b;
-    b.z /= norm_b;
-    // Calculate the dot product of A and B
-    double dot_product = a.x * b.x + a.y * b.y + a.z * b.z;
-    // Clamp the dot product to [-1, 1]
-    dot_product = fmax(fmin(dot_product, 1.0), -1.0);
-    // Calculate the angle between A and B
-    double omega = acos(dot_product);
-    if (fabs(omega) < 1e-10) {
-        // A and B are very close, return either of them
-        return a;
-    } else {
-        // Calculate the slerp weights
-        double sin_omega = sin(omega);
-        double weight_a = sin((1 - t) * omega) / sin_omega;
-        double weight_b = sin(t * omega) / sin_omega;
-        // Calculate the slerp-interpolated vector
-        vector_t interpolated_vector;
-        interpolated_vector.x = weight_a * a.x + weight_b * b.x;
-        interpolated_vector.y = weight_a * a.y + weight_b * b.y;
-        interpolated_vector.z = weight_a * a.z + weight_b * b.z;
-        return interpolated_vector;
-    }
-}
-
-void gyro_world_correction() {
-    static double rate = 0.001;
+void gyro_world_correction(float rate) {
     vector_t accel = imu_read_accel();
     float x = -accel.x / BIT_14;
     float y = -accel.y / BIT_14;
@@ -157,8 +120,8 @@ void gyro_world_correction() {
     vector_t correction_axis = cross_product(world_top, accel_top);
     Vector4 correction = euler_to_q(correction_axis, rate);
     world_top = q_to_euler(qrotate(correction, world_top));
+    world_right = q_to_euler(qrotate(correction, world_right));
     world_fw = normalize(cross_product(world_top, world_right));
-    world_right = normalize(cross_product(world_fw, world_top));
 }
 
 double hssnf(double t, double k, double x) {
@@ -168,39 +131,19 @@ double hssnf(double t, double k, double x) {
 }
 
 void Gyro__report_absolute(Gyro *self) {
-    // vector_t gyro = imu_read_gyro();
-    // absx += (gyro.x * CFG_GYRO_SENSITIVITY_X) / 3500;
-    // gyro_world_correction();
-    // double x = constrain(absx, -1, 1);
-    // x = x > 0 ? ramp_inv(x, antideadzone) : -ramp_inv(-x, antideadzone);
-    // hid_gamepad_lx(x);
-
-    gyro_world_correction();
+    gyro_world_correction(0.00005);
     vector_t gyro = imu_read_gyro();
-    double s = BIT_18 * 3;
-    Vector4 rx = euler_to_q(world_right, -gyro.y / s);
-    world_top = q_to_euler(qrotate(rx, world_top));
-    world_fw = normalize(cross_product(world_top, world_right));
-    Vector4 ry = euler_to_q(world_fw, -gyro.z / s);
-    world_top = q_to_euler(qrotate(ry, world_top));
-    world_right = normalize(cross_product(world_top, world_fw));
-    Vector4 rz = euler_to_q(world_top, -gyro.x / s);
-    world_fw = q_to_euler(qrotate(rz, world_fw));
-    world_right = normalize(cross_product(world_fw, world_top));
-
-    // vector_t rvi = slerp(world_top, world_fw, gyro.x / (gyro.x + gyro.z));
-    // vector_t rv = slerp(rvi, world_right, gyro.x + gyro.y + gyro.z);
-
-    // vector_t rx = vector_multiply(world_top, gyro.x);
-    // vector_t ry = vector_multiply(world_right, gyro.y);
-    // vector_t rz = vector_multiply(world_fw, gyro.z);
-    // vector_t rv = vector_add(vector_add(rx, ry), rz);
-    // double r = (fabs(gyro.x), fabs(gyro.y), fabs(gyro.z)) / s;
-    // Vector4 rq = euler_to_q(rv, -r);
-    // world_top = q_to_euler(qrotate(rq, world_top));
-    // world_fw = q_to_euler(qrotate(rq, world_fw));
-    // world_right = normalize(cross_product(world_fw, world_top));
-
+    static float s = BIT_18 * 2.5;
+    uint8_t itgs = 4;
+    for (uint8_t i=0; i<itgs; i++) {
+        Vector4 rx = euler_to_q(world_right, -gyro.y / s / itgs);
+        Vector4 ry = euler_to_q(world_fw, -gyro.z / s / itgs);
+        Vector4 rz = euler_to_q(world_top, -gyro.x / s / itgs);
+        Vector4 r = qmatrix(qmatrix(rz, rx), ry);
+        world_top = q_to_euler(qrotate(r, world_top));
+        world_fw = q_to_euler(qrotate(r, world_fw));
+        world_right = cross_product(world_fw, world_top);
+    }
     // Combo.
     // hid_gamepad_lx(world_top.x);
     // hid_gamepad_ly(-world_top.y);
@@ -209,8 +152,7 @@ void Gyro__report_absolute(Gyro *self) {
 
     // Tilt.
     hid_gamepad_lx(-world_right.z);
-    hid_gamepad_rx(world_top.x);
-    hid_gamepad_ry(-world_top.y);
+    // printf("\r%6.3f", -world_right.z);
 }
 
 void Gyro__report_incremental(Gyro *self) {
