@@ -9,6 +9,7 @@
 #define IMU_OUTX_L_G 0x22
 #define IMU_OUTY_L_G 0x24
 #define IMU_OUTZ_L_G 0x26
+#define IMU_WHO_AM_I 0x0f
 
 #define IMU_CTRL2_G_125 0b10100010
 #define IMU_CTRL2_G_500 0b10100100

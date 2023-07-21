@@ -27,9 +27,10 @@ double offset_1_y;
 double offset_1_z;
 
 void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
+    uint8_t id = bus_spi_read_one(cs, IMU_WHO_AM_I);
     bus_spi_write(cs, IMU_CTRL2_G, gyro_conf);
     uint8_t ctrl = bus_spi_read_one(cs, IMU_CTRL2_G);
-    printf("  IMU cs=%i ctrl2_g=0x%i\n", cs, bin(ctrl));
+    printf("  IMU cs=%i id=0x%02x ctrl2_g=0x%i\n", cs, id, bin(ctrl));
 }
 
 void imu_init() {
