@@ -70,6 +70,7 @@ void Profile__reset(Profile *self) {
     self->r2.reset(&self->r2);
     self->thumbstick.reset(&self->thumbstick);
     self->rotary.reset(&self->rotary);
+    self->gyro.reset(&self->gyro);
 }
 
 Profile Profile_ () {
