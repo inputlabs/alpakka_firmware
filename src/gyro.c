@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <math.h>
 #include "config.h"
 #include "pin.h"
 #include "profile.h"
@@ -16,6 +17,7 @@
 
 double sensitivity_multiplier;
 double antideadzone = 0; // TODO ALPHA
+bool init = false;
 
 // double absx = 0;  // TODO ALPHA
 
@@ -35,26 +37,26 @@ void gyro_update_sensitivity() {
 }
 
 void gyro_wheel_antideadzone(int8_t increment) {
-    if (increment > 0) antideadzone += 0.05;
-    else antideadzone -= 0.05;
+    if (increment > 0) antideadzone += 0.01;
+    else antideadzone -= 0.01;
     antideadzone = constrain(antideadzone, 0, 0.50);
     printf("antideadzone=%f\n", antideadzone);
     uint8_t adz = (antideadzone * 100) + 0.001;
     led_shape_all_off();
-    if      (adz == 5)  led_blink_mask(0b0001);
-    else if (adz == 10) led_blink_mask(0b0010);
-    else if (adz == 15) led_blink_mask(0b0100);
-    else if (adz == 20) led_blink_mask(0b1000);
-    else if (adz == 25) led_blink_mask(0b0011);
-    else if (adz == 30) led_blink_mask(0b0110);
-    else if (adz == 35) led_blink_mask(0b1100);
-    else if (adz == 40) led_blink_mask(0b1001);
-    else if (adz == 45) led_blink_mask(0b1011);
-    else if (adz == 50) led_blink_mask(0b0111);
+    if      (adz==1  || adz==11 || adz==21) led_blink_mask(0b0001);
+    else if (adz==2  || adz==12 || adz==22) led_blink_mask(0b0010);
+    else if (adz==3  || adz==13 || adz==23) led_blink_mask(0b0100);
+    else if (adz==4  || adz==14 || adz==24) led_blink_mask(0b1000);
+    else if (adz==5  || adz==15 || adz==25) led_blink_mask(0b0011);
+    else if (adz==6  || adz==16 || adz==26) led_blink_mask(0b0110);
+    else if (adz==7  || adz==17 || adz==27) led_blink_mask(0b1100);
+    else if (adz==8  || adz==18 || adz==28) led_blink_mask(0b1001);
+    else if (adz==9  || adz==19 || adz==29) led_blink_mask(0b1011);
+    else if (adz==10 || adz==20 || adz==30) led_blink_mask(0b0111);
 }
 
 vector_t normalize(vector_t v) {
-    float mag = (v.x*v.x) + (v.y*v.y) + (v.z*v.z);
+    double mag = (v.x*v.x) + (v.y*v.y) + (v.z*v.z);
     if (fabs(mag - 1.0) > 0.0001) {  // Tolerance.
         mag = sqrt(mag);
         return (vector_t){v.x/mag, v.y/mag, v.z/mag};
@@ -74,13 +76,13 @@ vector_t vector_add(vector_t a, vector_t b) {
     return (vector_t){a.x+b.x, a.y+b.y, a.z+b.z};
 }
 
-vector_t vector_multiply(vector_t v, float n) {
+vector_t vector_multiply(vector_t v, double n) {
     return (vector_t){v.x*n, v.y*n, v.z*n};
 }
 
-Vector4 euler_to_q(vector_t vector, float rotation) {
+Vector4 euler_to_q(vector_t vector, double rotation) {
     vector = normalize(vector);
-    float theta = rotation / 2;
+    double theta = rotation / 2;
     return (Vector4){
         vector.x * sin(theta),
         vector.y * sin(theta),
@@ -111,17 +113,31 @@ Vector4 qrotate(Vector4 q1, vector_t v) {
     return qmatrix(qmatrix(q1, q2), qconjugate(q1));
 }
 
-void gyro_world_correction(float rate) {
+Vector4 qmul(Vector4 q1, Vector4 q2) {
+    return qmatrix(qmatrix(q1, q2), qconjugate(q1));
+}
+
+void gyro_world_correction(double rate) {
     vector_t accel = imu_read_accel();
-    float x = -accel.x / BIT_14;
-    float y = -accel.y / BIT_14;
-    float z = accel.z / BIT_14;
+    double x = -accel.x / BIT_14;
+    double y = -accel.y / BIT_14;
+    double z = accel.z / BIT_14;
     vector_t accel_top = normalize((vector_t){-x, -y, -z});
-    vector_t correction_axis = cross_product(world_top, accel_top);
-    Vector4 correction = euler_to_q(correction_axis, rate);
-    world_top = q_to_euler(qrotate(correction, world_top));
-    world_right = q_to_euler(qrotate(correction, world_right));
-    world_fw = normalize(cross_product(world_top, world_right));
+    if (!init) {
+        // world_top = (vector_t){0, 0, 1};
+        // world_fw = (vector_t){0, 1, 0};
+        // world_right = (vector_t){1, 0, 0};
+        world_top = accel_top;
+        world_fw = cross_product(world_top, (vector_t){1, 0, 0});
+        world_right = cross_product(world_fw, world_top);
+        init = true;
+    } else {
+        vector_t correction_axis = cross_product(world_top, accel_top);
+        Vector4 correction = euler_to_q(correction_axis, rate);
+        world_top = q_to_euler(qrotate(correction, world_top));
+        world_right = q_to_euler(qrotate(correction, world_right));
+        world_fw = normalize(cross_product(world_top, world_right));
+    }
 }
 
 double hssnf(double t, double k, double x) {
@@ -131,19 +147,26 @@ double hssnf(double t, double k, double x) {
 }
 
 void Gyro__report_absolute(Gyro *self) {
-    gyro_world_correction(0.00005);
+    gyro_world_correction(0.0001);
     vector_t gyro = imu_read_gyro();
-    static float s = BIT_18 * 2.5;
-    uint8_t itgs = 4;
-    for (uint8_t i=0; i<itgs; i++) {
-        Vector4 rx = euler_to_q(world_right, -gyro.y / s / itgs);
-        Vector4 ry = euler_to_q(world_fw, -gyro.z / s / itgs);
-        Vector4 rz = euler_to_q(world_top, -gyro.x / s / itgs);
-        Vector4 r = qmatrix(qmatrix(rz, rx), ry);
-        world_top = q_to_euler(qrotate(r, world_top));
-        world_fw = q_to_euler(qrotate(r, world_fw));
-        world_right = cross_product(world_fw, world_top);
-    }
+    static double s = BIT_18 * M_PI;
+    Vector4 rx = euler_to_q(world_right, -gyro.y / s);
+    Vector4 ry = euler_to_q(world_fw, -gyro.z / s);
+    Vector4 rz = euler_to_q(world_top, -gyro.x / s);
+    static uint8_t i = 0;
+    Vector4 r;
+    if      (i==0) r = qmatrix(qmatrix(rx, ry), rz);
+    else if (i==1) r = qmatrix(qmatrix(rz, rx), ry);
+    else if (i==2) r = qmatrix(qmatrix(ry, rz), rx);
+    else if (i==3) r = qmatrix(qmatrix(rx, rz), ry);
+    else if (i==4) r = qmatrix(qmatrix(ry, rx), rz);
+    else if (i==5) r = qmatrix(qmatrix(rz, ry), rx);
+    i++;
+    if (i>5) i = 0;
+    world_top = q_to_euler(qrotate(r, world_top));
+    world_fw = q_to_euler(qrotate(r, world_fw));
+    world_right = cross_product(world_fw, world_top);
+
     // Combo.
     // hid_gamepad_lx(world_top.x);
     // hid_gamepad_ly(-world_top.y);
@@ -151,8 +174,10 @@ void Gyro__report_absolute(Gyro *self) {
     // hid_gamepad_ry(-world_fw.y);
 
     // Tilt.
-    hid_gamepad_lx(-world_right.z);
-    // printf("\r%6.3f", -world_right.z);
+    double x = -world_right.z;
+    x = x > 0 ? ramp_inv(x, antideadzone) : -ramp_inv(-x, antideadzone);
+    hid_gamepad_lx(x);
+    // printf("\r%6.3f", x);
 }
 
 void Gyro__report_incremental(Gyro *self) {
@@ -227,6 +252,7 @@ void Gyro__report(Gyro *self) {
 }
 
 void Gyro__reset(Gyro *self) {
+    init = false;
 }
 
 Gyro Gyro_ (
