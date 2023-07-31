@@ -24,6 +24,8 @@ bool init = false;
 vector_t world_top;
 vector_t world_fw;
 vector_t world_right;
+vector_t smooth_top;
+double smooth_x;
 
 void gyro_update_sensitivity() {
     config_nvm_t config;
@@ -76,8 +78,37 @@ vector_t vector_add(vector_t a, vector_t b) {
     return (vector_t){a.x+b.x, a.y+b.y, a.z+b.z};
 }
 
+vector_t vector_sub(vector_t a, vector_t b) {
+    return (vector_t){a.x-b.x, a.y-b.y, a.z-b.z};
+}
+
 vector_t vector_multiply(vector_t v, double n) {
     return (vector_t){v.x*n, v.y*n, v.z*n};
+}
+
+vector_t vector_mix(vector_t a, vector_t b, double factor) {
+    double inv = 1 - factor;
+    return (vector_t){
+        (a.x*factor + b.x*inv),
+        (a.y*factor + b.y*inv),
+        (a.z*factor + b.z*inv)
+    };
+}
+
+vector_t vector_smooth(vector_t a, vector_t b, double factor) {
+    return  (vector_t){
+        (a.x*factor + b.x) / (factor + 1),
+        (a.y*factor + b.y) / (factor + 1),
+        (a.z*factor + b.z) / (factor + 1)
+    };
+}
+
+double vector_lenght(vector_t v) {
+    return sqrt(
+        powf(fabs(v.x), 2) +
+        powf(fabs(v.y), 2) +
+        powf(fabs(v.z), 2)
+    );
 }
 
 Vector4 euler_to_q(vector_t vector, double rotation) {
@@ -117,26 +148,25 @@ Vector4 qmul(Vector4 q1, Vector4 q2) {
     return qmatrix(qmatrix(q1, q2), qconjugate(q1));
 }
 
-void gyro_world_correction(double rate) {
+void gyro_world_correction() {
     vector_t accel = imu_read_accel();
     double x = -accel.x / BIT_14;
     double y = -accel.y / BIT_14;
     double z = accel.z / BIT_14;
     vector_t accel_top = normalize((vector_t){-x, -y, -z});
     if (!init) {
-        // world_top = (vector_t){0, 0, 1};
-        // world_fw = (vector_t){0, 1, 0};
-        // world_right = (vector_t){1, 0, 0};
         world_top = accel_top;
         world_fw = cross_product(world_top, (vector_t){1, 0, 0});
         world_right = cross_product(world_fw, world_top);
         init = true;
     } else {
-        vector_t correction_axis = cross_product(world_top, accel_top);
+        // smooth_top = vector_smooth(smooth_top, accel_top, 100);
+        smooth_x = (smooth_x*50 + x) / 51;
+        double rate = (world_right.z - x) / 500;
+        vector_t correction_axis = (vector_t){0, 1, 0};
         Vector4 correction = euler_to_q(correction_axis, rate);
         world_top = q_to_euler(qrotate(correction, world_top));
         world_right = q_to_euler(qrotate(correction, world_right));
-        world_fw = normalize(cross_product(world_top, world_right));
     }
 }
 
@@ -147,7 +177,7 @@ double hssnf(double t, double k, double x) {
 }
 
 void Gyro__report_absolute(Gyro *self) {
-    gyro_world_correction(0.0001);
+    gyro_world_correction();
     vector_t gyro = imu_read_gyro();
     static double s = BIT_18 * M_PI;
     Vector4 rx = euler_to_q(world_right, -gyro.y / s);
@@ -168,15 +198,20 @@ void Gyro__report_absolute(Gyro *self) {
     world_right = cross_product(world_fw, world_top);
 
     // Combo.
-    // hid_gamepad_lx(world_top.x);
-    // hid_gamepad_ly(-world_top.y);
-    // hid_gamepad_rx(world_fw.x);
-    // hid_gamepad_ry(-world_fw.y);
-
+    bool debug = 0;
+    if (debug) {
+        // hid_gamepad_lx(world_top.x);
+        // hid_gamepad_ly(-world_top.y);
+        // hid_gamepad_rx(world_fw.x);
+        // hid_gamepad_ry(-world_fw.y);
+        hid_gamepad_lx(world_right.z);
+        hid_gamepad_rx(smooth_x);
+        return;
+    }
     // Tilt.
-    double x = -world_right.z;
-    x = x > 0 ? ramp_inv(x, antideadzone) : -ramp_inv(-x, antideadzone);
-    hid_gamepad_lx(x);
+    double tilt = -world_right.z;
+    tilt = tilt > 0 ? ramp_inv(tilt, antideadzone) : -ramp_inv(-tilt, antideadzone);
+    hid_gamepad_lx(tilt);
     // printf("\r%6.3f", x);
 }
 
