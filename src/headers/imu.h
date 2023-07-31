@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #pragma once
+#include "vector.h"
 
 // LSM6DSR
 #define IMU_CTRL1_XL 0x10
@@ -19,21 +20,8 @@
 #define IMU_CTRL2_G_125 0b10100010
 #define IMU_CTRL2_G_500 0b10100100
 
-typedef struct vector {
-    double x;
-    double y;
-    double z;
-} vector_t;
-
-typedef struct Vector4_struct {
-    double x;
-    double y;
-    double z;
-    double r;
-} Vector4;
-
 void imu_init();
-vector_t imu_read_gyro();
-vector_t imu_read_accel();
+Vector imu_read_gyro();
+Vector imu_read_accel();
 void imu_calibrate();
 

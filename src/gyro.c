@@ -14,17 +14,16 @@
 #include "touch.h"
 #include "helper.h"
 #include "led.h"
+#include "vector.h"
 
 double sensitivity_multiplier;
 double antideadzone = 0; // TODO ALPHA
 bool init = false;
 
-// double absx = 0;  // TODO ALPHA
-
-vector_t world_top;
-vector_t world_fw;
-vector_t world_right;
-vector_t smooth_top;
+Vector world_top;
+Vector world_fw;
+Vector world_right;
+Vector smooth_top;
 double smooth_x;
 
 void gyro_update_sensitivity() {
@@ -57,116 +56,25 @@ void gyro_wheel_antideadzone(int8_t increment) {
     else if (adz==10 || adz==20 || adz==30) led_blink_mask(0b0111);
 }
 
-vector_t normalize(vector_t v) {
-    double mag = (v.x*v.x) + (v.y*v.y) + (v.z*v.z);
-    if (fabs(mag - 1.0) > 0.0001) {  // Tolerance.
-        mag = sqrt(mag);
-        return (vector_t){v.x/mag, v.y/mag, v.z/mag};
-    }
-    return v;
-}
-
-vector_t cross_product(vector_t a, vector_t b) {
-    return (vector_t){
-        (a.y * b.z) - (a.z * b.y),
-        (a.z * b.x) - (a.x * b.z),
-        (a.x * b.y) - (a.y * b.x)
-    };
-}
-
-vector_t vector_add(vector_t a, vector_t b) {
-    return (vector_t){a.x+b.x, a.y+b.y, a.z+b.z};
-}
-
-vector_t vector_sub(vector_t a, vector_t b) {
-    return (vector_t){a.x-b.x, a.y-b.y, a.z-b.z};
-}
-
-vector_t vector_multiply(vector_t v, double n) {
-    return (vector_t){v.x*n, v.y*n, v.z*n};
-}
-
-vector_t vector_mix(vector_t a, vector_t b, double factor) {
-    double inv = 1 - factor;
-    return (vector_t){
-        (a.x*factor + b.x*inv),
-        (a.y*factor + b.y*inv),
-        (a.z*factor + b.z*inv)
-    };
-}
-
-vector_t vector_smooth(vector_t a, vector_t b, double factor) {
-    return  (vector_t){
-        (a.x*factor + b.x) / (factor + 1),
-        (a.y*factor + b.y) / (factor + 1),
-        (a.z*factor + b.z) / (factor + 1)
-    };
-}
-
-double vector_lenght(vector_t v) {
-    return sqrt(
-        powf(fabs(v.x), 2) +
-        powf(fabs(v.y), 2) +
-        powf(fabs(v.z), 2)
-    );
-}
-
-Vector4 euler_to_q(vector_t vector, double rotation) {
-    vector = normalize(vector);
-    double theta = rotation / 2;
-    return (Vector4){
-        vector.x * sin(theta),
-        vector.y * sin(theta),
-        vector.z * sin(theta),
-        cos(theta)
-    };
-}
-
-vector_t q_to_euler(Vector4 q) {
-    return normalize((vector_t){q.x, q.y, q.z});
-}
-
-Vector4 qmatrix(Vector4 q1, Vector4 q2) {
-    return (Vector4){
-        q1.r * q2.x + q1.x * q2.r + q1.y * q2.z - q1.z * q2.y,
-        q1.r * q2.y + q1.y * q2.r + q1.z * q2.x - q1.x * q2.z,
-        q1.r * q2.z + q1.z * q2.r + q1.x * q2.y - q1.y * q2.x,
-        q1.r * q2.r - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z
-    };
-}
-
-Vector4 qconjugate(Vector4 q) {
-    return (Vector4){-q.x, -q.y, -q.z, q.r};
-}
-
-Vector4 qrotate(Vector4 q1, vector_t v) {
-    Vector4 q2 = (Vector4){v.x, v.y, v.z, 0};
-    return qmatrix(qmatrix(q1, q2), qconjugate(q1));
-}
-
-Vector4 qmul(Vector4 q1, Vector4 q2) {
-    return qmatrix(qmatrix(q1, q2), qconjugate(q1));
-}
-
 void gyro_world_correction() {
-    vector_t accel = imu_read_accel();
+    Vector accel = imu_read_accel();
     double x = -accel.x / BIT_14;
     double y = -accel.y / BIT_14;
     double z = accel.z / BIT_14;
-    vector_t accel_top = normalize((vector_t){-x, -y, -z});
+    Vector accel_top = vector_normalize((Vector){-x, -y, -z});
     if (!init) {
         world_top = accel_top;
-        world_fw = cross_product(world_top, (vector_t){1, 0, 0});
-        world_right = cross_product(world_fw, world_top);
+        world_fw = vector_cross_product(world_top, (Vector){1, 0, 0});
+        world_right = vector_cross_product(world_fw, world_top);
         init = true;
     } else {
         // smooth_top = vector_smooth(smooth_top, accel_top, 100);
         smooth_x = (smooth_x*50 + x) / 51;
         double rate = (world_right.z - x) / 500;
-        vector_t correction_axis = (vector_t){0, 1, 0};
-        Vector4 correction = euler_to_q(correction_axis, rate);
-        world_top = q_to_euler(qrotate(correction, world_top));
-        world_right = q_to_euler(qrotate(correction, world_right));
+        Vector correction_axis = (Vector){0, 1, 0};
+        Vector4 correction = quartenion(correction_axis, rate);
+        world_top = qvector(qrotate(correction, world_top));
+        world_right = qvector(qrotate(correction, world_right));
     }
 }
 
@@ -178,24 +86,24 @@ double hssnf(double t, double k, double x) {
 
 void Gyro__report_absolute(Gyro *self) {
     gyro_world_correction();
-    vector_t gyro = imu_read_gyro();
+    Vector gyro = imu_read_gyro();
     static double s = BIT_18 * M_PI;
-    Vector4 rx = euler_to_q(world_right, -gyro.y / s);
-    Vector4 ry = euler_to_q(world_fw, -gyro.z / s);
-    Vector4 rz = euler_to_q(world_top, -gyro.x / s);
+    Vector4 rx = quartenion(world_right, -gyro.y / s);
+    Vector4 ry = quartenion(world_fw, -gyro.z / s);
+    Vector4 rz = quartenion(world_top, -gyro.x / s);
     static uint8_t i = 0;
     Vector4 r;
-    if      (i==0) r = qmatrix(qmatrix(rx, ry), rz);
-    else if (i==1) r = qmatrix(qmatrix(rz, rx), ry);
-    else if (i==2) r = qmatrix(qmatrix(ry, rz), rx);
-    else if (i==3) r = qmatrix(qmatrix(rx, rz), ry);
-    else if (i==4) r = qmatrix(qmatrix(ry, rx), rz);
-    else if (i==5) r = qmatrix(qmatrix(rz, ry), rx);
+    if      (i==0) r = qmultiply(qmultiply(rx, ry), rz);
+    else if (i==1) r = qmultiply(qmultiply(rz, rx), ry);
+    else if (i==2) r = qmultiply(qmultiply(ry, rz), rx);
+    else if (i==3) r = qmultiply(qmultiply(rx, rz), ry);
+    else if (i==4) r = qmultiply(qmultiply(ry, rx), rz);
+    else if (i==5) r = qmultiply(qmultiply(rz, ry), rx);
     i++;
     if (i>5) i = 0;
-    world_top = q_to_euler(qrotate(r, world_top));
-    world_fw = q_to_euler(qrotate(r, world_fw));
-    world_right = cross_product(world_fw, world_top);
+    world_top = qvector(qrotate(r, world_top));
+    world_fw = qvector(qrotate(r, world_fw));
+    world_right = vector_cross_product(world_fw, world_top);
 
     // Combo.
     bool debug = 0;
@@ -220,7 +128,7 @@ void Gyro__report_incremental(Gyro *self) {
     static double sub_y = 0;
     static double sub_z = 0;
      // Read gyro values.
-    vector_t imu_gyro = imu_read_gyro();
+    Vector imu_gyro = imu_read_gyro();
     double x = imu_gyro.x * CFG_GYRO_SENSITIVITY_X * sensitivity_multiplier;
     double y = imu_gyro.y * CFG_GYRO_SENSITIVITY_Y * sensitivity_multiplier;
     double z = imu_gyro.z * CFG_GYRO_SENSITIVITY_Z * sensitivity_multiplier;
@@ -337,8 +245,8 @@ Gyro Gyro_ (
     }
     va_end(va);
     gyro_update_sensitivity();
-    world_top = (vector_t){0, 0, 1};
-    world_fw = (vector_t){0, 1, 0};
-    world_right = (vector_t){1, 0, 0};
+    world_top = (Vector){0, 0, 1};
+    world_fw = (Vector){0, 1, 0};
+    world_right = (Vector){1, 0, 0};
     return gyro;
 }
