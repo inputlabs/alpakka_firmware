@@ -68,13 +68,15 @@ void gyro_world_correction() {
         world_right = vector_cross_product(world_fw, world_top);
         init = true;
     } else {
-        // smooth_top = vector_smooth(smooth_top, accel_top, 100);
-        smooth_x = (smooth_x*50 + x) / 51;
-        double rate = (world_right.z - x) / 500;
-        Vector correction_axis = (Vector){0, 1, 0};
+        static double ACCEL_CORRECTION_SMOOTH = 50;
+        static double ACCEL_CORRECTION_RATE = 500;
+        smooth_x = (smooth_x*ACCEL_CORRECTION_SMOOTH + x) / (ACCEL_CORRECTION_SMOOTH+1);
+        double rate = (world_right.z - x) / ACCEL_CORRECTION_RATE;
+        // printf("\r%6.2f %6.2f %10f", world_right.z, smooth_x, rate);
+        Vector correction_axis = vector_normalize((Vector){world_fw.x, world_fw.y, 0});
         Vector4 correction = quartenion(correction_axis, rate);
-        world_top = qvector(qrotate(correction, world_top));
-        world_right = qvector(qrotate(correction, world_right));
+        world_top = qrotate(correction, world_top);
+        world_right = qrotate(correction, world_right);
     }
 }
 
@@ -87,10 +89,10 @@ double hssnf(double t, double k, double x) {
 void Gyro__report_absolute(Gyro *self) {
     gyro_world_correction();
     Vector gyro = imu_read_gyro();
-    static double s = BIT_18 * M_PI;
-    Vector4 rx = quartenion(world_right, -gyro.y / s);
-    Vector4 ry = quartenion(world_fw, -gyro.z / s);
-    Vector4 rz = quartenion(world_top, -gyro.x / s);
+    static double sens = BIT_18 * M_PI;
+    Vector4 rx = quartenion(world_right, -gyro.y / sens);
+    Vector4 ry = quartenion(world_fw, -gyro.z / sens);
+    Vector4 rz = quartenion(world_top, -gyro.x / sens);
     static uint8_t i = 0;
     Vector4 r;
     if      (i==0) r = qmultiply(qmultiply(rx, ry), rz);
@@ -101,26 +103,32 @@ void Gyro__report_absolute(Gyro *self) {
     else if (i==5) r = qmultiply(qmultiply(rz, ry), rx);
     i++;
     if (i>5) i = 0;
-    world_top = qvector(qrotate(r, world_top));
-    world_fw = qvector(qrotate(r, world_fw));
+    world_top = qrotate(r, world_top);
+    world_fw = qrotate(r, world_fw);
     world_right = vector_cross_product(world_fw, world_top);
 
     // Combo.
     bool debug = 0;
     if (debug) {
-        // hid_gamepad_lx(world_top.x);
-        // hid_gamepad_ly(-world_top.y);
-        // hid_gamepad_rx(world_fw.x);
-        // hid_gamepad_ry(-world_fw.y);
-        hid_gamepad_lx(world_right.z);
-        hid_gamepad_rx(smooth_x);
+        hid_gamepad_lx(world_top.x);
+        hid_gamepad_ly(-world_top.y);
+        hid_gamepad_rx(world_fw.x);
+        hid_gamepad_ry(-world_fw.y);
         return;
     }
     // Tilt.
-    double tilt = -world_right.z;
+    static double factor = (180 / M_PI) / 90;  // 90 degrees range.
+    double tilt = asin(-world_right.z);
+    // TODO: Steering lock.
+    // double z = fabs(world_top.z) > fabs(world_fw.z) ? world_top.z : world_fw.z;
+    // if (z < 0) {
+    //     if (tilt > 0) tilt = M_PI - tilt;
+    //     else tilt = -M_PI - tilt;
+    // }
+    tilt = constrain(tilt * 1.05 * factor, -1, 1); // TODO: Magic number.
     tilt = tilt > 0 ? ramp_inv(tilt, antideadzone) : -ramp_inv(-tilt, antideadzone);
     hid_gamepad_lx(tilt);
-    // printf("\r%6.3f", x);
+    // printf("\r%6.2f", tilt);
 }
 
 void Gyro__report_incremental(Gyro *self) {

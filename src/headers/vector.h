@@ -28,5 +28,5 @@ double vector_lenght(Vector v);
 Vector4 quartenion(Vector vector, double rotation);
 Vector4 qmultiply(Vector4 q1, Vector4 q2);
 Vector4 qconjugate(Vector4 q);
-Vector4 qrotate(Vector4 q1, Vector v);
+Vector qrotate(Vector4 q1, Vector v);
 Vector qvector(Vector4 q);
