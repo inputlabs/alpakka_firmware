@@ -82,9 +82,9 @@ Vector4 qconjugate(Vector4 q) {
     return (Vector4){-q.x, -q.y, -q.z, q.r};
 }
 
-Vector4 qrotate(Vector4 q1, Vector v) {
+Vector qrotate(Vector4 q1, Vector v) {
     Vector4 q2 = (Vector4){v.x, v.y, v.z, 0};
-    return qmultiply(qmultiply(q1, q2), qconjugate(q1));
+    return qvector(qmultiply(qmultiply(q1, q2), qconjugate(q1)));
 }
 
 Vector qvector(Vector4 q) {
