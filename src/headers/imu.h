@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #pragma once
+#include "vector.h"
 
 // LSM6DSR
 #define IMU_WHO_AM_I 0x0f
@@ -32,7 +33,7 @@ typedef struct Vector4_struct {
 } Vector4;
 
 void imu_init();
-vector_t imu_read_gyro();
-vector_t imu_read_accel();
+Vector imu_read_gyro();
+Vector imu_read_accel();
 void imu_calibrate();
 
