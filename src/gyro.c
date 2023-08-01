@@ -18,7 +18,7 @@
 
 double sensitivity_multiplier;
 double antideadzone = 0; // TODO ALPHA
-bool init = false;
+bool world_init = false;
 
 Vector world_top;
 Vector world_fw;
@@ -56,27 +56,39 @@ void gyro_wheel_antideadzone(int8_t increment) {
     else if (adz==10 || adz==20 || adz==30) led_blink_mask(0b0111);
 }
 
-void gyro_world_correction() {
+void accel_correction() {
     Vector accel = imu_read_accel();
     double x = -accel.x / BIT_14;
     double y = -accel.y / BIT_14;
     double z = accel.z / BIT_14;
     Vector accel_top = vector_normalize((Vector){-x, -y, -z});
-    if (!init) {
+    if (!world_init) {
         world_top = accel_top;
         world_fw = vector_cross_product(world_top, (Vector){1, 0, 0});
         world_right = vector_cross_product(world_fw, world_top);
-        init = true;
+        world_init = true;
     } else {
         static double ACCEL_CORRECTION_SMOOTH = 50;
-        static double ACCEL_CORRECTION_RATE = 500;
-        smooth_x = (smooth_x*ACCEL_CORRECTION_SMOOTH + x) / (ACCEL_CORRECTION_SMOOTH+1);
-        double rate = (world_right.z - x) / ACCEL_CORRECTION_RATE;
-        // printf("\r%6.2f %6.2f %10f", world_right.z, smooth_x, rate);
-        Vector correction_axis = vector_normalize((Vector){world_fw.x, world_fw.y, 0});
-        Vector4 correction = quartenion(correction_axis, rate);
+        static double ACCEL_CORRECTION_TILT_RATE = 0.002;
+        static double ACCEL_CORRECTION_HEAD_RATE = 0.01;
+        // Tilt correction.
+        smooth_x = smooth(smooth_x, x, ACCEL_CORRECTION_SMOOTH);
+        double tilt_rate = (world_right.z - x) * ACCEL_CORRECTION_TILT_RATE;
+        Vector tilt_axis = vector_normalize((Vector){world_fw.x, world_fw.y, 0});
+        Vector4 tilt_correction = quartenion(tilt_axis, tilt_rate);
+        // Heading correction.
+        double head_rate = 0;
+        if (fabs(world_right.z) < 0.1) {
+            head_rate = world_fw.x * ACCEL_CORRECTION_HEAD_RATE;
+            head_rate *= 1 - ramp(fabs(world_right.z), 0, 0.1);
+        }
+        Vector head_axis = (Vector){0, 0, 1};
+        Vector4 head_correction = quartenion(head_axis, head_rate);
+        // Apply.
+        Vector4 correction = qmultiply(tilt_correction, head_correction);
         world_top = qrotate(correction, world_top);
         world_right = qrotate(correction, world_right);
+        world_fw = vector_cross_product(world_top, world_right);
     }
 }
 
@@ -87,7 +99,7 @@ double hssnf(double t, double k, double x) {
 }
 
 void Gyro__report_absolute(Gyro *self) {
-    gyro_world_correction();
+    accel_correction();
     Vector gyro = imu_read_gyro();
     static double sens = BIT_18 * M_PI;
     Vector4 rx = quartenion(world_right, -gyro.y / sens);
@@ -117,18 +129,11 @@ void Gyro__report_absolute(Gyro *self) {
         return;
     }
     // Tilt.
-    static double factor = (180 / M_PI) / 90;  // 90 degrees range.
-    double tilt = asin(-world_right.z);
-    // TODO: Steering lock.
-    // double z = fabs(world_top.z) > fabs(world_fw.z) ? world_top.z : world_fw.z;
-    // if (z < 0) {
-    //     if (tilt > 0) tilt = M_PI - tilt;
-    //     else tilt = -M_PI - tilt;
-    // }
-    tilt = constrain(tilt * 1.05 * factor, -1, 1); // TODO: Magic number.
+    double len = sqrt(powf(world_fw.x, 2) + powf(world_fw.y, 2));
+    double tilt = world_fw.x / len;
     tilt = tilt > 0 ? ramp_inv(tilt, antideadzone) : -ramp_inv(-tilt, antideadzone);
     hid_gamepad_lx(tilt);
-    // printf("\r%6.2f", tilt);
+    // printf("\r%6.3f", tilt);
 }
 
 void Gyro__report_incremental(Gyro *self) {
@@ -203,7 +208,7 @@ void Gyro__report(Gyro *self) {
 }
 
 void Gyro__reset(Gyro *self) {
-    init = false;
+    world_init = false;
 }
 
 Gyro Gyro_ (
