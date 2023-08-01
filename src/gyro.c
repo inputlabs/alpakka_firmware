@@ -129,11 +129,15 @@ void Gyro__report_absolute(Gyro *self) {
         return;
     }
     // Tilt.
-    double len = sqrt(powf(world_fw.x, 2) + powf(world_fw.y, 2));
-    double tilt = world_fw.x / len;
-    tilt = tilt > 0 ? ramp_inv(tilt, antideadzone) : -ramp_inv(-tilt, antideadzone);
+    double normalized = sqrt(powf(world_fw.x, 2) + powf(world_fw.z, 2));
+    double tilt = degrees(asin(world_fw.x / normalized)) / 90;
+    double attenuation = ramp(1 - world_top.z, 0, 0.05);
+    tilt *= attenuation; // Flat attenuation.
+    tilt = constrain(tilt * 1.02, -1, 1); // Additional saturation.
+    if (fabs(tilt) > 0.5 && world_fw.z < 0) tilt = tilt < 0 ? -1 : 1; // Range lock.
+    tilt = tilt > 0 ? ramp_inv(tilt, antideadzone) : -ramp_inv(-tilt, antideadzone); // Deadzone.
     hid_gamepad_lx(tilt);
-    // printf("\r%6.3f", tilt);
+    // printf("\r%6.1f %6.0f", tilt*100, attenuation*100);
 }
 
 void Gyro__report_incremental(Gyro *self) {
