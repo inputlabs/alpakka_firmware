@@ -18,13 +18,12 @@
 
 double sensitivity_multiplier;
 double antideadzone = 0; // TODO ALPHA
-bool world_init = false;
+uint8_t world_init = 0;
 
 Vector world_top;
 Vector world_fw;
 Vector world_right;
-Vector smooth_top;
-double smooth_x;
+Vector accel_smooth;
 
 void gyro_update_sensitivity() {
     config_nvm_t config;
@@ -57,35 +56,28 @@ void gyro_wheel_antideadzone(int8_t increment) {
 }
 
 void accel_correction() {
+    static double ACCEL_CORRECTION_SMOOTH = 50; // TODO: move to header.
+    static double ACCEL_CORRECTION_RATE = 0.0007;
     Vector accel = imu_read_accel();
-    double x = -accel.x / BIT_14;
-    double y = -accel.y / BIT_14;
-    double z = accel.z / BIT_14;
-    Vector accel_top = vector_normalize((Vector){-x, -y, -z});
-    if (!world_init) {
-        world_top = accel_top;
+    accel.x /= -BIT_14;
+    accel.y /= -BIT_14;
+    accel.z /= BIT_14;
+    accel_smooth = (Vector){
+        smooth(accel_smooth.x, accel.x, ACCEL_CORRECTION_SMOOTH),
+        smooth(accel_smooth.y, accel.y, ACCEL_CORRECTION_SMOOTH),
+        smooth(accel_smooth.z, accel.z, ACCEL_CORRECTION_SMOOTH)
+    };
+    if (world_init < ACCEL_CORRECTION_SMOOTH) {
+        world_top = vector_normalize(vector_negative(accel_smooth));
         world_fw = vector_cross_product(world_top, (Vector){1, 0, 0});
         world_right = vector_cross_product(world_fw, world_top);
-        world_init = true;
+        world_init++;
     } else {
-        static double ACCEL_CORRECTION_SMOOTH = 50;
-        static double ACCEL_CORRECTION_TILT_RATE = 0.002;
-        static double ACCEL_CORRECTION_HEAD_RATE = 0.01;
-        // Tilt correction.
-        smooth_x = smooth(smooth_x, x, ACCEL_CORRECTION_SMOOTH);
-        double tilt_rate = (world_right.z - x) * ACCEL_CORRECTION_TILT_RATE;
-        Vector tilt_axis = vector_normalize((Vector){world_fw.x, world_fw.y, 0});
-        Vector4 tilt_correction = quartenion(tilt_axis, tilt_rate);
-        // Heading correction.
-        double head_rate = 0;
-        if (fabs(world_right.z) < 0.1) {
-            head_rate = world_fw.x * ACCEL_CORRECTION_HEAD_RATE;
-            head_rate *= 1 - ramp(fabs(world_right.z), 0, 0.1);
-        }
-        Vector head_axis = (Vector){0, 0, 1};
-        Vector4 head_correction = quartenion(head_axis, head_rate);
-        // Apply.
-        Vector4 correction = qmultiply(tilt_correction, head_correction);
+        double rate_fw = (world_right.z - accel_smooth.x) * ACCEL_CORRECTION_RATE;
+        double rate_r = (world_fw.z - accel_smooth.y) * ACCEL_CORRECTION_RATE;
+        Vector4 correction_fw = quartenion(world_fw, rate_fw);
+        Vector4 correction_r = quartenion(world_right, -rate_r);
+        Vector4 correction = qmultiply(correction_fw, correction_r);
         world_top = qrotate(correction, world_top);
         world_right = qrotate(correction, world_right);
         world_fw = vector_cross_product(world_top, world_right);
@@ -101,10 +93,10 @@ double hssnf(double t, double k, double x) {
 void Gyro__report_absolute(Gyro *self) {
     accel_correction();
     Vector gyro = imu_read_gyro();
-    static double sens = BIT_18 * M_PI;
-    Vector4 rx = quartenion(world_right, -gyro.y / sens);
-    Vector4 ry = quartenion(world_fw, -gyro.z / sens);
-    Vector4 rz = quartenion(world_top, -gyro.x / sens);
+    static double sens = -BIT_18 * M_PI;
+    Vector4 rx = quartenion(world_right, gyro.y / sens);
+    Vector4 ry = quartenion(world_fw, gyro.z / sens);
+    Vector4 rz = quartenion(world_top, gyro.x / sens);
     static uint8_t i = 0;
     Vector4 r;
     if      (i==0) r = qmultiply(qmultiply(rx, ry), rz);
@@ -118,26 +110,22 @@ void Gyro__report_absolute(Gyro *self) {
     world_top = qrotate(r, world_top);
     world_fw = qrotate(r, world_fw);
     world_right = vector_cross_product(world_fw, world_top);
-
-    // Combo.
+    // Debug.
     bool debug = 0;
     if (debug) {
         hid_gamepad_lx(world_top.x);
         hid_gamepad_ly(-world_top.y);
         hid_gamepad_rx(world_fw.x);
         hid_gamepad_ry(-world_fw.y);
-        return;
     }
-    // Tilt.
-    double normalized = sqrt(powf(world_fw.x, 2) + powf(world_fw.z, 2));
-    double tilt = degrees(asin(world_fw.x / normalized)) / 90;
-    double attenuation = ramp(1 - world_top.z, 0, 0.05);
-    tilt *= attenuation; // Flat attenuation.
-    tilt = constrain(tilt * 1.02, -1, 1); // Additional saturation.
-    if (fabs(tilt) > 0.5 && world_fw.z < 0) tilt = tilt < 0 ? -1 : 1; // Range lock.
-    tilt = tilt > 0 ? ramp_inv(tilt, antideadzone) : -ramp_inv(-tilt, antideadzone); // Deadzone.
-    hid_gamepad_lx(tilt);
-    // printf("\r%6.1f %6.0f", tilt*100, attenuation*100);
+    // Output.
+    double roll = degrees(asin(-world_right.z)) / 90;
+    double pitch = degrees(asin(world_fw.z)) / 90;
+    if (fabs(roll) > 0.5 && pitch < 0) roll += -pitch * 2 * sign(roll); // Steering lock.
+    roll = constrain(roll * 1.1, -1, 1); // Additional saturation.
+    roll = roll > 0 ? ramp_inv(roll, antideadzone) : -ramp_inv(-roll, antideadzone); // Deadzone.
+    if (!debug) hid_gamepad_lx(roll);
+    // printf("\r%6.1f %6.1f", roll*100, pitch*100);
 }
 
 void Gyro__report_incremental(Gyro *self) {
@@ -212,7 +200,7 @@ void Gyro__report(Gyro *self) {
 }
 
 void Gyro__reset(Gyro *self) {
-    world_init = false;
+    world_init = 0;
 }
 
 Gyro Gyro_ (
@@ -262,8 +250,5 @@ Gyro Gyro_ (
     }
     va_end(va);
     gyro_update_sensitivity();
-    world_top = (Vector){0, 0, 1};
-    world_fw = (Vector){0, 1, 0};
-    world_right = (Vector){1, 0, 0};
     return gyro;
 }
