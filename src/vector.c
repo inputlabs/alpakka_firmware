@@ -4,6 +4,15 @@
 #include <math.h>
 #include "vector.h"
 
+Vector2 vector2_normalize(Vector2 v) {
+    double mag = (v.x*v.x) + (v.y*v.y);
+    if (fabs(mag - 1.0) > 0.0001) {  // Tolerance.
+        mag = sqrt(mag);
+        return (Vector2){v.x/mag, v.y/mag};
+    }
+    return v;
+}
+
 Vector vector_normalize(Vector v) {
     double mag = (v.x*v.x) + (v.y*v.y) + (v.z*v.z);
     if (fabs(mag - 1.0) > 0.0001) {  // Tolerance.
@@ -23,6 +32,10 @@ Vector vector_sub(Vector a, Vector b) {
 
 Vector vector_multiply(Vector v, double n) {
     return (Vector){v.x*n, v.y*n, v.z*n};
+}
+
+Vector vector_negative(Vector v) {
+    return (Vector){-v.x, -v.y, -v.z};
 }
 
 Vector vector_cross_product(Vector a, Vector b) {
@@ -90,3 +103,4 @@ Vector qrotate(Vector4 q1, Vector v) {
 Vector qvector(Vector4 q) {
     return vector_normalize((Vector){q.x, q.y, q.z});
 }
+
