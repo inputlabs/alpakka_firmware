@@ -71,7 +71,7 @@ double vector_lenght(Vector v) {
     );
 }
 
-Vector4 quartenion(Vector vector, double rotation) {
+Vector4 quaternion(Vector vector, double rotation) {
     vector = vector_normalize(vector);
     double theta = rotation / 2;
     return (Vector4){

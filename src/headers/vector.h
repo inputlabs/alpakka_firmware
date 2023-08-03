@@ -33,7 +33,7 @@ Vector vector_mix(Vector a, Vector b, double factor);
 Vector vector_smooth(Vector a, Vector b, double factor);
 double vector_lenght(Vector v);
 
-Vector4 quartenion(Vector vector, double rotation);
+Vector4 quaternion(Vector vector, double rotation);
 Vector4 qmultiply(Vector4 q1, Vector4 q2);
 Vector4 qconjugate(Vector4 q);
 Vector qrotate(Vector4 q1, Vector v);

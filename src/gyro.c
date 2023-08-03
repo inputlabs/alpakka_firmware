@@ -75,8 +75,8 @@ void accel_correction() {
     } else {
         double rate_fw = (world_right.z - accel_smooth.x) * ACCEL_CORRECTION_RATE;
         double rate_r = (world_fw.z - accel_smooth.y) * ACCEL_CORRECTION_RATE;
-        Vector4 correction_fw = quartenion(world_fw, rate_fw);
-        Vector4 correction_r = quartenion(world_right, -rate_r);
+        Vector4 correction_fw = quaternion(world_fw, rate_fw);
+        Vector4 correction_r = quaternion(world_right, -rate_r);
         Vector4 correction = qmultiply(correction_fw, correction_r);
         world_top = qrotate(correction, world_top);
         world_right = qrotate(correction, world_right);
@@ -94,9 +94,9 @@ void Gyro__report_absolute(Gyro *self) {
     accel_correction();
     Vector gyro = imu_read_gyro();
     static double sens = -BIT_18 * M_PI;
-    Vector4 rx = quartenion(world_right, gyro.y / sens);
-    Vector4 ry = quartenion(world_fw, gyro.z / sens);
-    Vector4 rz = quartenion(world_top, gyro.x / sens);
+    Vector4 rx = quaternion(world_right, gyro.y / sens);
+    Vector4 ry = quaternion(world_fw, gyro.z / sens);
+    Vector4 rz = quaternion(world_top, gyro.x / sens);
     static uint8_t i = 0;
     Vector4 r;
     if      (i==0) r = qmultiply(qmultiply(rx, ry), rz);
