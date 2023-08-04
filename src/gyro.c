@@ -17,18 +17,13 @@
 #include "vector.h"
 
 double sensitivity_multiplier;
-uint8_t world_init = 0;
 double antideadzone = 0; // TODO: Experimental.
 
+uint8_t world_init = 0;
 Vector world_top;
 Vector world_fw;
 Vector world_right;
 Vector accel_smooth;
-
-bool pressed_x = false;
-bool pressed_y = false;
-bool pressed_x_neg = false;
-bool pressed_y_neg = false;
 
 void gyro_update_sensitivity() {
     config_nvm_t config;
@@ -175,10 +170,10 @@ void Gyro__report_absolute(Gyro *self) {
     x = ramp(x, self->absolute_x_min/90, self->absolute_x_max/90); // Adjust range.
     y = ramp(y, self->absolute_y_min/90, self->absolute_y_max/90); // Adjust range.
     // Output mapping.
-    if (x >= 0) gyro_absolute_output( x, self->actions_x,     &pressed_x);
-    else        gyro_absolute_output(-x, self->actions_x_neg, &pressed_x_neg);
-    if (y >= 0) gyro_absolute_output( y, self->actions_y,     &pressed_y);
-    else        gyro_absolute_output(-y, self->actions_y_neg, &pressed_y_neg);
+    if (x >= 0) gyro_absolute_output( x, self->actions_x,     &(self->pressed_x));
+    else        gyro_absolute_output(-x, self->actions_x_neg, &(self->pressed_x_neg));
+    if (y >= 0) gyro_absolute_output( y, self->actions_y,     &(self->pressed_y));
+    else        gyro_absolute_output(-y, self->actions_y_neg, &(self->pressed_y_neg));
     // printf("\r%6.1f %6.1f %6.1f", x*100, y*100, z*100);
 }
 
@@ -240,6 +235,10 @@ void Gyro__report(Gyro *self) {
 
 void Gyro__reset(Gyro *self) {
     world_init = 0;
+    self->pressed_x = false;
+    self->pressed_y = false;
+    self->pressed_x_neg = false;
+    self->pressed_y_neg = false;
 }
 
 void Gyro__config_absolute_x_range(Gyro *self, double min, double max) {
@@ -312,5 +311,6 @@ Gyro Gyro_ (
     }
     va_end(va);
     gyro_update_sensitivity();
+    gyro.reset(&gyro);
     return gyro;
 }

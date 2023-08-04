@@ -27,6 +27,10 @@ struct Gyro_struct {
     double absolute_x_max;
     double absolute_y_min;
     double absolute_y_max;
+    bool pressed_x;
+    bool pressed_y;
+    bool pressed_x_neg;
+    bool pressed_y_neg;
     uint8_t actions_x[4];
     uint8_t actions_y[4];
     uint8_t actions_z[4];
