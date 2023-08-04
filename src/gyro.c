@@ -4,16 +4,15 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <math.h>
-#include "config.h"
-#include "pin.h"
-#include "profile.h"
 #include "button.h"
+#include "config.h"
 #include "gyro.h"
-#include "imu.h"
-#include "hid.h"
-#include "touch.h"
 #include "helper.h"
+#include "hid.h"
+#include "imu.h"
 #include "led.h"
+#include "pin.h"
+#include "touch.h"
 #include "vector.h"
 
 double sensitivity_multiplier;
