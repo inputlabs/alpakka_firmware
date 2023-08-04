@@ -56,25 +56,23 @@ void gyro_wheel_antideadzone(int8_t increment) {
 }
 
 void gyro_accel_correction() {
-    static double ACCEL_CORRECTION_SMOOTH = 50; // TODO: move to header.
-    static double ACCEL_CORRECTION_RATE = 0.0007;
     Vector accel = imu_read_accel();
     accel.x /= -BIT_14;
     accel.y /= -BIT_14;
     accel.z /= BIT_14;
     accel_smooth = (Vector){
-        smooth(accel_smooth.x, accel.x, ACCEL_CORRECTION_SMOOTH),
-        smooth(accel_smooth.y, accel.y, ACCEL_CORRECTION_SMOOTH),
-        smooth(accel_smooth.z, accel.z, ACCEL_CORRECTION_SMOOTH)
+        smooth(accel_smooth.x, accel.x, CFG_ACCEL_CORRECTION_SMOOTH),
+        smooth(accel_smooth.y, accel.y, CFG_ACCEL_CORRECTION_SMOOTH),
+        smooth(accel_smooth.z, accel.z, CFG_ACCEL_CORRECTION_SMOOTH)
     };
-    if (world_init < ACCEL_CORRECTION_SMOOTH) {
+    if (world_init < CFG_ACCEL_CORRECTION_SMOOTH) {
         world_top = vector_normalize(vector_negative(accel_smooth));
         world_fw = vector_cross_product(world_top, (Vector){1, 0, 0});
         world_right = vector_cross_product(world_fw, world_top);
         world_init++;
     } else {
-        double rate_fw = (world_right.z - accel_smooth.x) * ACCEL_CORRECTION_RATE;
-        double rate_r = (world_fw.z - accel_smooth.y) * ACCEL_CORRECTION_RATE;
+        double rate_fw = (world_right.z - accel_smooth.x) * CFG_ACCEL_CORRECTION_RATE;
+        double rate_r = (world_fw.z - accel_smooth.y) * CFG_ACCEL_CORRECTION_RATE;
         Vector4 correction_fw = quaternion(world_fw, rate_fw);
         Vector4 correction_r = quaternion(world_right, -rate_r);
         Vector4 correction = qmultiply(correction_fw, correction_r);

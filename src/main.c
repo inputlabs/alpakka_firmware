@@ -73,7 +73,7 @@ void main_loop() {
         if (tick_idle > 0) {
             sleep_us((uint32_t)tick_idle);
         } else {
-            // printf("+");
+            printf("+");
             // if (!(i % 50)) printf("%i", tick_idle);
         }
         i++;
