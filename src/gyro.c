@@ -17,13 +17,18 @@
 #include "vector.h"
 
 double sensitivity_multiplier;
-double antideadzone = 0; // TODO ALPHA
 uint8_t world_init = 0;
+double antideadzone = 0; // TODO: Experimental.
 
 Vector world_top;
 Vector world_fw;
 Vector world_right;
 Vector accel_smooth;
+
+bool pressed_x = false;
+bool pressed_y = false;
+bool pressed_x_neg = false;
+bool pressed_y_neg = false;
 
 void gyro_update_sensitivity() {
     config_nvm_t config;
@@ -36,6 +41,7 @@ void gyro_update_sensitivity() {
     sensitivity_multiplier = multipliers[config.sensitivity];
 }
 
+// TODO: Experimental.
 void gyro_wheel_antideadzone(int8_t increment) {
     if (increment > 0) antideadzone += 0.01;
     else antideadzone -= 0.01;
@@ -55,7 +61,7 @@ void gyro_wheel_antideadzone(int8_t increment) {
     else if (adz==10 || adz==20 || adz==30) led_blink_mask(0b0111);
 }
 
-void accel_correction() {
+void gyro_accel_correction() {
     static double ACCEL_CORRECTION_SMOOTH = 50; // TODO: move to header.
     static double ACCEL_CORRECTION_RATE = 0.0007;
     Vector accel = imu_read_accel();
@@ -84,6 +90,46 @@ void accel_correction() {
     }
 }
 
+void gyro_absolute_output(double value, uint8_t *actions, bool *pressed) {
+    for(uint8_t i=0; i<4; i++) {
+        uint8_t action = actions[i];
+        if (hid_is_axis(action)) {
+            value = fabs(value);
+            if      (action == GAMEPAD_AXIS_LX)     hid_gamepad_lx( value);
+            else if (action == GAMEPAD_AXIS_LY)     hid_gamepad_ly( value);
+            else if (action == GAMEPAD_AXIS_LZ)     hid_gamepad_lz( value);
+            else if (action == GAMEPAD_AXIS_RX)     hid_gamepad_rx( value);
+            else if (action == GAMEPAD_AXIS_RY)     hid_gamepad_ry( value);
+            else if (action == GAMEPAD_AXIS_RZ)     hid_gamepad_rz( value);
+            else if (action == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-value);
+            else if (action == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly(-value);
+            else if (action == GAMEPAD_AXIS_LZ_NEG) hid_gamepad_lz(-value);
+            else if (action == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value);
+            else if (action == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry(-value);
+            else if (action == GAMEPAD_AXIS_RZ_NEG) hid_gamepad_rz(-value);
+        } else {
+            if (!(*pressed) && value >= 0.5) {
+                hid_press(action);
+                if (i==3) *pressed = true;
+            }
+            else if (*pressed && value < 0.5) {
+                hid_release(action);
+                if (i==3) *pressed = false;
+            }
+        }
+    }
+}
+
+void gyro_incremental_output(double value, uint8_t *actions) {
+    for(uint8_t i=0; i<4; i++) {
+        uint8_t action = actions[i];
+        if      (action == MOUSE_X)     hid_mouse_move(value, 0);
+        else if (action == MOUSE_Y)     hid_mouse_move(0, value);
+        else if (action == MOUSE_X_NEG) hid_mouse_move(-value, 0);
+        else if (action == MOUSE_Y_NEG) hid_mouse_move(0, -value);
+    }
+}
+
 double hssnf(double t, double k, double x) {
     double a = x - (x * k);
     double b = 1 - (x * k * (1/t));
@@ -91,7 +137,7 @@ double hssnf(double t, double k, double x) {
 }
 
 void Gyro__report_absolute(Gyro *self) {
-    accel_correction();
+    gyro_accel_correction();
     Vector gyro = imu_read_gyro();
     static double sens = -BIT_18 * M_PI;
     Vector4 rx = quaternion(world_right, gyro.y / sens);
@@ -117,15 +163,23 @@ void Gyro__report_absolute(Gyro *self) {
         hid_gamepad_ly(-world_top.y);
         hid_gamepad_rx(world_fw.x);
         hid_gamepad_ry(-world_fw.y);
+        return;
     }
-    // Output.
-    double roll = degrees(asin(-world_right.z)) / 90;
-    double pitch = degrees(asin(world_fw.z)) / 90;
-    if (fabs(roll) > 0.5 && pitch < 0) roll += -pitch * 2 * sign(roll); // Steering lock.
-    roll = constrain(roll * 1.1, -1, 1); // Additional saturation.
-    roll = roll > 0 ? ramp_inv(roll, antideadzone) : -ramp_inv(-roll, antideadzone); // Deadzone.
-    if (!debug) hid_gamepad_lx(roll);
-    // printf("\r%6.1f %6.1f", roll*100, pitch*100);
+    // Output calculation.
+    double x = degrees(asin(-world_right.z)) / 90;
+    double y = degrees(asin(-world_top.z)) / 90;
+    double z = degrees(asin(world_fw.z)) / 90;
+    if (fabs(x) > 0.5 && z < 0) x += -z * 2 * sign(x); // Steering lock.
+    x = constrain(x * 1.1, -1, 1); // Additional saturation.
+    x = x > 0 ? ramp_inv(x, antideadzone) : -ramp_inv(-x, antideadzone); // Deadzone.
+    x = ramp(x, self->absolute_x_min/90, self->absolute_x_max/90); // Adjust range.
+    y = ramp(y, self->absolute_y_min/90, self->absolute_y_max/90); // Adjust range.
+    // Output mapping.
+    if (x >= 0) gyro_absolute_output( x, self->actions_x,     &pressed_x);
+    else        gyro_absolute_output(-x, self->actions_x_neg, &pressed_x_neg);
+    if (y >= 0) gyro_absolute_output( y, self->actions_y,     &pressed_y);
+    else        gyro_absolute_output(-y, self->actions_y_neg, &pressed_y_neg);
+    // printf("\r%6.1f %6.1f %6.1f", x*100, y*100, z*100);
 }
 
 void Gyro__report_incremental(Gyro *self) {
@@ -155,27 +209,12 @@ void Gyro__report_incremental(Gyro *self) {
     sub_y = modf(y, &y);
     sub_z = modf(z, &z);
     // Report.
-    for(uint8_t i=0; i<4; i++) {
-        uint8_t action = self->actions_x[i];
-        if (action == MOUSE_X) hid_mouse_move(x, 0);
-        else if (action == MOUSE_Y) hid_mouse_move(0, x);
-        else if (action == MOUSE_X_NEG) hid_mouse_move(-x, 0);
-        else if (action == MOUSE_Y_NEG) hid_mouse_move(0, -x);
-    }
-    for(uint8_t i=0; i<4; i++) {
-        uint8_t action = self->actions_y[i];
-        if (action == MOUSE_X) hid_mouse_move(y, 0);
-        else if (action == MOUSE_Y) hid_mouse_move(0, y);
-        else if (action == MOUSE_X_NEG) hid_mouse_move(-y, 0);
-        else if (action == MOUSE_Y_NEG) hid_mouse_move(0, -y);
-    }
-    for(uint8_t i=0; i<4; i++) {
-        uint8_t action = self->actions_z[i];
-        if (action == MOUSE_X) hid_mouse_move(z, 0);
-        else if (action == MOUSE_Y) hid_mouse_move(0, z);
-        else if (action == MOUSE_X_NEG) hid_mouse_move(-z, 0);
-        else if (action == MOUSE_Y_NEG) hid_mouse_move(0, -z);
-    }
+    if (x >= 0) gyro_incremental_output( x, self->actions_x);
+    else        gyro_incremental_output(-x, self->actions_x_neg);
+    if (y >= 0) gyro_incremental_output( y, self->actions_y);
+    else        gyro_incremental_output(-y, self->actions_y_neg);
+    if (z >= 0) gyro_incremental_output( z, self->actions_z);
+    else        gyro_incremental_output(-z, self->actions_z_neg);
 }
 
 bool Gyro__is_engaged(Gyro *self) {
@@ -203,6 +242,16 @@ void Gyro__reset(Gyro *self) {
     world_init = 0;
 }
 
+void Gyro__config_absolute_x_range(Gyro *self, double min, double max) {
+    self->absolute_x_min = min;
+    self->absolute_x_max = max;
+}
+
+void Gyro__config_absolute_y_range(Gyro *self, double min, double max) {
+    self->absolute_y_min = min;
+    self->absolute_y_max = max;
+}
+
 Gyro Gyro_ (
     GyroMode mode,
     uint8_t pin,
@@ -214,25 +263,28 @@ Gyro Gyro_ (
     gyro.report_incremental = Gyro__report_incremental;
     gyro.report_absolute = Gyro__report_absolute;
     gyro.reset = Gyro__reset;
+    gyro.config_absolute_x_range = Gyro__config_absolute_x_range;
+    gyro.config_absolute_y_range = Gyro__config_absolute_y_range;
     gyro.mode = mode;
     gyro.pin = pin;
     if (pin != PIN_NONE && pin != PIN_TOUCH_IN) {
         gyro.engage_button = Button_(pin, NORMAL, ACTIONS(KEY_NONE));
     }
-    gyro.actions_x[0] = 0;
-    gyro.actions_x[1] = 0;
-    gyro.actions_x[2] = 0;
-    gyro.actions_x[3] = 0;
-    gyro.actions_y[0] = 0;
-    gyro.actions_y[1] = 0;
-    gyro.actions_y[2] = 0;
-    gyro.actions_y[3] = 0;
-    gyro.actions_z[0] = 0;
-    gyro.actions_z[1] = 0;
-    gyro.actions_z[2] = 0;
-    gyro.actions_z[3] = 0;
+    for(uint8_t i=0; i<4; i++) {
+        gyro.actions_x[i] = 0;
+        gyro.actions_y[i] = 0;
+        gyro.actions_z[i] = 0;
+        gyro.actions_x_neg[i] = 0;
+        gyro.actions_y_neg[i] = 0;
+        gyro.actions_z_neg[i] = 0;
+    }
     va_list va;
     va_start(va, 0);
+    for(uint8_t i=0; true; i++) {
+        uint8_t value = va_arg(va, int);
+        if (value == SENTINEL) break;
+        gyro.actions_x_neg[i] = value;
+    }
     for(uint8_t i=0; true; i++) {
         uint8_t value = va_arg(va, int);
         if (value == SENTINEL) break;
@@ -241,7 +293,17 @@ Gyro Gyro_ (
     for(uint8_t i=0; true; i++) {
         uint8_t value = va_arg(va, int);
         if (value == SENTINEL) break;
+        gyro.actions_y_neg[i] = value;
+    }
+    for(uint8_t i=0; true; i++) {
+        uint8_t value = va_arg(va, int);
+        if (value == SENTINEL) break;
         gyro.actions_y[i] = value;
+    }
+    for(uint8_t i=0; true; i++) {
+        uint8_t value = va_arg(va, int);
+        if (value == SENTINEL) break;
+        gyro.actions_z_neg[i] = value;
     }
     for(uint8_t i=0; true; i++) {
         uint8_t value = va_arg(va, int);

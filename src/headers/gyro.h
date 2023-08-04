@@ -18,12 +18,21 @@ struct Gyro_struct {
     void (*report_incremental) (Gyro *self);
     void (*report_absolute) (Gyro *self);
     void (*reset) (Gyro *self);
+    void (*config_absolute_x_range) (Gyro *self, double min, double max);
+    void (*config_absolute_y_range) (Gyro *self, double min, double max);
     uint8_t mode;
     uint8_t pin;
     Button engage_button;
+    double absolute_x_min;
+    double absolute_x_max;
+    double absolute_y_min;
+    double absolute_y_max;
     uint8_t actions_x[4];
     uint8_t actions_y[4];
     uint8_t actions_z[4];
+    uint8_t actions_x_neg[4];
+    uint8_t actions_y_neg[4];
+    uint8_t actions_z_neg[4];
 };
 
 Gyro Gyro_ (

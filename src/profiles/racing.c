@@ -112,10 +112,11 @@ Profile profile_init_racing() {
     profile.gyro = Gyro_(
         GYRO_MODE_AXIS_ABSOLUTE,
         PIN_NONE,
-        ACTIONS(GAMEPAD_AXIS_LX),
-        ACTIONS(KEY_NONE),
-        ACTIONS(KEY_NONE)
+        ACTIONS(GAMEPAD_AXIS_LX_NEG), ACTIONS(GAMEPAD_AXIS_LX),  // X rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),                    // Y rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)                     // Z rotation.
     );
+    profile.gyro.config_absolute_x_range(&profile.gyro, -90, 90);
 
     return profile;
 }
