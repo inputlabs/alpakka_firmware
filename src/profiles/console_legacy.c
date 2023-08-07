@@ -61,9 +61,9 @@ Profile profile_init_console_legacy() {
     profile.gyro = Gyro_(
         GYRO_MODE_ALWAYS_OFF,
         PIN_NONE,
-        ACTIONS(KEY_NONE),  // X rotation.
-        ACTIONS(KEY_NONE),  // Y rotation.
-        ACTIONS(KEY_NONE)   // Z rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),  // X rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),  // Y rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)   // Z rotation.
     );
 
     return profile;

@@ -103,7 +103,7 @@ Profile profile_init_racing() {
         // Push.
         Button_(
             PIN_VIRTUAL,
-            HOLD_OVERLAP,
+            HOLD_OVERLAP_LONG,
             ACTIONS(KEY_R, PROC_ROTARY_MODE_0),
             ACTIONS(PROC_ROTARY_MODE_5)
         )

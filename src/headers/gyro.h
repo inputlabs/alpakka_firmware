@@ -40,7 +40,7 @@ struct Gyro_struct {
 };
 
 Gyro Gyro_ (
-    uint8_t mode,
+    GyroMode mode,
     uint8_t pin,
     ...  // Actions.
 );
