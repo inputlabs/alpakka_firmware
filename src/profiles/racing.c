@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2022, Input Labs Oy.
 
+#include <stdio.h>
 #include "pin.h"
 #include "hid.h"
 #include "button.h"
@@ -8,6 +9,7 @@
 
 Profile profile_init_racing() {
     Profile profile = Profile_();
+    printf("  Racing: ");
 
     profile.select_1 = Button_(PIN_SELECT_1, NORMAL, ACTIONS(GAMEPAD_SELECT));
     profile.select_2 = Button_(PIN_SELECT_2, NORMAL, ACTIONS(KEY_M));
@@ -118,5 +120,6 @@ Profile profile_init_racing() {
     );
     profile.gyro.config_absolute_x_range(&profile.gyro, -90, 90);
 
+    printf("OK\n");
     return profile;
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2022, Input Labs Oy.
 
+#include <stdio.h>
 #include "pin.h"
 #include "hid.h"
 #include "button.h"
@@ -8,6 +9,7 @@
 
 Profile profile_init_fps_wasd() {
     Profile profile = Profile_();
+    printf("  FPS WASD: ");
 
     profile.select_1 = Button_(PIN_SELECT_1, NORMAL, ACTIONS(KEY_TAB));
     profile.start_1 =  Button_(PIN_START_1,  NORMAL, ACTIONS(KEY_ESCAPE));
@@ -66,5 +68,6 @@ Profile profile_init_fps_wasd() {
         ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)     // Z rotation.
     );
 
+    printf("OK\n");
     return profile;
 }

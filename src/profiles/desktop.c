@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2022, Input Labs Oy.
 
+#include <stdio.h>
 #include "pin.h"
 #include "hid.h"
 #include "button.h"
@@ -9,6 +10,7 @@
 
 Profile profile_init_desktop() {
     Profile profile = Profile_();
+    printf("  Desktop: ");
 
     profile.select_1 = Button_(PIN_SELECT_1, NORMAL, ACTIONS(KEY_LEFT_CONTROL, KEY_Z));
     profile.select_2 = Button_(PIN_SELECT_2, NORMAL, ACTIONS(KEY_LEFT_CONTROL, KEY_C));
@@ -120,5 +122,6 @@ Profile profile_init_desktop() {
         ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)     // Z rotation.
     );
 
+    printf("OK\n");
     return profile;
 }
