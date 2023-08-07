@@ -140,9 +140,8 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
     double tx = 0;
     double ty = 0;
     double tz = 0;
-    uint32_t len = 200000;
     uint32_t i = 0;
-    while(i < len) {
+    while(i < CFG_IMU_CALIBRATION_SAMPLES) {
         if (!(i % 5000)) led_cycle_step();
         Vector sample = mode ? imu_read_accel_bits(cs) : imu_read_gyro_bits(cs);
         tx += sample.x;
@@ -150,9 +149,9 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
         tz += sample.z;
         i++;
     }
-    *x = tx / len;
-    *y = ty / len;
-    *z = tz / len;
+    *x = tx / CFG_IMU_CALIBRATION_SAMPLES;
+    *y = ty / CFG_IMU_CALIBRATION_SAMPLES;
+    *z = tz / CFG_IMU_CALIBRATION_SAMPLES;
     if (mode==1) *z += BIT_14;  // Newton's fault for inventing the gravity.
     printf("\rIMU: cs=%i %s calibration x=%f y=%f z=%f\n", cs, mode_str, *x, *y, *z);
 }
