@@ -33,12 +33,12 @@ double offset_accel_1_z;
 
 void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     uint8_t id = bus_spi_read_one(cs, IMU_WHO_AM_I);
-    bus_spi_write(cs, IMU_CTRL1_XL, 0b10100010);
-    bus_spi_write(cs, IMU_CTRL8_XL, 0b00000000);
+    bus_spi_write(cs, IMU_CTRL1_XL, IMU_CTRL1_XL_2G);
+    bus_spi_write(cs, IMU_CTRL8_XL, IMU_CTRL8_XL_LP);
     bus_spi_write(cs, IMU_CTRL2_G, gyro_conf);
-    uint8_t ctrl1 = bus_spi_read_one(cs, IMU_CTRL1_XL);
-    uint8_t ctrl2 = bus_spi_read_one(cs, IMU_CTRL2_G);
-    printf("  IMU cs=%i id=0x%02x xl=0x%08i g=0x%08i\n", cs, id, bin(ctrl1), bin(ctrl2));
+    uint8_t xl = bus_spi_read_one(cs, IMU_CTRL1_XL);
+    uint8_t g = bus_spi_read_one(cs, IMU_CTRL2_G);
+    printf("  IMU cs=%i id=0x%02x xl=0x%08i g=0x%08i\n", cs, id, bin(xl), bin(g));
 }
 
 void imu_init() {
