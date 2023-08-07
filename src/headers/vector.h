@@ -29,7 +29,6 @@ Vector vector_sub(Vector a, Vector b);
 Vector vector_multiply(Vector v, double n);
 Vector vector_negative(Vector v);
 Vector vector_cross_product(Vector a, Vector b);
-Vector vector_mix(Vector a, Vector b, double factor);
 Vector vector_smooth(Vector a, Vector b, double factor);
 double vector_lenght(Vector v);
 

@@ -46,15 +46,6 @@ Vector vector_cross_product(Vector a, Vector b) {
     };
 }
 
-Vector vector_avg(Vector a, Vector b, double factor) {
-    double inv = 1 - factor;
-    return (Vector){
-        (a.x*factor + b.x*inv),
-        (a.y*factor + b.y*inv),
-        (a.z*factor + b.z*inv)
-    };
-}
-
 Vector vector_smooth(Vector a, Vector b, double factor) {
     return  (Vector){
         (a.x*factor + b.x) / (factor + 1),

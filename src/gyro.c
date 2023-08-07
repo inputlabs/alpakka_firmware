@@ -60,11 +60,7 @@ void gyro_accel_correction() {
     accel.x /= -BIT_14;
     accel.y /= -BIT_14;
     accel.z /= BIT_14;
-    accel_smooth = (Vector){
-        smooth(accel_smooth.x, accel.x, CFG_ACCEL_CORRECTION_SMOOTH),
-        smooth(accel_smooth.y, accel.y, CFG_ACCEL_CORRECTION_SMOOTH),
-        smooth(accel_smooth.z, accel.z, CFG_ACCEL_CORRECTION_SMOOTH)
-    };
+    accel_smooth = vector_smooth(accel_smooth, accel, CFG_ACCEL_CORRECTION_SMOOTH);
     if (world_init < CFG_ACCEL_CORRECTION_SMOOTH) {
         world_top = vector_normalize(vector_negative(accel_smooth));
         world_fw = vector_cross_product(world_top, (Vector){1, 0, 0});
