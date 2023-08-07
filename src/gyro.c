@@ -60,15 +60,18 @@ void gyro_accel_correction() {
     accel.x /= -BIT_14;
     accel.y /= -BIT_14;
     accel.z /= BIT_14;
+    // Get a smoothed gravity vector.
     accel_smooth = vector_smooth(accel_smooth, accel, CFG_ACCEL_CORRECTION_SMOOTH);
     if (world_init < CFG_ACCEL_CORRECTION_SMOOTH) {
+        // It the world space orientation is not fully initialized.
         world_top = vector_normalize(vector_negative(accel_smooth));
         world_fw = vector_cross_product(world_top, (Vector){1, 0, 0});
         world_right = vector_cross_product(world_fw, world_top);
         world_init++;
     } else {
-        double rate_fw = (world_right.z - accel_smooth.x) * CFG_ACCEL_CORRECTION_RATE;
-        double rate_r = (world_fw.z - accel_smooth.y) * CFG_ACCEL_CORRECTION_RATE;
+        // Correction.
+        float rate_fw = (world_right.z - accel_smooth.x) * CFG_ACCEL_CORRECTION_RATE;
+        float rate_r = (world_fw.z - accel_smooth.y) * CFG_ACCEL_CORRECTION_RATE;
         Vector4 correction_fw = quaternion(world_fw, rate_fw);
         Vector4 correction_r = quaternion(world_right, -rate_r);
         Vector4 correction = qmultiply(correction_fw, correction_r);
@@ -78,7 +81,7 @@ void gyro_accel_correction() {
     }
 }
 
-void gyro_absolute_output(double value, uint8_t *actions, bool *pressed) {
+void gyro_absolute_output(float value, uint8_t *actions, bool *pressed) {
     for(uint8_t i=0; i<4; i++) {
         uint8_t action = actions[i];
         if (hid_is_axis(action)) {
@@ -125,9 +128,12 @@ double hssnf(double t, double k, double x) {
 }
 
 void Gyro__report_absolute(Gyro *self) {
+    // Accel-based correction.
     gyro_accel_correction();
+    // Get data from gyros.
     Vector gyro = imu_read_gyro();
-    static double sens = -BIT_18 * M_PI;
+    static float sens = -BIT_18 * M_PI;
+    // Rotate world space orientation.
     Vector4 rx = quaternion(world_right, gyro.y / sens);
     Vector4 ry = quaternion(world_fw, gyro.z / sens);
     Vector4 rz = quaternion(world_top, gyro.x / sens);
@@ -154,9 +160,9 @@ void Gyro__report_absolute(Gyro *self) {
         return;
     }
     // Output calculation.
-    double x = degrees(asin(-world_right.z)) / 90;
-    double y = degrees(asin(-world_top.z)) / 90;
-    double z = degrees(asin(world_fw.z)) / 90;
+    float x = degrees(asin(-world_right.z)) / 90;
+    float y = degrees(asin(-world_top.z)) / 90;
+    float z = degrees(asin(world_fw.z)) / 90;
     if (fabs(x) > 0.5 && z < 0) x += -z * 2 * sign(x); // Steering lock.
     x = constrain(x * 1.1, -1, 1); // Additional saturation.
     x = x > 0 ? ramp_inv(x, antideadzone) : -ramp_inv(-x, antideadzone); // Deadzone.
@@ -179,7 +185,7 @@ void Gyro__report_incremental(Gyro *self) {
     double x = imu_gyro.x * CFG_GYRO_SENSITIVITY_X * sensitivity_multiplier;
     double y = imu_gyro.y * CFG_GYRO_SENSITIVITY_Y * sensitivity_multiplier;
     double z = imu_gyro.z * CFG_GYRO_SENSITIVITY_Z * sensitivity_multiplier;
-    // Magic happens.
+    // Additional processing.
     double t = 1.0;
     double k = 0.5;
     if      (x > 0 && x <  t) x =  hssnf(t, k,  x);
