@@ -11,12 +11,15 @@
 #define CFG_TUSB_MEM_SECTION
 #define CFG_TUSB_MEM_ALIGN __attribute__ ((aligned(4)))
 #define CFG_TUD_ENDPOINT0_SIZE 64
+#define CFG_TUD_ENABLED 1
+#define CFG_TUD_VENDOR_RX_BUFSIZE 512
+#define CFG_TUD_VENDOR_TX_BUFSIZE 512
 
 #define CFG_TUD_HID 1
 #define CFG_TUD_CDC 0
 #define CFG_TUD_MSC 0
 #define CFG_TUD_MIDI 0
-#define CFG_TUD_VENDOR 0
+#define CFG_TUD_VENDOR 1
 
 #define REPORT_KEYBOARD 1
 #define REPORT_MOUSE 2
@@ -26,8 +29,10 @@
 #define STRING_PRODUCT "Alpakka"
 #define STRING_DEVICE_VERSION "1.0"
 #define STRING_INTERFACE_0 "HID"
-#define STRING_INTERFACE_1 "XINPUT_GENERIC_CONTROLLER"
+#define STRING_INTERFACE_1 "WEBUSB"
+#define STRING_INTERFACE_2 "XINPUT_GENERIC_CONTROLLER"
 
+#define WEBUSB_VENDOR 0x01
 #define WCID_VENDOR 0x17
 
 #define USB_WIN_VENDOR  0x0170  // Input Labs.
@@ -43,10 +48,10 @@
 #define DESCRIPTOR_DEVICE \
     0x12,        /* .bLength */\
     0x01,        /* .bDescriptorType */\
-    0x0200,      /* .bcdUSB */\
-    0x00,        /* .bDeviceClass */\
-    0x00,        /* .bDeviceSubClass */\
-    0x00,        /* .bDeviceProtocol */\
+    0x0210,      /* .bcdUSB */\
+    TUSB_CLASS_MISC,        /* .bDeviceClass */\
+    MISC_SUBCLASS_COMMON,        /* .bDeviceSubClass */\
+    MISC_PROTOCOL_IAD,        /* .bDeviceProtocol */\
     0x40,        /* .bMaxPacketSize0 */\
     0x0000,      /* .idVendor */\
     0x0000,      /* .idProduct */\
@@ -66,10 +71,30 @@
     0x80,        /* bmAttributes */\
     0xFA         /* bMaxPower */
 
+#define DESCRIPTOR_INTERFACE_HID(report_size) \
+    TUD_HID_DESCRIPTOR( \
+        0,                      /* Interface index */\
+        4,                      /* String index */\
+        HID_ITF_PROTOCOL_NONE,  /* Boot protocol */\
+        report_size,            /* Report descriptor length */\
+        0x86,                   /* Interface address */\
+        32,                     /* Endpoint buffer size */\
+        1                       /* Interface interval (ms) */\
+    )
+
+#define DESCRIPTOR_INTERFACE_WEBUSB \
+    TUD_VENDOR_DESCRIPTOR( \
+        1,     /* Interface index */\
+        5,     /* String index */\
+        0x03,  /* Address out */\
+        0x83,  /* Address in */\
+        64    /* Size */\
+    )
+
 #define DESCRIPTOR_INTERFACE_XINPUT \
     0x09,        /* bLength */\
     0x04,        /* bDescriptorType: interface */\
-    0x01,        /* bInterfaceNumber */\
+    0x02,        /* bInterfaceNumber */\
     0x00,        /* bAlternateSetting */\
     0x02,        /* bNumEndpoints */\
     0xFF,        /* bInterfaceClass */\
@@ -98,17 +123,6 @@
     0x03,        /* bmAttributes */\
     0x20, 0x00,  /* wMaxPacketSize */\
     0x08         /* bInterval */
-
-#define DESCRIPTOR_INTERFACE_HID(report_size) \
-    TUD_HID_DESCRIPTOR( \
-        0,                      /* Interface index */\
-        4,                      /* String index */\
-        HID_ITF_PROTOCOL_NONE,  /* Boot protocol */\
-        report_size,            /* Report descriptor length */\
-        0x86,                   /* Interface address */\
-        32,                     /* Endpoint buffer size */\
-        1                       /* Interface interval (ms) */\
-    )
 
 #define MS_OS_DESCRIPTORS_MAGIC_PAYLOAD \
     0x12,                    /* Length */\

@@ -14,6 +14,7 @@
 #include "imu.h"
 #include "hid.h"
 #include "uart.h"
+#include "logging.h"
 
 #if __has_include("version.h")
     #include "version.h"
@@ -21,22 +22,19 @@
     #define VERSION "undefined"
 #endif
 
-void stdio_init() {
-    stdio_uart_init();
-    stdio_init_all();
-}
-
 void title() {
-    printf("\n");
-    printf("╔════════════════════╗\n");
-    printf("║ Input Labs Oy.     ║\n");
-    printf("║ Alpakka controller ║\n");
-    printf("╚════════════════════╝\n");
-    printf("Firmware version: %s\n", VERSION);
+    info("\n");
+    info("╔====================╗\n");
+    info("║ Input Labs Oy.     ║\n");
+    info("║ Alpakka controller ║\n");
+    info("╚====================╝\n");
+    info("Firmware version: %s\n", VERSION);
 }
 
 void main_init() {
-    stdio_init();
+    stdio_uart_init();
+    stdio_init_all();
+    tusb_init();
     title();
     config_init();
     bus_init();
@@ -47,11 +45,11 @@ void main_init() {
     rotary_init();
     profile_init();
     imu_init();
-    tusb_init();
 }
 
 void main_loop() {
     int16_t i = 0;
+    webusb_set_onloop(true);
     while (true) {
         // Start timer.
         uint32_t tick_start = time_us_32();
@@ -68,12 +66,12 @@ void main_loop() {
         }
         // Print additional timing data.
         if (CFG_LOG_LEVEL && !(i % 1000)) {
-            printf("Tick comp=%li idle=%i\n", tick_completed, tick_idle);
+            info("Tick comp=%li idle=%i\n", tick_completed, tick_idle);
         }
         if (tick_idle > 0) {
             sleep_us((uint32_t)tick_idle);
         } else {
-            printf("+");
+            info("+");
         }
         i++;
     }

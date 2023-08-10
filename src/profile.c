@@ -9,6 +9,7 @@
 #include "pin.h"
 #include "hid.h"
 #include "led.h"
+#include "logging.h"
 
 Profile profiles[16];
 uint8_t profile_active_index = -1;
@@ -122,7 +123,7 @@ void profile_report_active() {
 }
 
 void profile_set_home(bool state) {
-    printf("Profile: Home %s\n", state ? "on" : "off");
+    info("Profile: Home %s\n", state ? "on" : "off");
     home_is_active = state;
     if (state) led_shape_all_on();
     else {
@@ -140,7 +141,7 @@ void profile_set_home_gamepad(bool state) {
 
 void profile_set_active(uint8_t index) {
     if (index != profile_active_index) {
-        printf("Profile: Profile %i\n", index);
+        info("Profile: Profile %i\n", index);
         profile_active_index = index;
         config_set_profile(index);
     }
@@ -166,7 +167,7 @@ void profile_enable_abxy(bool value) {
 }
 
 void profile_init() {
-    printf("INIT: Profiles\n");
+    info("INIT: Profiles\n");
     home = Button_(
         PIN_HOME,
         HOLD_DOUBLE_PRESS,

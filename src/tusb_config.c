@@ -12,6 +12,7 @@ static const char *const descriptor_string[] = {
     STRING_DEVICE_VERSION,
     STRING_INTERFACE_0,
     STRING_INTERFACE_1,
+    STRING_INTERFACE_2,
 };
 
 uint8_t const descriptor_report_generic[] = {
@@ -26,14 +27,29 @@ uint8_t const descriptor_report_xinput[] = {
 };
 
 uint8_t descriptor_configuration_generic[] = {
-    DESCRIPTOR_CONFIGURATION(0x01),
+    DESCRIPTOR_CONFIGURATION(1),
     DESCRIPTOR_INTERFACE_HID(sizeof(descriptor_report_generic))
 };
 
 uint8_t descriptor_configuration_xinput[] = {
-    DESCRIPTOR_CONFIGURATION(0x02),
+    DESCRIPTOR_CONFIGURATION(2),
     DESCRIPTOR_INTERFACE_HID(sizeof(descriptor_report_xinput)),
+    DESCRIPTOR_INTERFACE_WEBUSB,
     DESCRIPTOR_INTERFACE_XINPUT
+};
+
+uint8_t const descriptor_bos[] = {
+    TUD_BOS_DESCRIPTOR(TUD_BOS_DESC_LEN+TUD_BOS_WEBUSB_DESC_LEN, 2),
+    TUD_BOS_WEBUSB_DESCRIPTOR(WEBUSB_VENDOR, 1),
+    // TUD_BOS_MS_OS_20_DESCRIPTOR(MS_OS_20_DESC_LEN, VENDOR_REQUEST_MICROSOFT)
+};
+
+#define WEBUSB_URL "config.inputlabs.io"
+const tusb_desc_webusb_url_t webusb_url = {
+    .bLength         = sizeof(WEBUSB_URL) + 2,
+    .bDescriptorType = 3,
+    .bScheme         = 1,  // HTTPS.
+    .url             = WEBUSB_URL
 };
 
 uint8_t const *tud_descriptor_device_cb() {
@@ -56,10 +72,13 @@ uint8_t const *tud_descriptor_device_cb() {
 
 uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
     printf("USB: tud_descriptor_configuration_cb index=0x%x\n", index);
-    descriptor_configuration_generic[2] = sizeof(descriptor_configuration_generic);
-    descriptor_configuration_xinput[2] = sizeof(descriptor_configuration_xinput);
-    if (config_get_os_mode() == OS_MODE_GENERIC) return descriptor_configuration_generic;
-    else return descriptor_configuration_xinput;
+    if (config_get_os_mode() == OS_MODE_GENERIC) {
+        descriptor_configuration_generic[2] = sizeof(descriptor_configuration_generic);
+        return descriptor_configuration_generic;
+    } else {
+        descriptor_configuration_xinput[2] = sizeof(descriptor_configuration_xinput);
+        return descriptor_configuration_xinput;
+    }
 }
 
 uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance) {
@@ -77,7 +96,7 @@ const uint16_t *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     if (index >= sizeof(descriptor_string) / sizeof(descriptor_string[0])) {
         return NULL;
     }
-    static uint16_t response[64];
+    static uint16_t response[256];
     const char *string = descriptor_string[index];
     uint8_t i = 0;
     for (i; string[i]; i++) {
@@ -99,15 +118,25 @@ const bool tud_vendor_control_xfer_cb(
         request->wIndex
     );
     if (stage != CONTROL_STAGE_SETUP) return true;
-    if (
-        request->wIndex == 0x0004 &&
-        request->bRequest == WCID_VENDOR &&
-        config_get_os_mode() == OS_MODE_XINPUT_WIN)
-    {
-        static uint8_t response[40] = {MS_WCID_MAGIC_PAYLOAD};
-        return tud_control_xfer(rhport, request, response, 40);
+    if (request->bmRequestType_bit.type == TUSB_REQ_TYPE_VENDOR) {
+        if (request->bRequest == WEBUSB_VENDOR) {
+            return tud_control_xfer(
+                rhport,
+                request,
+                (void*)(uintptr_t) &webusb_url,
+                webusb_url.bLength
+            );
+        }
+        if (
+            request->wIndex == 0x0004 &&
+            request->bRequest == WCID_VENDOR &&
+            config_get_os_mode() == OS_MODE_XINPUT_WIN)
+        {
+            static uint8_t response[40] = {MS_WCID_MAGIC_PAYLOAD};
+            return tud_control_xfer(rhport, request, response, 40);
+        }
     }
-    return true;
+    return false;
 }
 
 uint16_t tud_hid_get_report_cb(
@@ -127,3 +156,24 @@ void tud_hid_set_report_cb(
     uint8_t const* buffer,
     uint16_t bufsize
 ) {}
+
+uint8_t const *tud_descriptor_bos_cb(void) {
+    printf("USB: tud_descriptor_bos_cb\n");
+    return descriptor_bos;
+}
+
+void tud_mount_cb(void) {
+    printf("USB: tud_mount_cb\n");
+}
+
+void tud_umount_cb(void) {
+    printf("USB: tud_umount_cb\n");
+}
+
+void tud_suspend_cb(bool remote_wakeup_en) {
+    printf("USB: tud_suspend_cb\n");
+}
+
+void tud_resume_cb(void) {
+    printf("USB: tud_resume_cb\n");
+}

@@ -15,6 +15,7 @@
 #include "touch.h"
 #include "profile.h"
 #include "helper.h"
+#include "logging.h"
 
 uint8_t config_tune_mode = 0;
 uint8_t pcb_gen = 255;
@@ -53,22 +54,22 @@ void config_write_init() {
 void config_print() {
     config_nvm_t config;
     config_read(&config);
-    printf("NVM: dump\n");
-    printf("  config_version=%i\n", config.config_version);
-    printf("  os_mode=%i\n", config.os_mode);
-    printf("  profile=%i\n", config.profile);
-    printf("  sensitivity=%i\n", config.sensitivity);
-    printf("  deadzone=%i\n", config.deadzone);
-    printf("  touch_threshold=%i\n", config.touch_threshold);
-    printf("  vibration=%i\n", config.vibration);
-    printf("  ts_offset_x=%f\n", config.ts_offset_x);
-    printf("  ts_offset_y=%f\n", config.ts_offset_y);
-    printf("  imu_0_offset_x=%f\n", config.imu_0_offset_x);
-    printf("  imu_0_offset_y=%f\n", config.imu_0_offset_y);
-    printf("  imu_0_offset_z=%f\n", config.imu_0_offset_z);
-    printf("  imu_1_offset_x=%f\n", config.imu_1_offset_x);
-    printf("  imu_1_offset_y=%f\n", config.imu_1_offset_y);
-    printf("  imu_1_offset_z=%f\n", config.imu_1_offset_z);
+    info("NVM: dump\n");
+    info("  config_version=%i\n", config.config_version);
+    info("  os_mode=%i\n", config.os_mode);
+    info("  profile=%i\n", config.profile);
+    info("  sensitivity=%i\n", config.sensitivity);
+    info("  deadzone=%i\n", config.deadzone);
+    info("  touch_threshold=%i\n", config.touch_threshold);
+    info("  vibration=%i\n", config.vibration);
+    info("  ts_offset_x=%f\n", config.ts_offset_x);
+    info("  ts_offset_y=%f\n", config.ts_offset_y);
+    info("  imu_0_offset_x=%f\n", config.imu_0_offset_x);
+    info("  imu_0_offset_y=%f\n", config.imu_0_offset_y);
+    info("  imu_0_offset_z=%f\n", config.imu_0_offset_z);
+    info("  imu_1_offset_x=%f\n", config.imu_1_offset_x);
+    info("  imu_1_offset_y=%f\n", config.imu_1_offset_y);
+    info("  imu_1_offset_z=%f\n", config.imu_1_offset_z);
 }
 
 void config_set_profile(uint8_t profile) {
@@ -146,7 +147,7 @@ void config_tune_update_leds() {
 }
 
 void config_tune_set_mode(uint8_t mode) {
-    // printf("Tune: mode %i\n", mode);
+    // info("Tune: mode %i\n", mode);
     config_tune_mode = mode;
     config_tune_update_leds();
 }
@@ -157,7 +158,7 @@ void config_tune(bool direction) {
     int8_t value = direction ? 1 : -1;
     if (config_tune_mode == PROC_TUNE_OS) {
         config.os_mode = limit_between(config.os_mode + value, 0, 2);
-        printf("Tune: OS mode set to preset %i\n", config.os_mode);
+        info("Tune: OS mode set to preset %i\n", config.os_mode);
         config_write(&config);
         profile_pending_reboot = true;
         hid_allow_communication = false;
@@ -165,18 +166,18 @@ void config_tune(bool direction) {
     if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
         config.sensitivity = limit_between(config.sensitivity + value, 0, 2);
         config_write(&config);
-        printf("Tune: Mouse sensitivity set to preset %i\n", config.sensitivity);
+        info("Tune: Mouse sensitivity set to preset %i\n", config.sensitivity);
         imu_update_sensitivity();
     }
     if (config_tune_mode == PROC_TUNE_DEADZONE) {
         config.deadzone = limit_between(config.deadzone + value, 0, 2);
         config_write(&config);
-        printf("Tune: Thumbstick deadzone set to preset %i\n", config.deadzone);
+        info("Tune: Thumbstick deadzone set to preset %i\n", config.deadzone);
         thumbstick_update_deadzone();
     }
     if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
         config.touch_threshold = limit_between(config.touch_threshold + value, 0, 4);
-        printf("Tune: Touch threshold set to preset %i\n", config.touch_threshold);
+        info("Tune: Touch threshold set to preset %i\n", config.touch_threshold);
         config_write(&config);
         touch_update_threshold();
     }
@@ -214,7 +215,7 @@ void config_set_pcb_gen(uint8_t gen) {
 
 uint8_t config_get_pcb_gen() {
     if (pcb_gen == 255) {
-        printf("ERROR: PCB gen could not be determined\n");
+        info("ERROR: PCB gen could not be determined\n");
         sleep_ms(1000000000);
     }
     return pcb_gen;
@@ -223,15 +224,15 @@ uint8_t config_get_pcb_gen() {
 void config_init() {
     char pico_id[64];
     pico_get_unique_board_id_string(pico_id, 64);
-    printf("Pico UID: %s\n", pico_id);
-    printf("INIT: Config\n");
+    info("Pico UID: %s\n", pico_id);
+    info("INIT: Config\n");
     config_nvm_t config;
     config_read(&config);
     if (
         config.header != NVM_CONFIG_HEADER ||
         config.config_version != CFG_STRUCT_VERSION
     ) {
-        printf("  config not found or incompatible, writing default instead\n");
+        info("  config not found or incompatible, writing default instead\n");
         config_write_init();
     }
     config_print();
