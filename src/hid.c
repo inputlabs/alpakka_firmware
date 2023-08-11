@@ -7,6 +7,7 @@
 #include "profile.h"
 #include "xinput.h"
 #include "helper.h"
+#include "logging.h"
 #include "thanks.c"
 
 bool hid_allow_communication = true;  // Extern.
@@ -376,7 +377,7 @@ void hid_report() {
         if (!is_tud_ready_logged) {
             is_tud_ready_logged = true;
             // hid_matrix_reset();
-            printf("USB: tud_ready TRUE\n");
+            info("USB: tud_ready TRUE\n");
         }
 
         // xinput_receive_report();
@@ -414,7 +415,7 @@ void hid_report() {
         is_tud_ready = false;
         if (is_tud_ready_logged) {
             is_tud_ready_logged = false;
-            printf("USB: tud_ready FALSE\n");
+            info("USB: tud_ready FALSE\n");
         }
     }
 }
@@ -449,6 +450,6 @@ void hid_thanks() {
 }
 
 void hid_init() {
-    printf("INIT: HID\n");
+    info("INIT: HID\n");
     alarm_pool = alarm_pool_create(2, 255);
 }

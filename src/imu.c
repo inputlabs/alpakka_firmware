@@ -17,6 +17,7 @@
 #include "hid.h"
 #include "led.h"
 #include "helper.h"
+#include "logging.h"
 
 double sensitivity_multiplier;
 double offset_0_x;
@@ -30,11 +31,11 @@ void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     uint8_t id = bus_spi_read_one(cs, IMU_WHO_AM_I);
     bus_spi_write(cs, IMU_CTRL2_G, gyro_conf);
     uint8_t ctrl = bus_spi_read_one(cs, IMU_CTRL2_G);
-    printf("  IMU cs=%i id=0x%02x ctrl2_g=0x%i\n", cs, id, bin(ctrl));
+    info("  IMU cs=%i id=0x%02x ctrl2_g=0x%i\n", cs, id, bin(ctrl));
 }
 
 void imu_init() {
-    printf("INIT: IMU\n");
+    info("INIT: IMU\n");
     imu_init_single(PIN_SPI_CS0, IMU_CTRL2_G_500);
     imu_init_single(PIN_SPI_CS1, IMU_CTRL2_G_125);
     config_nvm_t config;
@@ -129,7 +130,7 @@ vector_t imu_read_gyro() {
 }
 
 void imu_calibrate_single(uint8_t cs) {
-    printf("IMU: cs=%i calibrating...\n", cs);
+    info("IMU: cs=%i calibrating...\n", cs);
     uint32_t len = 200000;
     if (cs == PIN_SPI_CS0) {
         offset_0_x = 0;
@@ -156,7 +157,7 @@ void imu_calibrate_single(uint8_t cs) {
     x /= len;
     y /= len;
     z /= len;
-    printf("IMU: cs=%i calibration x=%f y=%f z=%f\n", cs, x, y, z);
+    info("IMU: cs=%i calibration x=%f y=%f z=%f\n", cs, x, y, z);
     if (cs == PIN_SPI_CS0) {
         offset_0_x = x;
         offset_0_y = y;

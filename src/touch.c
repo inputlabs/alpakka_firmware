@@ -8,6 +8,7 @@
 #include "touch.h"
 #include "pin.h"
 #include "helper.h"
+#include "logging.h"
 
 uint8_t loglevel = 0;
 uint8_t sens_from_config = 0;
@@ -47,7 +48,7 @@ void touch_update_threshold() {
 }
 
 void touch_init() {
-    printf("INIT: Touch\n");
+    info("INIT: Touch\n");
     gpio_init(PIN_TOUCH_OUT);
     gpio_set_dir(PIN_TOUCH_OUT, GPIO_OUT);
     gpio_init(PIN_TOUCH_IN);
@@ -68,7 +69,7 @@ uint32_t touch_get_elapsed() {
         }
     };
     uint32_t elapsed = timedout ? 0 : time_us_32() - time_low;
-    if (loglevel >= 1 && timedout) printf("T");
+    if (loglevel >= 1 && timedout) info("T");
     gpio_put(PIN_TOUCH_OUT, false); // Send low (so is ready for next cycle).
     return elapsed;
 }
@@ -115,7 +116,7 @@ bool touch_status() {
         static uint16_t x = 0;
         x++;
         if (!(x % DEBUG_TOUCH_ELAPSED_FREQ)) {
-            printf("%i %.2f\n", elapsed, threshold);
+            info("%i %.2f\n", elapsed, threshold);
         }
     }
     // Determine if the surface is considered touched and report.
@@ -127,7 +128,7 @@ bool touch_status() {
         hits++;
         if (hits >= CFG_TOUCH_SMOOTH) {
             touched = over;
-            if (loglevel >= 1) printf("Touch status %i\n", touched);
+            if (loglevel >= 1) info("Touch status %i\n", touched);
         }
     } else {
         hits = 0;

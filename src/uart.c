@@ -7,15 +7,16 @@
 #include <hardware/watchdog.h>
 #include "config.h"
 #include "self_test.h"
+#include "logging.h"
 
 void uart_listen_char_do(bool limited) {
     char input = getchar_timeout_us(0);
     if (input == 'R') {
-        printf("UART: Restart\n");
+        info("UART: Restart\n");
         watchdog_enable(100, false);
     }
     if (input == 'B') {
-        printf("UART: Bootsel mode\n");
+        info("UART: Bootsel mode\n");
         reset_usb_boot(0, 0);
     }
 
@@ -24,16 +25,16 @@ void uart_listen_char_do(bool limited) {
     }
 
     if (input == 'C') {
-        printf("UART: Calibrate\n");
+        info("UART: Calibrate\n");
         config_calibrate();
     }
     if (input == 'F') {
-        printf("UART: Format NVM\n");
+        info("UART: Format NVM\n");
         config_write_init();
         config_print();
     }
     if (input == 'T') {
-        printf("UART: Self-test\n");
+        info("UART: Self-test\n");
         self_test();
     }
 }

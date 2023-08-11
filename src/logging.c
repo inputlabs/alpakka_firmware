@@ -21,7 +21,6 @@ bool webusb_send(char *msg) {
         usbd_edpt_claim(0, webusb_addr);
         usbd_edpt_xfer(0, webusb_addr, (uint8_t*)msg, 64);
         usbd_edpt_release(0, 0x83);
-        // printf("^");
         return true;
     }
     return false;
