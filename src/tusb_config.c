@@ -39,18 +39,34 @@ uint8_t descriptor_configuration_xinput[] = {
 };
 
 uint8_t const descriptor_bos[] = {
-    TUD_BOS_DESCRIPTOR(TUD_BOS_DESC_LEN+TUD_BOS_WEBUSB_DESC_LEN, 2),
-    TUD_BOS_WEBUSB_DESCRIPTOR(WEBUSB_VENDOR, 1),
-    // TUD_BOS_MS_OS_20_DESCRIPTOR(MS_OS_20_DESC_LEN, VENDOR_REQUEST_MICROSOFT)
+    TUD_BOS_DESCRIPTOR(TUD_BOS_DESC_LEN + TUD_BOS_WEBUSB_DESC_LEN + TUD_BOS_MICROSOFT_OS_DESC_LEN, 2),
+    TUD_BOS_WEBUSB_DESCRIPTOR(BOS_WEBUSB, 1),
+    TUD_BOS_MS_OS_20_DESCRIPTOR(BOS_WEBUSB_MS_LEN, BOS_WEBUSB_MS)
 };
 
-#define WEBUSB_URL "config.inputlabs.io"
 const tusb_desc_webusb_url_t webusb_url = {
-    .bLength         = sizeof(WEBUSB_URL) + 2,
+    .bLength         = sizeof(BOS_WEBUSB_URL) + 2,
     .bDescriptorType = 3,
     .bScheme         = 1,  // HTTPS.
-    .url             = WEBUSB_URL
+    .url             = BOS_WEBUSB_URL
 };
+
+// uint8_t const descriptor_bos_ms[] = {
+//     U16_TO_U8S_LE(0x000A), U16_TO_U8S_LE(MS_OS_20_SET_HEADER_DESCRIPTOR), U32_TO_U8S_LE(0x06030000), U16_TO_U8S_LE(BOS_MS_LEN),
+//     U16_TO_U8S_LE(0x0008), U16_TO_U8S_LE(MS_OS_20_SUBSET_HEADER_CONFIGURATION), 0, 0, U16_TO_U8S_LE(BOS_MS_LEN-0x0A),
+//     U16_TO_U8S_LE(0x0008), U16_TO_U8S_LE(MS_OS_20_SUBSET_HEADER_FUNCTION), ITF_WEBUSB, 0, U16_TO_U8S_LE(BOS_MS_LEN-0x0A-0x08),
+//     U16_TO_U8S_LE(0x0014), U16_TO_U8S_LE(MS_OS_20_FEATURE_COMPATBLE_ID),
+//     'W', 'I', 'N', 'U', 'S', 'B', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+//     U16_TO_U8S_LE(BOS_MS_LEN-0x0A-0x08-0x08-0x14), U16_TO_U8S_LE(MS_OS_20_FEATURE_REG_PROPERTY),
+//     U16_TO_U8S_LE(0x0007), U16_TO_U8S_LE(0x002A),
+//     'D', 0, 'e', 0, 'v', 0, 'i', 0, 'c', 0, 'e', 0, 'I', 0, 'n', 0, 't', 0, 'e', 0,
+//     'r', 0, 'f', 0, 'a', 0, 'c', 0, 'e', 0, 'G', 0, 'U', 0, 'I', 0, 'D', 0, 's', 0, 0, 0,
+//     U16_TO_U8S_LE(0x0050),
+//     '{', 0, '9', 0, '7', 0, '5', 0, 'F', 0, '4', 0, '4', 0, 'D', 0, '9', 0, '-', 0,
+//     '0', 0, 'D', 0, '0', 0, '8', 0, '-', 0, '4', 0, '3', 0, 'F', 0, 'D', 0, '-', 0,
+//     '8', 0, 'B', 0, '3', 0, 'E', 0, '-', 0, '1', 0, '2', 0, '7', 0, 'C', 0, 'A', 0,
+//     '8', 0, 'A', 0, 'F', 0, 'F', 0, 'F', 0, '9', 0, 'D', 0, '}', 0,  0 , 0,  0 , 0
+// };
 
 uint8_t const *tud_descriptor_device_cb() {
     printf("USB: tud_descriptor_device_cb\n");
@@ -118,23 +134,28 @@ const bool tud_vendor_control_xfer_cb(
         request->wIndex
     );
     if (stage != CONTROL_STAGE_SETUP) return true;
-    if (request->bmRequestType_bit.type == TUSB_REQ_TYPE_VENDOR) {
-        if (request->bRequest == WEBUSB_VENDOR) {
-            return tud_control_xfer(
-                rhport,
-                request,
-                (void*)(uintptr_t) &webusb_url,
-                webusb_url.bLength
-            );
-        }
-        if (
-            request->wIndex == 0x0004 &&
-            request->bRequest == WCID_VENDOR &&
-            config_get_os_mode() == OS_MODE_XINPUT_WIN)
-        {
-            static uint8_t response[40] = {MS_WCID_MAGIC_PAYLOAD};
-            return tud_control_xfer(rhport, request, response, 40);
-        }
+    // WebUSB URL & popup.
+    if (request->bRequest == BOS_WEBUSB) {
+        return tud_control_xfer(
+            rhport,
+            request,
+            (void*)(uintptr_t) &webusb_url,
+            webusb_url.bLength
+        );
+    }
+    // WebUSB in Windows.
+    if (request->wIndex == 7 && request->bRequest == BOS_WEBUSB_MS) {
+        static uint8_t response[] = {MS_WEBUSB_MAGIC_PAYLOAD};
+        return tud_control_xfer(rhport, request, response, sizeof(response));
+    }
+    // WCID.
+    if (
+        request->wIndex == 0x0004 &&
+        request->bRequest == WCID_VENDOR &&
+        config_get_os_mode() == OS_MODE_XINPUT_WIN
+    ) {
+        static uint8_t response[40] = {MS_WCID_MAGIC_PAYLOAD};
+        return tud_control_xfer(rhport, request, response, 40);
     }
     return false;
 }

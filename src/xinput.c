@@ -70,11 +70,10 @@ usbd_class_driver_t const *usbd_app_driver_get_cb(uint8_t *driver_count) {
 }
 
 void xinput_send_report(xinput_report *report) {
-    uint8_t addr = ((tusb_desc_endpoint_t *)ep_in)->bEndpointAddress;
-    if (!usbd_edpt_busy(0, addr)) {
-        usbd_edpt_claim(0, addr);
-        usbd_edpt_xfer(0, addr, (uint8_t*)report, XINPUT_REPORT_SIZE);
-        usbd_edpt_release(0, addr);
+    if (!usbd_edpt_busy(0, ADDR_XINPUT_IN)) {
+        usbd_edpt_claim(0, ADDR_XINPUT_IN);
+        usbd_edpt_xfer(0, ADDR_XINPUT_IN, (uint8_t*)report, XINPUT_REPORT_SIZE);
+        usbd_edpt_release(0, ADDR_XINPUT_IN);
     }
 }
 

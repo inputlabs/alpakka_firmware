@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <tusb.h>
 #include <device/usbd_pvt.h>
+#include "tusb_config.h"
 #include "logging.h"
 
 bool webusb_onloop = false;
@@ -16,11 +17,10 @@ void webusb_set_onloop(bool value) {
 }
 
 bool webusb_send(char *msg) {
-    const uint8_t webusb_addr = 0x83;
-    if (tud_ready() && !usbd_edpt_busy(0, webusb_addr)) {
-        usbd_edpt_claim(0, webusb_addr);
-        usbd_edpt_xfer(0, webusb_addr, (uint8_t*)msg, 64);
-        usbd_edpt_release(0, 0x83);
+    if (tud_ready() && !usbd_edpt_busy(0, ADDR_WEBUSB_IN)) {
+        usbd_edpt_claim(0, ADDR_WEBUSB_IN);
+        usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (uint8_t*)msg, 64);
+        usbd_edpt_release(0, ADDR_WEBUSB_IN);
         return true;
     }
     return false;
