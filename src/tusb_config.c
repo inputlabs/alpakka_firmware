@@ -10,9 +10,9 @@ static const char *const descriptor_string[] = {
     STRING_VENDOR,
     STRING_PRODUCT,
     STRING_DEVICE_VERSION,
-    STRING_INTERFACE_0,
-    STRING_INTERFACE_1,
-    STRING_INTERFACE_2,
+    STRING_HID,
+    STRING_WEBUSB,
+    STRING_XINPUT
 };
 
 uint8_t const descriptor_report_generic[] = {
@@ -32,7 +32,7 @@ uint8_t descriptor_configuration_generic[] = {
 };
 
 uint8_t descriptor_configuration_xinput[] = {
-    DESCRIPTOR_CONFIGURATION(2),
+    DESCRIPTOR_CONFIGURATION(3),
     DESCRIPTOR_INTERFACE_HID(sizeof(descriptor_report_xinput)),
     DESCRIPTOR_INTERFACE_WEBUSB,
     DESCRIPTOR_INTERFACE_XINPUT
@@ -50,23 +50,6 @@ const tusb_desc_webusb_url_t webusb_url = {
     .bScheme         = 1,  // HTTPS.
     .url             = BOS_WEBUSB_URL
 };
-
-// uint8_t const descriptor_bos_ms[] = {
-//     U16_TO_U8S_LE(0x000A), U16_TO_U8S_LE(MS_OS_20_SET_HEADER_DESCRIPTOR), U32_TO_U8S_LE(0x06030000), U16_TO_U8S_LE(BOS_MS_LEN),
-//     U16_TO_U8S_LE(0x0008), U16_TO_U8S_LE(MS_OS_20_SUBSET_HEADER_CONFIGURATION), 0, 0, U16_TO_U8S_LE(BOS_MS_LEN-0x0A),
-//     U16_TO_U8S_LE(0x0008), U16_TO_U8S_LE(MS_OS_20_SUBSET_HEADER_FUNCTION), ITF_WEBUSB, 0, U16_TO_U8S_LE(BOS_MS_LEN-0x0A-0x08),
-//     U16_TO_U8S_LE(0x0014), U16_TO_U8S_LE(MS_OS_20_FEATURE_COMPATBLE_ID),
-//     'W', 'I', 'N', 'U', 'S', 'B', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//     U16_TO_U8S_LE(BOS_MS_LEN-0x0A-0x08-0x08-0x14), U16_TO_U8S_LE(MS_OS_20_FEATURE_REG_PROPERTY),
-//     U16_TO_U8S_LE(0x0007), U16_TO_U8S_LE(0x002A),
-//     'D', 0, 'e', 0, 'v', 0, 'i', 0, 'c', 0, 'e', 0, 'I', 0, 'n', 0, 't', 0, 'e', 0,
-//     'r', 0, 'f', 0, 'a', 0, 'c', 0, 'e', 0, 'G', 0, 'U', 0, 'I', 0, 'D', 0, 's', 0, 0, 0,
-//     U16_TO_U8S_LE(0x0050),
-//     '{', 0, '9', 0, '7', 0, '5', 0, 'F', 0, '4', 0, '4', 0, 'D', 0, '9', 0, '-', 0,
-//     '0', 0, 'D', 0, '0', 0, '8', 0, '-', 0, '4', 0, '3', 0, 'F', 0, 'D', 0, '-', 0,
-//     '8', 0, 'B', 0, '3', 0, 'E', 0, '-', 0, '1', 0, '2', 0, '7', 0, 'C', 0, 'A', 0,
-//     '8', 0, 'A', 0, 'F', 0, 'F', 0, 'F', 0, '9', 0, 'D', 0, '}', 0,  0 , 0,  0 , 0
-// };
 
 uint8_t const *tud_descriptor_device_cb() {
     printf("USB: tud_descriptor_device_cb\n");
@@ -112,6 +95,7 @@ const uint16_t *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     if (index >= sizeof(descriptor_string) / sizeof(descriptor_string[0])) {
         return NULL;
     }
+    // static uint16_t response[64];
     static uint16_t response[256];
     const char *string = descriptor_string[index];
     uint8_t i = 0;
@@ -158,6 +142,7 @@ const bool tud_vendor_control_xfer_cb(
         return tud_control_xfer(rhport, request, response, 40);
     }
     return false;
+    // return true;
 }
 
 uint16_t tud_hid_get_report_cb(

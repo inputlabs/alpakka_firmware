@@ -11,14 +11,15 @@
 #define CFG_TUSB_MEM_SECTION
 #define CFG_TUSB_MEM_ALIGN __attribute__ ((aligned(4)))
 #define CFG_TUD_ENDPOINT0_SIZE 64
-#define CFG_TUD_ENABLED 1
-#define CFG_TUD_VENDOR_RX_BUFSIZE 512
-#define CFG_TUD_VENDOR_TX_BUFSIZE 512
+// #define CFG_TUD_ENABLED 1
+#define CFG_TUD_VENDOR_RX_BUFSIZE 64
+#define CFG_TUD_VENDOR_TX_BUFSIZE 64
 
 #define CFG_TUD_HID 1
 #define CFG_TUD_CDC 0
 #define CFG_TUD_MSC 0
 #define CFG_TUD_MIDI 0
+// #define CFG_TUD_VENDOR 0
 #define CFG_TUD_VENDOR 1
 
 #define ITF_HID 0
@@ -38,9 +39,9 @@
 #define STRING_VENDOR "Input Labs"
 #define STRING_PRODUCT "Alpakka"
 #define STRING_DEVICE_VERSION "1.0"
-#define STRING_INTERFACE_0 "HID"
-#define STRING_INTERFACE_1 "WEBUSB"
-#define STRING_INTERFACE_2 "XINPUT_GENERIC_CONTROLLER"
+#define STRING_HID "HID"
+#define STRING_WEBUSB "WEBUSB"
+#define STRING_XINPUT "XINPUT_GENERIC_CONTROLLER"
 
 #define BOS_WEBUSB_URL "config.inputlabs.io"
 #define BOS_WEBUSB 1
@@ -50,7 +51,7 @@
 #define WCID_VENDOR 0x17
 
 #define USB_WIN_VENDOR  0x0170  // Input Labs.
-#define USB_WIN_PRODUCT 0xA090  // Alpakka (Xinput)
+#define USB_WIN_PRODUCT 0xAE13  // Alpakka (Xinput)
 
 #define USB_UNIX_VENDOR  0x045E  // 360 controller vendor.
 #define USB_UNIX_PRODUCT 0x028E  // 360 controller product.
@@ -62,10 +63,10 @@
 #define DESCRIPTOR_DEVICE \
     0x12,                  /* .bLength */\
     0x01,                  /* .bDescriptorType */\
-    0x0210,                /* .bcdUSB */\
-    TUSB_CLASS_MISC,       /* .bDeviceClass */\
-    MISC_SUBCLASS_COMMON,  /* .bDeviceSubClass */\
-    MISC_PROTOCOL_IAD,     /* .bDeviceProtocol */\
+    0x0200,                /* .bcdUSB */\
+    0x00,       /* .bDeviceClass */\
+    0x00,  /* .bDeviceSubClass */\
+    0x00,     /* .bDeviceProtocol */\
     0x40,                  /* .bMaxPacketSize0 */\
     0x0000,                /* .idVendor */\
     0x0000,                /* .idProduct */\
@@ -98,11 +99,11 @@
 
 #define DESCRIPTOR_INTERFACE_WEBUSB \
     TUD_VENDOR_DESCRIPTOR( \
-        ITF_WEBUSB,      /* Interface index */\
-        ITF_WEBUSB + 4,  /* String index */\
-        0x04,            /* Address out */\
-        0x84,            /* Address in */\
-        64               /* Size */\
+        ITF_WEBUSB,       /* Interface index */\
+        ITF_WEBUSB + 4,   /* String index */\
+        ADDR_WEBUSB_OUT,  /* Address out */\
+        ADDR_WEBUSB_IN,   /* Address in */\
+        64                /* Size */\
     )
 
 #define DESCRIPTOR_INTERFACE_XINPUT \

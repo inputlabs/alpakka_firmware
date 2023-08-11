@@ -27,11 +27,14 @@ bool webusb_send(char *msg) {
 }
 
 void webusb_send_onloop(char *msg) {
+    uint16_t i = 0;
     while(true) {
         tud_task();
         bool sent = webusb_send(msg);
         if (sent) break;
         else sleep_ms(1);
+        i++;
+        if (i > 2000) break;
     }
     sleep_ms(1);
 }
@@ -45,8 +48,8 @@ void info(char *msg, ...) {
     va_start(va, 0);
     char formatted[64] = {0,};
     vsnprintf(formatted, 64, msg, va);
-    if (webusb_onloop) webusb_send(formatted);
-    else webusb_send_onloop(formatted);
+    // if (webusb_onloop) webusb_send(formatted);
+    // else webusb_send_onloop(formatted);
 }
 
 
