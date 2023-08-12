@@ -294,6 +294,7 @@ void hid_keyboard_report() {
         modifier,
         report
     );
+    webusb_send("K\n");
 }
 
 int16_t hid_axis(

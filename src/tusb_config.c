@@ -27,8 +27,9 @@ uint8_t const descriptor_report_xinput[] = {
 };
 
 uint8_t descriptor_configuration_generic[] = {
-    DESCRIPTOR_CONFIGURATION(1),
-    DESCRIPTOR_INTERFACE_HID(sizeof(descriptor_report_generic))
+    DESCRIPTOR_CONFIGURATION(2),
+    DESCRIPTOR_INTERFACE_HID(sizeof(descriptor_report_generic)),
+    DESCRIPTOR_INTERFACE_WEBUSB
 };
 
 uint8_t descriptor_configuration_xinput[] = {
@@ -36,19 +37,6 @@ uint8_t descriptor_configuration_xinput[] = {
     DESCRIPTOR_INTERFACE_HID(sizeof(descriptor_report_xinput)),
     DESCRIPTOR_INTERFACE_WEBUSB,
     DESCRIPTOR_INTERFACE_XINPUT
-};
-
-uint8_t const descriptor_bos[] = {
-    TUD_BOS_DESCRIPTOR(TUD_BOS_DESC_LEN + TUD_BOS_WEBUSB_DESC_LEN + TUD_BOS_MICROSOFT_OS_DESC_LEN, 2),
-    TUD_BOS_WEBUSB_DESCRIPTOR(BOS_WEBUSB, 1),
-    TUD_BOS_MS_OS_20_DESCRIPTOR(BOS_WEBUSB_MS_LEN, BOS_WEBUSB_MS)
-};
-
-const tusb_desc_webusb_url_t webusb_url = {
-    .bLength         = sizeof(BOS_WEBUSB_URL) + 2,
-    .bDescriptorType = 3,
-    .bScheme         = 1,  // HTTPS.
-    .url             = BOS_WEBUSB_URL
 };
 
 uint8_t const *tud_descriptor_device_cb() {
@@ -89,14 +77,13 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance) {
 const uint16_t *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     printf("USB: tud_descriptor_string_cb index=0x%x\n", index);
     if (index == 0xEE && config_get_os_mode() == OS_MODE_XINPUT_WIN) {
-        static uint8_t msos[18] = {MS_OS_DESCRIPTORS_MAGIC_PAYLOAD};
+        static uint8_t msos[] = {MS_OS_DESCRIPTOR};
         return (uint16_t*)msos;
     }
     if (index >= sizeof(descriptor_string) / sizeof(descriptor_string[0])) {
         return NULL;
     }
-    // static uint16_t response[64];
-    static uint16_t response[256];
+    static uint16_t response[64];
     const char *string = descriptor_string[index];
     uint8_t i = 0;
     for (i; string[i]; i++) {
@@ -118,31 +105,25 @@ const bool tud_vendor_control_xfer_cb(
         request->wIndex
     );
     if (stage != CONTROL_STAGE_SETUP) return true;
-    // WebUSB URL & popup.
-    if (request->bRequest == BOS_WEBUSB) {
-        return tud_control_xfer(
-            rhport,
-            request,
-            (void*)(uintptr_t) &webusb_url,
-            webusb_url.bLength
-        );
-    }
-    // WebUSB in Windows.
-    if (request->wIndex == 7 && request->bRequest == BOS_WEBUSB_MS) {
-        static uint8_t response[] = {MS_WEBUSB_MAGIC_PAYLOAD};
-        return tud_control_xfer(rhport, request, response, sizeof(response));
-    }
-    // WCID.
+    // Compatibility IDs.
     if (
         request->wIndex == 0x0004 &&
         request->bRequest == WCID_VENDOR &&
         config_get_os_mode() == OS_MODE_XINPUT_WIN
     ) {
-        static uint8_t response[40] = {MS_WCID_MAGIC_PAYLOAD};
-        return tud_control_xfer(rhport, request, response, 40);
+        static uint8_t response[] = {MS_OS_COMPATIDS};
+        return tud_control_xfer(rhport, request, response, sizeof(response));
+    }
+    // Extended properties.
+    if (
+        request->wIndex == 0x0005 &&
+        request->bRequest == WCID_VENDOR &&
+        config_get_os_mode() == OS_MODE_XINPUT_WIN
+    ) {
+        static uint8_t response[] = {MS_OS_PROPERTIES};
+        return tud_control_xfer(rhport, request, response, sizeof(response));
     }
     return false;
-    // return true;
 }
 
 uint16_t tud_hid_get_report_cb(
@@ -162,11 +143,6 @@ void tud_hid_set_report_cb(
     uint8_t const* buffer,
     uint16_t bufsize
 ) {}
-
-uint8_t const *tud_descriptor_bos_cb(void) {
-    printf("USB: tud_descriptor_bos_cb\n");
-    return descriptor_bos;
-}
 
 void tud_mount_cb(void) {
     printf("USB: tud_mount_cb\n");

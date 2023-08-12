@@ -5,3 +5,4 @@
 
 void info(char *msg, ...);
 void webusb_set_onloop(bool value);
+bool webusb_send(char *msg);
