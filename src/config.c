@@ -192,8 +192,7 @@ void config_bootsel() {
     reset_usb_boot(0, 0);
 }
 
-void config_calibrate_execute(alarm_id_t alarm) {
-    cancel_alarm(alarm);
+void config_calibrate_execute() {
     led_shape_all_off();
     thumbstick_calibrate();
     imu_calibrate();
@@ -203,10 +202,24 @@ void config_calibrate_execute(alarm_id_t alarm) {
 }
 
 void config_calibrate() {
+    logging_set_onloop(false);
+    info("Calibration about to start, let the controller flat on a table\n");
     profile_led_lock = true;
     led_shape_all_off();
     led_blink_mask(LED_MASK_LEFT | LED_MASK_RIGHT);
-    add_alarm_in_ms(5000, (alarm_callback_t)config_calibrate_execute, NULL, true);
+    info("5... ");
+    sleep_ms(1000);
+    info("4... ");
+    sleep_ms(1000);
+    info("3... ");
+    sleep_ms(1000);
+    info("2... ");
+    sleep_ms(1000);
+    info("1...\n");
+    sleep_ms(1000);
+    config_calibrate_execute();
+    info("Calibration completed\n");
+    logging_set_onloop(true);
 }
 
 void config_set_pcb_gen(uint8_t gen) {
