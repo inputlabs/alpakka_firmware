@@ -41,7 +41,7 @@
 #define STRING_WEBUSB "WEBUSB"
 #define STRING_XINPUT "XINPUT_GENERIC_CONTROLLER"
 
-#define WCID_VENDOR 0x17
+#define MS_OS_VENDOR 0x17
 
 #define USB_WIN_VENDOR  0x0170  // Input Labs.
 #define USB_WIN_PRODUCT 0xAE29  // Alpakka (Xinput)
@@ -135,11 +135,11 @@
 #define MS_OS_DESCRIPTOR \
     0x12,                    /* Length */\
     0x03,                    /* Descriptor type: string */\
-    0x4D, 0x00, 0x53, 0x00,  /* MSFT100 */\
-    0x46, 0x00, 0x54, 0x00,  \
-    0x31, 0x00, 0x30, 0x00,  \
-    0x30, 0x00,              \
-    WCID_VENDOR,             /* Vendor code */\
+    'M' , 0x00, 'S' , 0x00,  /* Signature */\
+    'F' , 0x00, 'T' , 0x00,  \
+    '1' , 0x00, '0' , 0x00,  \
+    '0' , 0x00,              \
+    MS_OS_VENDOR,            /* Vendor code */\
     0x00                     /* Padding */
 
 #define MS_OS_COMPATIDS \
@@ -179,7 +179,7 @@
     't', 0, 'e', 0, 'r', 0, 'f', 0, 'a', 0, 'c', 0, 'e', 0, 'G', 0, \
     'U', 0, 'I', 0, 'D', 0,  0 , 0, \
     /* Data size */\
-    0x4e, 0x00, 0x00, 0x00, \
+    0x4E, 0x00, 0x00, 0x00, \
     /* Data */\
     '{', 0, 'A', 0, '0', 0, '0', 0, '6', 0, 'C', 0, '7', 0, 'D', 0, \
     'A', 0, '-', 0, '8', 0, '8', 0, 'A', 0, '4', 0, '-', 0, '4', 0, \

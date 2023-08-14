@@ -6,7 +6,7 @@
 #include "config.h"
 
 static const char *const descriptor_string[] = {
-    (const char[]){0x09, 0x04},
+    (const char[]){0x09, 0x04},  // English.
     STRING_VENDOR,
     STRING_PRODUCT,
     STRING_DEVICE_VERSION,
@@ -108,7 +108,7 @@ const bool tud_vendor_control_xfer_cb(
     // Compatibility IDs.
     if (
         request->wIndex == 0x0004 &&
-        request->bRequest == WCID_VENDOR &&
+        request->bRequest == MS_OS_VENDOR &&
         config_get_os_mode() == OS_MODE_XINPUT_WIN
     ) {
         static uint8_t response[] = {MS_OS_COMPATIDS};
@@ -117,7 +117,7 @@ const bool tud_vendor_control_xfer_cb(
     // Extended properties.
     if (
         request->wIndex == 0x0005 &&
-        request->bRequest == WCID_VENDOR &&
+        request->bRequest == MS_OS_VENDOR &&
         config_get_os_mode() == OS_MODE_XINPUT_WIN
     ) {
         static uint8_t response[] = {MS_OS_PROPERTIES};
