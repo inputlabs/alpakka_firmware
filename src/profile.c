@@ -124,7 +124,6 @@ void profile_report_active() {
 
 void profile_set_home(bool state) {
     info("Profile: Home %s\n", state ? "on" : "off");
-    info("Profile: Home %s\n", state ? "miauon" : "miauoff");
     home_is_active = state;
     if (state) led_shape_all_on();
     else {

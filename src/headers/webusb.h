@@ -3,7 +3,6 @@
 
 #pragma once
 
-void logging_set_onloop(bool value);
-bool logging_get_onloop();
-
-void info(char *msg, ...);
+void webusb_write(char *msg);
+bool webusb_flush();
+void webusb_flush_force();

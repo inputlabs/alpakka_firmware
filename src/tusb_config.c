@@ -159,3 +159,12 @@ void tud_suspend_cb(bool remote_wakeup_en) {
 void tud_resume_cb(void) {
     printf("USB: tud_resume_cb\n");
 }
+
+void wait_for_usb_init() {
+    while(true) {
+        tud_task();
+        if (tud_ready()) break;
+        else sleep_ms(1);
+    }
+    printf("USB: Ready\n");
+}

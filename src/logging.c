@@ -9,47 +9,25 @@
 #include <device/usbd_pvt.h>
 #include "tusb_config.h"
 #include "logging.h"
+#include "webusb.h"
 
-bool webusb_onloop = false;
+bool logging_onloop = false;
 
-void webusb_set_onloop(bool value) {
-    webusb_onloop = value;
+void logging_set_onloop(bool value) {
+    logging_onloop = value;
 }
 
-bool webusb_send(char *msg) {
-    if (tud_ready() && !usbd_edpt_busy(0, ADDR_WEBUSB_IN)) {
-        usbd_edpt_claim(0, ADDR_WEBUSB_IN);
-        usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (uint8_t*)msg, 64);
-        usbd_edpt_release(0, ADDR_WEBUSB_IN);
-        return true;
-    }
-    return false;
-}
-
-void webusb_send_onloop(char *msg) {
-    uint16_t i = 0;
-    while(true) {
-        tud_task();
-        bool sent = webusb_send(msg);
-        if (sent) break;
-        else sleep_ms(1);
-        i++;
-        if (i > 2000) break;
-    }
-    sleep_ms(1);
+bool logging_get_onloop() {
+    return logging_onloop;
 }
 
 void info(char *msg, ...) {
     va_list va;
+    va_start(va, 0);
+    char formatted[256] = {0,};
+    vsnprintf(formatted, 256, msg, va);
     // UART.
-    va_start(va, 0);
-    vprintf(msg, va);
+    printf(formatted);
     // WebUSB.
-    va_start(va, 0);
-    char formatted[64] = {0,};
-    vsnprintf(formatted, 64, msg, va);
-    // if (webusb_onloop) webusb_send(formatted);
-    // else webusb_send_onloop(formatted);
+    webusb_write(formatted);
 }
-
-

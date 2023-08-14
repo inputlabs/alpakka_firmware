@@ -69,6 +69,7 @@ target_sources(${PROJECT} PUBLIC
     src/touch.c
     src/tusb_config.c
     src/uart.c
+    src/webusb.c
     src/xinput.c
 )
 

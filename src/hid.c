@@ -7,6 +7,7 @@
 #include "profile.h"
 #include "xinput.h"
 #include "helper.h"
+#include "webusb.h"
 #include "logging.h"
 #include "thanks.c"
 
@@ -294,7 +295,6 @@ void hid_keyboard_report() {
         modifier,
         report
     );
-    webusb_send("K\n");
 }
 
 int16_t hid_axis(
@@ -377,13 +377,11 @@ void hid_report() {
         is_tud_ready = true;
         if (!is_tud_ready_logged) {
             is_tud_ready_logged = true;
-            // hid_matrix_reset();
             info("USB: tud_ready TRUE\n");
         }
-
         // xinput_receive_report();
-
         if (tud_hid_ready()) {
+            webusb_flush();
             if (!synced_keyboard) {
                 hid_keyboard_report();
                 synced_keyboard = true;

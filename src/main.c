@@ -7,6 +7,7 @@
 #include <pico/time.h>
 #include <tusb.h>
 #include "config.h"
+#include "tusb_config.h"
 #include "led.h"
 #include "bus.h"
 #include "profile.h"
@@ -34,7 +35,9 @@ void title() {
 void main_init() {
     stdio_uart_init();
     stdio_init_all();
+    printf("_______________________________________\n");
     tusb_init();
+    wait_for_usb_init();
     title();
     config_init();
     bus_init();
@@ -49,7 +52,7 @@ void main_init() {
 
 void main_loop() {
     int16_t i = 0;
-    webusb_set_onloop(true);
+    logging_set_onloop(true);
     while (true) {
         // Start timer.
         uint32_t tick_start = time_us_32();
