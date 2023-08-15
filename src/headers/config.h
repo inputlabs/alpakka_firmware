@@ -14,7 +14,6 @@
 #define OS_MODE_GENERIC 2
 
 #define CFG_STRUCT_VERSION 9
-#define CFG_LOG_LEVEL 0
 #define CFG_LED_BRIGHTNESS 0.2
 
 #define CFG_TICK_FREQUENCY 250  // Hz.

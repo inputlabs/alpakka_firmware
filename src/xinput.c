@@ -5,6 +5,7 @@
 #include <device/usbd_pvt.h>
 #include "xinput.h"
 #include "tusb_config.h"
+#include "logging.h"
 
 const uint8_t ep_in[] = {DESCRIPTOR_ENDPOINT_XINPUT_IN};
 const uint8_t ep_out[] = {DESCRIPTOR_ENDPOINT_XINPUT_OUT};
@@ -18,7 +19,7 @@ static uint16_t xinput_open(
     tusb_desc_interface_t const *itf_desc,
     uint16_t max_len
 ) {
-    printf(
+    loguart(
         "USB: xinput_open rhport=%i itf=0x%x max_len=%i\n",
         rhport,
         itf_desc->iInterface,

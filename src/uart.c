@@ -39,7 +39,8 @@ void uart_listen_char_do(bool limited) {
     }
 }
 
-void uart_listen_char() {
+void uart_listen_char(uint16_t loop_index) {
+    if (loop_index % CFG_TICK_FREQUENCY) return;  // Execute only once per second.
     uart_listen_char_do(false);
 }
 

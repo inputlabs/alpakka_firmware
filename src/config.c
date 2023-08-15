@@ -203,20 +203,15 @@ void config_calibrate_execute() {
 
 void config_calibrate() {
     logging_set_onloop(false);
-    info("Calibration about to start, let the controller flat on a table\n");
+    info("Calibration about to start, leave the controller on a flat surface\n");
     profile_led_lock = true;
     led_shape_all_off();
     led_blink_mask(LED_MASK_LEFT | LED_MASK_RIGHT);
-    info("5... ");
-    sleep_ms(1000);
-    info("4... ");
-    sleep_ms(1000);
-    info("3... ");
-    sleep_ms(1000);
-    info("2... ");
-    sleep_ms(1000);
-    info("1...\n");
-    sleep_ms(1000);
+    FOR(i, 5) {
+        info("%i... ", 5-i);
+        sleep_ms(1000);
+    }
+    info("\n");
     config_calibrate_execute();
     info("Calibration completed\n");
     logging_set_onloop(true);

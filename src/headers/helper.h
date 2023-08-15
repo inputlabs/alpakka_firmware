@@ -15,6 +15,11 @@
 #define ramp_mid(x, z)  x<z ? 0 : x>(1-z) ? 1 : (x-z) * (1 / (1 - 2*z))
 #define ramp(x, min, max)  x<=min ? 0 : (x>=max ? 1 : (1 * (x-min) / (max-min)))
 
+#define smooth(smoothed, value, factor)  ( (smoothed*factor + value) / (factor+1) )
+
+#define FOR(var, limit)  for(uint8_t i=0; i<limit; i++)
+
 uint32_t bin(uint8_t k);
 uint32_t bin16(uint16_t k);
 uint8_t random8();
+

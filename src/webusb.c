@@ -19,10 +19,7 @@ void webusb_flush_force() {
     uint16_t i = 0;
     while(true) {
         tud_task();
-        bool sent = webusb_flush();
-        if (sent) {
-            break;
-        }
+        if (webusb_flush()) break;
         else {
             sleep_ms(1);
             i++;
@@ -56,7 +53,7 @@ void webusb_write(char *msg) {
     if (webusb_timedout) return;
     uint16_t len = strlen(msg);
     if (webusb_ptr_in + len >= 1023-64) {
-        printf("Warning: Full WebUSB buffer\n");
+        printf("Warning: WebUSB buffer is full\n");
         return;
     }
     strncpy(webusb_buffer + webusb_ptr_in, msg, len);

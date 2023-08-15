@@ -5,13 +5,20 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
-#include <tusb.h>
-#include <device/usbd_pvt.h>
-#include "tusb_config.h"
 #include "logging.h"
 #include "webusb.h"
+#include "helper.h"
 
+LogLevel logging_level = LOG_INFO;
 bool logging_onloop = false;
+
+void logging_set_level(LogLevel level) {
+    logging_level = level;
+}
+
+bool logging_get_level() {
+    return logging_level;
+}
 
 void logging_set_onloop(bool value) {
     logging_onloop = value;
@@ -21,13 +28,35 @@ bool logging_get_onloop() {
     return logging_onloop;
 }
 
+void logging_init() {
+    if (logging_level < LOG_DEBUG) return;
+    FOR(i, 80) printf("_");
+    printf("\n");
+}
+
+void write(char *msg, va_list args) {
+    char formatted[256] = {0,};
+    vsnprintf(formatted, 256, msg, args);
+    printf(formatted);  // UART.
+    webusb_write(formatted);  // WebUSB.
+}
+
 void info(char *msg, ...) {
     va_list va;
     va_start(va, 0);
-    char formatted[256] = {0,};
-    vsnprintf(formatted, 256, msg, va);
-    // UART.
-    printf(formatted);
-    // WebUSB.
-    webusb_write(formatted);
+    write(msg, va);
+}
+
+void debug(char *msg, ...) {
+    if (logging_level < LOG_DEBUG) return;
+    va_list va;
+    va_start(va, 0);
+    write(msg, va);
+}
+
+void loguart(char *msg, ...) {
+    if (logging_level < LOG_DEBUG) return;
+    va_list va;
+    va_start(va, 0);
+    vprintf(msg, va);  // UART.
 }
