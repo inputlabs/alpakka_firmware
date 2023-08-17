@@ -192,6 +192,13 @@ void config_bootsel() {
     reset_usb_boot(0, 0);
 }
 
+void config_factory() {
+    info("NVM: Reset to factory defaults\n");
+    config_write_init();
+    config_print();
+    info("NVM: Reset completed\n");
+}
+
 void config_calibrate_execute() {
     led_shape_all_off();
     thumbstick_calibrate();

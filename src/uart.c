@@ -13,11 +13,11 @@ void uart_listen_char_do(bool limited) {
     char input = getchar_timeout_us(0);
     if (input == 'R') {
         info("UART: Restart\n");
-        watchdog_enable(100, false);
+        config_reboot();
     }
     if (input == 'B') {
         info("UART: Bootsel mode\n");
-        reset_usb_boot(0, 0);
+        config_bootsel();
     }
 
     if (limited) {
@@ -30,8 +30,7 @@ void uart_listen_char_do(bool limited) {
     }
     if (input == 'F') {
         info("UART: Format NVM\n");
-        config_write_init();
-        config_print();
+        config_factory();
     }
     if (input == 'T') {
         info("UART: Self-test\n");

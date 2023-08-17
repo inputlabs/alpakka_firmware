@@ -77,6 +77,7 @@ void config_tune(bool direction);
 void config_calibrate();
 void config_reboot();
 void config_bootsel();
+void config_factory();
 void config_write_init();
 void config_print();
 void config_set_pcb_gen(uint8_t gen);

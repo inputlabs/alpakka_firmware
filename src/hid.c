@@ -60,6 +60,7 @@ void hid_procedure_press(uint8_t procedure){
     if (procedure == PROC_TUNE_TOUCH_THRESHOLD) config_tune_set_mode(procedure);
     if (procedure == PROC_TUNE_VIBRATION) config_tune_set_mode(procedure);
     if (procedure == PROC_CALIBRATE) config_calibrate();
+    if (procedure == PROC_RESTART) config_reboot();
     if (procedure == PROC_BOOTSEL) config_bootsel();
     if (procedure == PROC_THANKS) hid_thanks();
 }
@@ -379,8 +380,8 @@ void hid_report() {
             is_tud_ready_logged = true;
             info("USB: tud_ready TRUE\n");
         }
-        // xinput_receive_report();
         if (tud_hid_ready()) {
+            webusb_read();
             webusb_flush();
             if (!synced_keyboard) {
                 hid_keyboard_report();

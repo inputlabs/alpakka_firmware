@@ -6,6 +6,8 @@
 #include <tusb.h>
 #include <device/usbd_pvt.h>
 #include "webusb.h"
+#include "config.h"
+#include "hid.h"
 #include "tusb_config.h"
 #include "helper.h"
 #include "logging.h"
@@ -60,5 +62,28 @@ void webusb_write(char *msg) {
     webusb_ptr_in += len;
     if (!logging_get_onloop()) {
         webusb_flush_force();
+    }
+}
+
+void webusb_handle_proc(uint8_t proc) {
+    if (proc == PROC_RESTART) config_reboot();
+    else if (proc == PROC_BOOTSEL) config_bootsel();
+    else if (proc == PROC_CALIBRATE) config_calibrate();
+    else if (proc == PROC_FACTORY) config_factory();
+}
+
+void webusb_read() {
+    if (!tud_ready() || usbd_edpt_busy(0, ADDR_WEBUSB_OUT)) return;
+    Ctrl message[8];
+    usbd_edpt_claim(0, ADDR_WEBUSB_OUT);
+    usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)message, 64);
+    usbd_edpt_release(0, ADDR_WEBUSB_OUT);
+    info("CTRL: Message received %i %i\n", message->protocol_version, message->device_id);
+    if (
+        message->protocol_version == 1 &&
+        message->device_id == 1 &&
+        message->message_type == 2
+    ) {
+        webusb_handle_proc(message->payload[0]);
     }
 }
