@@ -196,7 +196,7 @@ void config_factory() {
     info("NVM: Reset to factory defaults\n");
     config_write_init();
     config_print();
-    info("NVM: Reset completed\n");
+    config_reboot();
 }
 
 void config_calibrate_execute() {
