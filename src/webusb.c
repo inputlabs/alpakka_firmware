@@ -78,12 +78,12 @@ void webusb_read() {
     usbd_edpt_claim(0, ADDR_WEBUSB_OUT);
     usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)message, 64);
     usbd_edpt_release(0, ADDR_WEBUSB_OUT);
-    info("CTRL: Message received %i %i\n", message->protocol_version, message->device_id);
     if (
         message->protocol_version == 1 &&
         message->device_id == 1 &&
         message->message_type == 2
     ) {
+        // info("CTRL: Message received type=%i\n", message->message_type);
         webusb_handle_proc(message->payload[0]);
     }
 }

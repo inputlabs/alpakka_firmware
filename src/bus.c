@@ -103,7 +103,7 @@ void bus_i2c_init() {
     gpio_pull_up(PIN_SDA);
     gpio_pull_up(PIN_SCL);
     if (!gpio_get(PIN_SDA) || !gpio_get(PIN_SCL)) {
-        info("ERROR: I2C bus is not clean\n");
+        info("ERROR: I2C bus is not clean, unplug the controller\n");
         sleep_ms(1000000000);
     }
 }

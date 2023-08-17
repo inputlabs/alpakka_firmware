@@ -25,7 +25,6 @@
 #endif
 
 void title() {
-    info("\n");
     info("╔====================╗\n");
     info("║ Input Labs Oy.     ║\n");
     info("║ Alpakka controller ║\n");
