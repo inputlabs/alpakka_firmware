@@ -25,7 +25,7 @@
 #define ITF_XINPUT 2
 
 #define ADDR_HID_IN 0x86
-#define ADDR_WEBUSB_IN 0x84
+#define ADDR_WEBUSB_IN 0x83
 #define ADDR_WEBUSB_OUT 0x04
 #define ADDR_XINPUT_IN 0x81
 #define ADDR_XINPUT_OUT 0x02
