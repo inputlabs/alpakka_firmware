@@ -33,11 +33,14 @@ Vector vector_cross_product(Vector a, Vector b) {
     };
 }
 
-Vector vector_smooth(Vector a, Vector b, float factor) {
+// Get a pseudo-rolling average of A and B according to given weight.
+// Only (1/weight) parts of B is incorporated into A.
+// The higher the weight the more averaged the result is.
+Vector vector_smooth(Vector a, Vector b, float weight) {
     return  (Vector){
-        (a.x*factor + b.x) / (factor + 1),
-        (a.y*factor + b.y) / (factor + 1),
-        (a.z*factor + b.z) / (factor + 1)
+        (a.x*weight + b.x) / (weight + 1),
+        (a.y*weight + b.y) / (weight + 1),
+        (a.z*weight + b.z) / (weight + 1)
     };
 }
 
@@ -49,7 +52,7 @@ float vector_lenght(Vector v) {
     );
 }
 
-Vector4 quaternion(Vector vector, float rotation) {
+Vector4 quaternion(Vector vector, float rotation /*radians*/) {
     // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
     vector = vector_normalize(vector);
     float theta = rotation / 2;
