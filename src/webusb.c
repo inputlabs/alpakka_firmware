@@ -35,7 +35,7 @@ void webusb_flush_force() {
 }
 
 bool webusb_flush() {
-    if (webusb_timedout) return true;
+    // if (webusb_timedout) return true;
     if (webusb_ptr_in == 0) return true;
     if (!tud_ready() || usbd_edpt_busy(0, ADDR_WEBUSB_IN)) return false;
     uint16_t len = max(0, min(64, webusb_ptr_in - webusb_ptr_out));
@@ -52,7 +52,7 @@ bool webusb_flush() {
 }
 
 void webusb_write(char *msg) {
-    if (webusb_timedout) return;
+    // if (webusb_timedout) return;
     uint16_t len = strlen(msg);
     if (webusb_ptr_in + len >= 1023-64) {
         printf("Warning: WebUSB buffer is full\n");
@@ -61,7 +61,11 @@ void webusb_write(char *msg) {
     strncpy(webusb_buffer + webusb_ptr_in, msg, len);
     webusb_ptr_in += len;
     if (!logging_get_onloop()) {
-        webusb_flush_force();
+        if (!webusb_timedout) {
+            webusb_flush_force();
+        }
+    } else {
+        webusb_timedout = false;
     }
 }
 
