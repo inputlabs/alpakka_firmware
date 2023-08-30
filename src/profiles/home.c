@@ -9,7 +9,6 @@
 
 Profile profile_init_home() {
     Profile profile = Profile_();
-    printf("  Home: ");
 
     profile.select_1 = Button_(
         PIN_SELECT_1,

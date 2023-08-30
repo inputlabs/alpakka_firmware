@@ -9,7 +9,6 @@
 
 Profile profile_init_console() {
     Profile profile = Profile_();
-    printf("  Console: ");
 
     profile.select_1 = Button_(PIN_SELECT_1, NORMAL, ACTIONS(GAMEPAD_SELECT));
     profile.select_2 = Button_(PIN_SELECT_2, NORMAL, ACTIONS(KEY_M));

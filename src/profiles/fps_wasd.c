@@ -9,7 +9,6 @@
 
 Profile profile_init_fps_wasd() {
     Profile profile = Profile_();
-    printf("  FPS WASD: ");
 
     profile.select_1 = Button_(PIN_SELECT_1, NORMAL, ACTIONS(KEY_TAB));
     profile.start_1 =  Button_(PIN_START_1,  NORMAL, ACTIONS(KEY_ESCAPE));

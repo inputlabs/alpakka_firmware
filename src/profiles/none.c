@@ -9,7 +9,6 @@
 
 Profile profile_init_none() {
     Profile profile = Profile_();
-    printf("  None: ");
 
     profile.select_1 = Button_(PIN_SELECT_1, NORMAL, ACTIONS(KEY_NONE));
     profile.start_1 =  Button_(PIN_START_1,  NORMAL, ACTIONS(KEY_NONE));
