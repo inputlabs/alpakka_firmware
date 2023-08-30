@@ -57,14 +57,15 @@ void gyro_wheel_antideadzone(int8_t increment) {
 
 void gyro_accel_correction() {
     Vector accel = imu_read_accel();
+    // Convert to inverted unit value.
     accel.x /= -BIT_14;
     accel.y /= -BIT_14;
-    accel.z /= BIT_14;
+    accel.z /= -BIT_14;
     // Get a smoothed gravity vector.
     accel_smooth = vector_smooth(accel_smooth, accel, CFG_ACCEL_CORRECTION_SMOOTH);
     if (world_init < CFG_ACCEL_CORRECTION_SMOOTH) {
         // It the world space orientation is not fully initialized.
-        world_top = vector_normalize(vector_negative(accel_smooth));
+        world_top = vector_normalize(vector_invert(accel_smooth));
         world_fw = vector_cross_product(world_top, (Vector){1, 0, 0});
         world_right = vector_cross_product(world_fw, world_top);
         world_init++;

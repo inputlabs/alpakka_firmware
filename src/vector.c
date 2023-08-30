@@ -21,7 +21,7 @@ Vector vector_sub(Vector a, Vector b) {
     return (Vector){a.x-b.x, a.y-b.y, a.z-b.z};
 }
 
-Vector vector_negative(Vector v) {
+Vector vector_invert(Vector v) {
     return (Vector){-v.x, -v.y, -v.z};
 }
 
@@ -50,6 +50,7 @@ float vector_lenght(Vector v) {
 }
 
 Vector4 quaternion(Vector vector, float rotation) {
+    // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
     vector = vector_normalize(vector);
     float theta = rotation / 2;
     return (Vector4){
@@ -61,6 +62,7 @@ Vector4 quaternion(Vector vector, float rotation) {
 }
 
 Vector4 qmultiply(Vector4 q1, Vector4 q2) {
+    // https://en.wikipedia.org/wiki/Quaternion
     return (Vector4){
         q1.r * q2.x + q1.x * q2.r + q1.y * q2.z - q1.z * q2.y,
         q1.r * q2.y + q1.y * q2.r + q1.z * q2.x - q1.x * q2.z,

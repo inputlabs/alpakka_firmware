@@ -26,11 +26,38 @@
 #define degrees(radians)  ( radians * 180.0 / M_PI )
 #define radians(degrees)  ( degrees * M_PI / 180.0 )
 
-#define ramp_low(x, z)  ( x<z ? 0 : (x-z) * (1 / (1-z)) )
-#define ramp_inv(x, z)  ( 1 + ((x-1) * (1-z)) )
-#define ramp_mid(x, z)  ( x<z ? 0 : x>(1-z) ? 1 : (x-z) * (1 / (1 - 2*z)) )
-#define ramp(x, min, max)  constrain( 2 * ((x-min) / (max-min)) - 1, -1, 1)
-
 uint32_t bin(uint8_t k);
 uint32_t bin16(uint16_t k);
 uint8_t random8();
+
+// Ramp function that results in "deadzone" in the lower part of the range.
+// (Not suited for negative K values).
+// Input X: X axis as unit value.
+// Input K: Factor as unit value.
+// Original: (0,0)->(1,1)
+// Result:   (0,0)->(k,0)->(1,1)
+#define ramp_low(x, k)  ( x<k ? 0 : (x-k) * (1 / (1-k)) )
+
+// Ramp function that results in "anti-deadzone" in the lower part of the range.
+// (Suited only for negative K values).
+// Input X: X axis as unit value.
+// Input K: Factor as unit value.
+// Original: (0,0)->(1,1)
+// Result:   (0,0)->(0,k)->(1,1)
+#define ramp_inv(x, k)  ( 1 + ((x-1) * (1-k)) )
+
+// Ramp function that results in "deadzone" in both the lower and the upper
+// part of the range.
+// (Not suited for negative K values).
+// Input X: X axis as unit value.
+// Input K: Factor as unit value.
+// Original: (0,0)->(1,1)
+// Result:   (0,0)->(k,0)->(0.5,0.5)->(1-k,1)->(1,1)
+#define ramp_mid(x, z)  ( x<z ? 0 : x>(1-z) ? 1 : (x-z) * (1 / (1 - 2*z)) )
+
+// Returns an value from -1 to 1 that represents the arbitrary value position
+// in relation to the given minimum and maximum.
+// Input X: Arbitrary value (in any range).
+// Input MIN: Lower part of the range, that will result in -1.
+// Input MAX: Upper part of the range, that will result in +1.
+#define ramp(x, min, max)  constrain( 2 * ((x-min) / (max-min)) - 1, -1, 1)

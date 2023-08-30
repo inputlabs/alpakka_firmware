@@ -60,14 +60,16 @@ void hid_procedure_press(uint8_t procedure){
     if (procedure == PROC_CALIBRATE) config_calibrate();
     if (procedure == PROC_BOOTSEL) config_bootsel();
     if (procedure == PROC_THANKS) hid_thanks();
-    if (procedure == PROC_ADZ) gyro_wheel_antideadzone(1);
-    if (procedure == PROC_ADZN) gyro_wheel_antideadzone(-1);
+    // Scrollwheel alternative modes. (Used for example in Racing profile).
     if (procedure == PROC_ROTARY_MODE_0) rotary_set_mode(0);
     if (procedure == PROC_ROTARY_MODE_1) rotary_set_mode(1);
     if (procedure == PROC_ROTARY_MODE_2) rotary_set_mode(2);
     if (procedure == PROC_ROTARY_MODE_3) rotary_set_mode(3);
     if (procedure == PROC_ROTARY_MODE_4) rotary_set_mode(4);
     if (procedure == PROC_ROTARY_MODE_5) rotary_set_mode(5);
+    // Experimental.
+    if (procedure == PROC_ADZ) gyro_wheel_antideadzone(1);
+    if (procedure == PROC_ADZN) gyro_wheel_antideadzone(-1);
 }
 
 void hid_procedure_release(uint8_t procedure) {
@@ -206,37 +208,37 @@ void hid_mouse_move(int16_t x, int16_t y) {
 
 void hid_gamepad_lx(double value) {
     if (value == gamepad_lx) return;
-    gamepad_lx += value;
+    gamepad_lx += value;  // Multiple axis can be combined into one.
     synced_gamepad = false;
 }
 
 void hid_gamepad_ly(double value) {
     if (value == gamepad_ly) return;
-    gamepad_ly += value;
+    gamepad_ly += value;  // Multiple axis can be combined into one.
     synced_gamepad = false;
 }
 
 void hid_gamepad_lz(double value) {
     if (value == gamepad_lz) return;
-    gamepad_lz += value;
+    gamepad_lz += value;  // Multiple axis can be combined into one.
     synced_gamepad = false;
 }
 
 void hid_gamepad_rx(double value) {
     if (value == gamepad_rx) return;
-    gamepad_rx += value;
+    gamepad_rx += value;  // Multiple axis can be combined into one.
     synced_gamepad = false;
 }
 
 void hid_gamepad_ry(double value) {
     if (value == gamepad_ry) return;
-    gamepad_ry += value;
+    gamepad_ry += value;  // Multiple axis can be combined into one.
     synced_gamepad = false;
 }
 
 void hid_gamepad_rz(double value) {
     if (value == gamepad_rz) return;
-    gamepad_rz += value;
+    gamepad_rz += value;  // Multiple axis can be combined into one.
     synced_gamepad = false;
 }
 
@@ -319,6 +321,8 @@ double hid_axis(
 }
 
 void hid_gamepad_report() {
+    // Sorted so the most common assigned buttons are lower and easier to
+    // identify in-game.
     int32_t buttons = (
         (state_matrix[GAMEPAD_A]      <<  0) +
         (state_matrix[GAMEPAD_B]      <<  1) +
@@ -336,6 +340,7 @@ void hid_gamepad_report() {
         (state_matrix[GAMEPAD_START]  << 13) +
         (state_matrix[GAMEPAD_HOME]   << 14)
     );
+    // Range adjuted from (-1,1) to (-32767,32767).
     int16_t lx_report = hid_axis(gamepad_lx, GAMEPAD_AXIS_LX, GAMEPAD_AXIS_LX_NEG) * BIT_15;
     int16_t ly_report = hid_axis(gamepad_ly, GAMEPAD_AXIS_LY, GAMEPAD_AXIS_LY_NEG) * BIT_15;
     int16_t rx_report = hid_axis(gamepad_rx, GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RX_NEG) * BIT_15;
@@ -366,10 +371,12 @@ void hid_xinput_report() {
     for(int i=0; i<8; i++) {
         buttons_1 += state_matrix[GAMEPAD_INDEX + i + 8] << i;
     }
+    // Range adjuted from (-1,1) to (-32767,32767).
     int16_t lx_report = hid_axis(gamepad_lx, GAMEPAD_AXIS_LX, GAMEPAD_AXIS_LX_NEG) * BIT_15;
     int16_t ly_report = hid_axis(gamepad_ly, GAMEPAD_AXIS_LY, GAMEPAD_AXIS_LY_NEG) * BIT_15;
     int16_t rx_report = hid_axis(gamepad_rx, GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RX_NEG) * BIT_15;
     int16_t ry_report = hid_axis(gamepad_ry, GAMEPAD_AXIS_RY, GAMEPAD_AXIS_RY_NEG) * BIT_15;
+    // Range adjuted from (-1,1) to (-127,127).
     uint16_t lz_report = hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0) * BIT_8;
     uint16_t rz_report = hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0) * BIT_8;
     xinput_report report = {
@@ -403,6 +410,10 @@ void hid_report() {
     static uint8_t priority_mouse = 0;
     static uint8_t priority_gamepad = 0;
 
+    // Not all events are sent everytime, they are delivered based on their
+    // priority ratio and how long they have been queueing.
+    // For example thumbstick movement may be queued for some cycles if there
+    // is a lot of mouse data being sent.
     if (!synced_mouse) priority_mouse += 1 * CFG_HID_REPORT_PRIORITY_RATIO;
     if (!synced_gamepad) priority_gamepad += 1;
 
@@ -439,6 +450,8 @@ void hid_report() {
             hid_xinput_report();
             priority_gamepad = 0;
         }
+        // Gamepad values being reset so potentially unsent values are not
+        // aggregated with the next cycle.
         hid_gamepad_reset();
     } else {
         is_tud_ready = false;

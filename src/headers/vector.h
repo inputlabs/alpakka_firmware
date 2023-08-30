@@ -13,13 +13,13 @@ typedef struct vector4_struct {
     float x;
     float y;
     float z;
-    float r;
+    float r;  // Rotation, usually in radians.
 } Vector4;
 
 Vector vector_normalize(Vector v);
 Vector vector_add(Vector a, Vector b);
 Vector vector_sub(Vector a, Vector b);
-Vector vector_negative(Vector v);
+Vector vector_invert(Vector v);
 Vector vector_cross_product(Vector a, Vector b);
 Vector vector_smooth(Vector a, Vector b, float factor);
 float vector_lenght(Vector v);

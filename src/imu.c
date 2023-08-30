@@ -89,7 +89,7 @@ Vector imu_read_accel_bits(uint8_t cs) {
     return (Vector){
         (double)x - offset_x,
         (double)y - offset_y,
-        (double)-z - offset_z,
+        (double)z - offset_z,
     };
 }
 
@@ -142,7 +142,7 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
     double tz = 0;
     uint32_t i = 0;
     while(i < CFG_IMU_CALIBRATION_SAMPLES) {
-        if (!(i % 5000)) led_cycle_step();
+        if (!(i % IMU_CALIBRATION_BLINK_FREQ)) led_cycle_step();
         Vector sample = mode ? imu_read_accel_bits(cs) : imu_read_gyro_bits(cs);
         tx += sample.x;
         ty += sample.y;
@@ -152,7 +152,9 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
     *x = tx / CFG_IMU_CALIBRATION_SAMPLES;
     *y = ty / CFG_IMU_CALIBRATION_SAMPLES;
     *z = tz / CFG_IMU_CALIBRATION_SAMPLES;
-    if (mode==1) *z += BIT_14;  // Newton's fault for inventing the gravity.
+    // Assuming the resting state of the controller is having a vector of 1G
+    // pointing down. (Newton's fault for inventing the gravity /jk).
+    if (mode==1) *z -= BIT_14;
     printf("\rIMU: cs=%i %s calibration x=%f y=%f z=%f\n", cs, mode_str, *x, *y, *z);
 }
 

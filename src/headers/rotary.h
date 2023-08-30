@@ -13,6 +13,8 @@ struct Rotary_struct {
     int8_t increment;
     int8_t mode;
     uint32_t timestamp;
+    // Memory allocation for 8 modes, 2 directions per mode, 4 actions per
+    // direction.
     uint8_t actions[8][2][4];
 };
 

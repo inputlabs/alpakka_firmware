@@ -137,6 +137,9 @@
     0x00, 0x00, 0x00, 0x00,  /* Reserved */\
     0x00, 0x00               /* Reserved */
 
+// Gamepad HID definition that differs from the default implementation included
+// in TinyUSB. (16bit axis, different button layout).
+// https://github.com/hathach/tinyusb/blob/7bf5923052e5861f54c9cb0581e328f8be26a0a9/src/class/hid/hid_device.h#L315
 #define TUD_HID_REPORT_DESC_GAMEPAD_CUSTOM(...) \
   HID_USAGE_PAGE ( HID_USAGE_PAGE_DESKTOP     )                  ,\
   HID_USAGE      ( HID_USAGE_DESKTOP_GAMEPAD  )                  ,\

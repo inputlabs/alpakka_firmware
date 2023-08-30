@@ -20,8 +20,8 @@
 #define CFG_TICK_FREQUENCY 250  // Hz.
 #define CFG_HID_REPORT_PRIORITY_RATIO 8
 
-#define CFG_IMU_TICK_SAMPLES 128
-#define CFG_IMU_CALIBRATION_SAMPLES 200000
+#define CFG_IMU_CALIBRATION_SAMPLES 200000  // How long the calibration takes.
+#define CFG_IMU_TICK_SAMPLES 128  // Multi-sampling per pooling cycle.
 
 #define CFG_GYRO_SENSITIVITY  pow(2, -9) * 1.45
 #define CFG_GYRO_SENSITIVITY_X  CFG_GYRO_SENSITIVITY * 1
@@ -31,8 +31,8 @@
 #define CFG_GYRO_SENSITIVITY_MULTIPLIER_MID 4.0 / 3.0
 #define CFG_GYRO_SENSITIVITY_MULTIPLIER_HIGH 2.0
 #define CFG_MOUSE_WHEEL_DEBOUNCE 1000
-#define CFG_ACCEL_CORRECTION_SMOOTH 50
-#define CFG_ACCEL_CORRECTION_RATE 0.0007
+#define CFG_ACCEL_CORRECTION_SMOOTH 50  // Number of averaged samples for the correction vector.
+#define CFG_ACCEL_CORRECTION_RATE 0.0007  // How fast the correction is applied.
 
 #define CFG_PRESS_DEBOUNCE 50  // Milliseconds.
 #define CFG_HOLD_EXCLUSIVE_TIME 200  // Milliseconds.
