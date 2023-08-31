@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.16)
 
 if (EXISTS ./deps/pico-sdk AND EXISTS ./deps/arm-toolchain)
     # If the dependencies are local.
-    set(PICO_SDK_PATH ./deps/pico-sdk)
-    set(PICO_TOOLCHAIN_PATH ./deps/arm-toolchain)
+    set(PICO_SDK_PATH ${CMAKE_CURRENT_SOURCE_DIR}/deps/pico-sdk)
+    set(PICO_TOOLCHAIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/deps/arm-toolchain)
     include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 else()
     # If the dependencies are global.
