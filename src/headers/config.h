@@ -17,6 +17,9 @@
 #define CFG_LOG_LEVEL 0
 #define CFG_LED_BRIGHTNESS 0.2
 
+// Swap A/B and X/Y buttons for all console modes, like on a Nintendo Switch Controller.
+#define CFG_SWAP_AB_XY false
+
 #define CFG_TICK_FREQUENCY 250  // Hz.
 #define CFG_HID_REPORT_PRIORITY_RATIO 8
 
