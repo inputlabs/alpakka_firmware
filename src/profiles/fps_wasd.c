@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2022, Input Labs Oy.
 
+#include <stdio.h>
 #include "pin.h"
 #include "hid.h"
 #include "button.h"
@@ -61,10 +62,11 @@ Profile profile_init_fps_wasd() {
     profile.gyro = Gyro_(
         GYRO_MODE_TOUCH_ON,
         PIN_TOUCH_IN,
-        ACTIONS(MOUSE_X),
-        ACTIONS(MOUSE_Y),
-        ACTIONS(KEY_NONE)
+        ACTIONS(MOUSE_X_NEG), ACTIONS(MOUSE_X),  // X rotation.
+        ACTIONS(MOUSE_Y_NEG), ACTIONS(MOUSE_Y),  // Y rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)     // Z rotation.
     );
 
+    printf("OK\n");
     return profile;
 }

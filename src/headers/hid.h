@@ -171,8 +171,10 @@
 #define GAMEPAD_AXIS_RZ      GAMEPAD_AXIS_INDEX + 5
 #define GAMEPAD_AXIS_LX_NEG  GAMEPAD_AXIS_INDEX + 6
 #define GAMEPAD_AXIS_LY_NEG  GAMEPAD_AXIS_INDEX + 7
-#define GAMEPAD_AXIS_RX_NEG  GAMEPAD_AXIS_INDEX + 8
-#define GAMEPAD_AXIS_RY_NEG  GAMEPAD_AXIS_INDEX + 9
+#define GAMEPAD_AXIS_LZ_NEG  GAMEPAD_AXIS_INDEX + 8
+#define GAMEPAD_AXIS_RX_NEG  GAMEPAD_AXIS_INDEX + 9
+#define GAMEPAD_AXIS_RY_NEG  GAMEPAD_AXIS_INDEX + 10
+#define GAMEPAD_AXIS_RZ_NEG  GAMEPAD_AXIS_INDEX + 11
 
 #define PROC_HOME        PROC_INDEX + 0
 #define PROC_PROFILE_1   PROC_INDEX + 1
@@ -201,6 +203,16 @@
 #define PROC_MACRO                 PROC_INDEX + 23
 #define PROC_HOME_GAMEPAD          PROC_INDEX + 24
 
+#define PROC_ADZ    PROC_INDEX + 25
+#define PROC_ADZN   PROC_INDEX + 26
+
+#define PROC_ROTARY_MODE_0  PROC_INDEX + 27
+#define PROC_ROTARY_MODE_1  PROC_INDEX + 28
+#define PROC_ROTARY_MODE_2  PROC_INDEX + 29
+#define PROC_ROTARY_MODE_3  PROC_INDEX + 30
+#define PROC_ROTARY_MODE_4  PROC_INDEX + 31
+#define PROC_ROTARY_MODE_5  PROC_INDEX + 32
+
 void hid_thanks();
 void hid_matrix_reset();
 void hid_press(uint8_t key);
@@ -218,12 +230,12 @@ void hid_release_multiple_later_callback(alarm_id_t alarm, uint8_t *keys);
 bool hid_is_axis(uint8_t key);
 void hid_mouse_move(int16_t x, int16_t y);
 void hid_mouse_wheel(int8_t z);
-void hid_gamepad_lx(int16_t value);
-void hid_gamepad_ly(int16_t value);
-void hid_gamepad_lz(int16_t value);
-void hid_gamepad_rx(int16_t value);
-void hid_gamepad_ry(int16_t value);
-void hid_gamepad_rz(int16_t value);
+void hid_gamepad_lx(double value);
+void hid_gamepad_ly(double value);
+void hid_gamepad_rx(double value);
+void hid_gamepad_ry(double value);
+void hid_gamepad_lz(double value);
+void hid_gamepad_rz(double value);
 void hid_report();
 void hid_init();
 

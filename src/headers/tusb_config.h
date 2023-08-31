@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #pragma once
+#include <stdint.h>
 
 #define BOARD_DEVICE_RHPORT_NUM 0
 #define BOARD_DEVICE_RHPORT_SPEED  OPT_MODE_FULL_SPEED
@@ -37,7 +38,7 @@
 #define USB_UNIX_PRODUCT 0x028E  // 360 controller product.
 
 #define USB_GENERIC_VENDOR  0x0170  // Input Labs.
-#define USB_GENERIC_PRODUCT 0xA094  // Alpakka (HID complilant gamepad)
+#define USB_GENERIC_PRODUCT 0xA095  // Alpakka (HID generic gamepad)
 
 
 #define DESCRIPTOR_DEVICE \
@@ -135,3 +136,46 @@
     0x00, 0x00, 0x00, 0x00,  /* ... */\
     0x00, 0x00, 0x00, 0x00,  /* Reserved */\
     0x00, 0x00               /* Reserved */
+
+// Gamepad HID definition that differs from the default implementation included
+// in TinyUSB. (16bit axis, different button layout).
+// https://github.com/hathach/tinyusb/blob/7bf5923052e5861f54c9cb0581e328f8be26a0a9/src/class/hid/hid_device.h#L315
+#define TUD_HID_REPORT_DESC_GAMEPAD_CUSTOM(...) \
+  HID_USAGE_PAGE ( HID_USAGE_PAGE_DESKTOP     )                  ,\
+  HID_USAGE      ( HID_USAGE_DESKTOP_GAMEPAD  )                  ,\
+  HID_COLLECTION ( HID_COLLECTION_APPLICATION )                  ,\
+    /* Report ID */ \
+    __VA_ARGS__ \
+    /* Axis */ \
+    HID_USAGE_PAGE    ( HID_USAGE_PAGE_DESKTOP                 ) ,\
+    HID_USAGE         ( HID_USAGE_DESKTOP_X                    ) ,\
+    HID_USAGE         ( HID_USAGE_DESKTOP_Y                    ) ,\
+    HID_USAGE         ( HID_USAGE_DESKTOP_RX                   ) ,\
+    HID_USAGE         ( HID_USAGE_DESKTOP_RY                   ) ,\
+    HID_USAGE         ( HID_USAGE_DESKTOP_Z                    ) ,\
+    HID_USAGE         ( HID_USAGE_DESKTOP_RZ                   ) ,\
+    HID_LOGICAL_MIN_N ( -32767, 2                              ) ,\
+    HID_LOGICAL_MAX_N ( 32767, 2                               ) ,\
+    HID_REPORT_COUNT  ( 6                                      ) ,\
+    HID_REPORT_SIZE   ( 16                                     ) ,\
+    HID_INPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
+    /* Button mask */ \
+    HID_USAGE_PAGE    ( HID_USAGE_PAGE_BUTTON                  ) ,\
+    HID_USAGE_MIN     ( 1                                      ) ,\
+    HID_USAGE_MAX     ( 32                                     ) ,\
+    HID_LOGICAL_MIN   ( 0                                      ) ,\
+    HID_LOGICAL_MAX   ( 1                                      ) ,\
+    HID_REPORT_COUNT  ( 32                                     ) ,\
+    HID_REPORT_SIZE   ( 1                                      ) ,\
+    HID_INPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
+  HID_COLLECTION_END
+
+typedef struct TU_ATTR_PACKED {
+  int16_t lx;
+  int16_t ly;
+  int16_t rx;
+  int16_t ry;
+  int16_t lz;
+  int16_t rz;
+  uint32_t buttons;
+} hid_gamepad_custom_report_t;

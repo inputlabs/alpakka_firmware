@@ -74,6 +74,7 @@ void main_loop() {
             sleep_us((uint32_t)tick_idle);
         } else {
             printf("+");
+            // if (!(i % 50)) printf("%i", tick_idle);
         }
         i++;
     }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2022, Input Labs Oy.
 
+#include <stdio.h>
 #include "pin.h"
 #include "hid.h"
 #include "button.h"
@@ -39,8 +40,8 @@ Profile profile_init_fps_fusion() {
         0.5,                                                         // Overlap.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),  // Left.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),      // Right.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),      // Up.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),  // Down.
+        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),  // Up.
+        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),      // Down.
         Button_(PIN_L3,      NORMAL, ACTIONS(KEY_LEFT_SHIFT)),       // Push.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_LEFT_BRACKET)),     // Inner.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_RIGHT_BRACKET))     // Outer.
@@ -61,10 +62,11 @@ Profile profile_init_fps_fusion() {
     profile.gyro = Gyro_(
         GYRO_MODE_TOUCH_ON,
         PIN_TOUCH_IN,
-        ACTIONS(MOUSE_X),
-        ACTIONS(MOUSE_Y),
-        ACTIONS(KEY_NONE)
+        ACTIONS(MOUSE_X_NEG), ACTIONS(MOUSE_X),  // X rotation.
+        ACTIONS(MOUSE_Y_NEG), ACTIONS(MOUSE_Y),  // Y rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)     // Z rotation.
     );
 
+    printf("OK\n");
     return profile;
 }
