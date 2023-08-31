@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <pico/stdlib.h>
 
-// https://inputlabs.io/alpakka/manual/dev_profiles
+// https://inputlabs.io/alpakka/manual/dev_profiles#button_mode
 typedef enum ButtonMode_enum {
     NORMAL,
     STICKY,
