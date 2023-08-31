@@ -55,7 +55,7 @@ uint8_t random8();
 // Result:   (0,0)->(k,0)->(0.5,0.5)->(1-k,1)->(1,1)
 #define ramp_mid(x, z)  ( x<z ? 0 : x>(1-z) ? 1 : (x-z) * (1 / (1 - 2*z)) )
 
-// Returns an value from -1 to 1 that represents the arbitrary value position
+// Returns a value from -1 to 1 that represents the relative value position
 // in relation to the given minimum and maximum.
 // Input X: Arbitrary value (in any range).
 // Input MIN: Lower part of the range, that will result in -1.
