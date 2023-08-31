@@ -3,3 +3,5 @@ deps/
 .vscode
 **/.DS_Store
 src/headers/version.h
+.cache/
+compile_commands.json
