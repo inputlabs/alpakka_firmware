@@ -115,6 +115,5 @@ Profile profile_init_home() {
         ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)     // Z rotation.
     );
 
-    printf("OK\n");
     return profile;
 }

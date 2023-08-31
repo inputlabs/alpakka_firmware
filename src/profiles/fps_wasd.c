@@ -67,6 +67,5 @@ Profile profile_init_fps_wasd() {
         ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)     // Z rotation.
     );
 
-    printf("OK\n");
     return profile;
 }

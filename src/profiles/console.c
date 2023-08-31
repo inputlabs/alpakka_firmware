@@ -67,6 +67,5 @@ Profile profile_init_console() {
         ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)     // Z rotation.
     );
 
-    printf("OK\n");
     return profile;
 }
