@@ -39,14 +39,20 @@ void config_write_init() {
         .deadzone = 0,
         .touch_threshold = 0,
         .vibration = 0,
-        .ts_offset_x = 0,
-        .ts_offset_y = 0,
-        .imu_0_offset_x = 0,
-        .imu_0_offset_y = 0,
-        .imu_0_offset_z = 0,
-        .imu_1_offset_x = 0,
-        .imu_1_offset_y = 0,
-        .imu_1_offset_z = 0
+        .offset_ts_x = 0,
+        .offset_ts_y = 0,
+        .offset_gyro_0_x = 0,
+        .offset_gyro_0_y = 0,
+        .offset_gyro_0_z = 0,
+        .offset_gyro_1_x = 0,
+        .offset_gyro_1_y = 0,
+        .offset_gyro_1_z = 0,
+        .offset_accel_0_x = 0,
+        .offset_accel_0_y = 0,
+        .offset_accel_0_z = 0,
+        .offset_accel_1_x = 0,
+        .offset_accel_1_y = 0,
+        .offset_accel_1_z = 0
     };
     config_write(&config);
 }
@@ -62,14 +68,30 @@ void config_print() {
     info("  deadzone=%i\n", config.deadzone);
     info("  touch_threshold=%i\n", config.touch_threshold);
     info("  vibration=%i\n", config.vibration);
-    info("  ts_offset_x=%f\n", config.ts_offset_x);
-    info("  ts_offset_y=%f\n", config.ts_offset_y);
-    info("  imu_0_offset_x=%f\n", config.imu_0_offset_x);
-    info("  imu_0_offset_y=%f\n", config.imu_0_offset_y);
-    info("  imu_0_offset_z=%f\n", config.imu_0_offset_z);
-    info("  imu_1_offset_x=%f\n", config.imu_1_offset_x);
-    info("  imu_1_offset_y=%f\n", config.imu_1_offset_y);
-    info("  imu_1_offset_z=%f\n", config.imu_1_offset_z);
+    info("  offset_thumbstick x=%.4f y=%.4f\n",
+        config.offset_ts_x,
+        config.offset_ts_y
+    );
+    info("  offset_gyro_0  x=%8.2f y=%8.2f z=%8.2f\n",
+        config.offset_gyro_0_x,
+        config.offset_gyro_0_y,
+        config.offset_gyro_0_z
+    );
+    info("  offset_gyro_1  x=%8.2f y=%8.2f z=%8.2f\n",
+        config.offset_gyro_1_x,
+        config.offset_gyro_1_y,
+        config.offset_gyro_1_z
+    );
+    info("  offset_accel_0 x=%8.2f y=%8.2f z=%8.2f\n",
+        config.offset_accel_0_x,
+        config.offset_accel_0_y,
+        config.offset_accel_0_z
+    );
+    info("  offset_accel_1 x=%8.2f y=%8.2f z=%8.2f\n",
+        config.offset_accel_1_x,
+        config.offset_accel_1_y,
+        config.offset_accel_1_z
+    );
 }
 
 void config_set_profile(uint8_t profile) {
@@ -88,20 +110,32 @@ uint8_t config_get_profile() {
 void config_set_thumbstick_offset(float x, float y) {
     config_nvm_t config;
     config_read(&config);
-    config.ts_offset_x = x,
-    config.ts_offset_y = y,
+    config.offset_ts_x = x,
+    config.offset_ts_y = y,
     config_write(&config);
 }
 
-void config_set_imu_offset(double ax, double ay, double az, double bx, double by, double bz) {
+void config_set_gyro_offset(double ax, double ay, double az, double bx, double by, double bz) {
     config_nvm_t config;
     config_read(&config);
-    config.imu_0_offset_x = ax,
-    config.imu_0_offset_y = ay,
-    config.imu_0_offset_z = az,
-    config.imu_1_offset_x = bx,
-    config.imu_1_offset_y = by,
-    config.imu_1_offset_z = bz,
+    config.offset_gyro_0_x = ax,
+    config.offset_gyro_0_y = ay,
+    config.offset_gyro_0_z = az,
+    config.offset_gyro_1_x = bx,
+    config.offset_gyro_1_y = by,
+    config.offset_gyro_1_z = bz,
+    config_write(&config);
+}
+
+void config_set_accel_offset(double ax, double ay, double az, double bx, double by, double bz) {
+    config_nvm_t config;
+    config_read(&config);
+    config.offset_accel_0_x = ax,
+    config.offset_accel_0_y = ay,
+    config.offset_accel_0_z = az,
+    config.offset_accel_1_x = bx,
+    config.offset_accel_1_y = by,
+    config.offset_accel_1_z = bz,
     config_write(&config);
 }
 
@@ -157,26 +191,26 @@ void config_tune(bool direction) {
     config_read(&config);
     int8_t value = direction ? 1 : -1;
     if (config_tune_mode == PROC_TUNE_OS) {
-        config.os_mode = limit_between(config.os_mode + value, 0, 2);
+        config.os_mode = constrain(config.os_mode + value, 0, 2);
         info("Tune: OS mode set to preset %i\n", config.os_mode);
         config_write(&config);
         profile_pending_reboot = true;
         hid_allow_communication = false;
     }
     if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
-        config.sensitivity = limit_between(config.sensitivity + value, 0, 2);
+        config.sensitivity = constrain(config.sensitivity + value, 0, 2);
         config_write(&config);
         info("Tune: Mouse sensitivity set to preset %i\n", config.sensitivity);
-        imu_update_sensitivity();
+        gyro_update_sensitivity();
     }
     if (config_tune_mode == PROC_TUNE_DEADZONE) {
-        config.deadzone = limit_between(config.deadzone + value, 0, 2);
+        config.deadzone = constrain(config.deadzone + value, 0, 2);
         config_write(&config);
         info("Tune: Thumbstick deadzone set to preset %i\n", config.deadzone);
         thumbstick_update_deadzone();
     }
     if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
-        config.touch_threshold = limit_between(config.touch_threshold + value, 0, 4);
+        config.touch_threshold = constrain(config.touch_threshold + value, 0, 4);
         info("Tune: Touch threshold set to preset %i\n", config.touch_threshold);
         config_write(&config);
         touch_update_threshold();

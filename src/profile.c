@@ -71,6 +71,7 @@ void Profile__reset(Profile *self) {
     self->r2.reset(&self->r2);
     self->thumbstick.reset(&self->thumbstick);
     self->rotary.reset(&self->rotary);
+    self->gyro.reset(&self->gyro);
 }
 
 Profile Profile_ () {
@@ -180,7 +181,7 @@ void profile_init() {
     profiles[PROFILE_CONSOLE] =        profile_init_console();
     profiles[PROFILE_CONSOLE_LEGACY] = profile_init_console_legacy();
     profiles[PROFILE_DESKTOP] =        profile_init_desktop();
-    profiles[PROFILE_RACING] =         profile_init_none();  // TODO: Racing.
+    profiles[PROFILE_RACING] =         profile_init_racing();
     profiles[PROFILE_FLIGHT] =         profile_init_none();  // TODO: Flight
     profiles[PROFILE_RTS] =            profile_init_none();  // TODO: RTS.
     profile_set_active(config_get_profile());

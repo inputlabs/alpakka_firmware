@@ -62,6 +62,7 @@ target_sources(${PROJECT} PUBLIC
     src/profiles/fps_fusion.c
     src/profiles/fps_wasd.c
     src/profiles/home.c
+    src/profiles/racing.c
     src/profiles/none.c
     src/self_test.c
     src/rotary.c
@@ -69,6 +70,7 @@ target_sources(${PROJECT} PUBLIC
     src/touch.c
     src/tusb_config.c
     src/uart.c
+    src/vector.c
     src/webusb.c
     src/xinput.c
 )

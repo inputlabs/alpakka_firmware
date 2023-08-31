@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2022, Input Labs Oy.
 
+#include <stdio.h>
 #include "pin.h"
 #include "hid.h"
 #include "button.h"
@@ -61,9 +62,9 @@ Profile profile_init_none() {
     profile.gyro = Gyro_(
         GYRO_MODE_ALWAYS_OFF,
         PIN_NONE,
-        ACTIONS(KEY_NONE),
-        ACTIONS(KEY_NONE),
-        ACTIONS(KEY_NONE)
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),  // X rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),  // Y rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)   // Z rotation.
     );
 
     return profile;

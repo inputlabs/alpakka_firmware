@@ -19,7 +19,7 @@ static const char *const descriptor_string[] = {
 uint8_t const descriptor_report_generic[] = {
     TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(REPORT_KEYBOARD)),
     TUD_HID_REPORT_DESC_MOUSE(HID_REPORT_ID(REPORT_MOUSE)),
-    TUD_HID_REPORT_DESC_GAMEPAD(HID_REPORT_ID(REPORT_GAMEPAD)),
+    TUD_HID_REPORT_DESC_GAMEPAD_CUSTOM(HID_REPORT_ID(REPORT_GAMEPAD)),
 };
 
 uint8_t const descriptor_report_xinput[] = {

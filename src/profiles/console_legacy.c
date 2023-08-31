@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2022, Input Labs Oy.
 
+#include <stdio.h>
 #include "pin.h"
 #include "hid.h"
 #include "button.h"
@@ -39,8 +40,8 @@ Profile profile_init_console_legacy() {
         0.5,                                                         // Overlap.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LX_NEG)),  // Left.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LX)),      // Right.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),      // Up.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),  // Down.
+        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY_NEG)),  // Up.
+        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LY)),      // Down.
         Button_(PIN_L3,      NORMAL, ACTIONS(GAMEPAD_L3)),           // Push.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),             // Inner.
         Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE))              // Outer.
@@ -61,9 +62,9 @@ Profile profile_init_console_legacy() {
     profile.gyro = Gyro_(
         GYRO_MODE_ALWAYS_OFF,
         PIN_NONE,
-        ACTIONS(KEY_NONE),
-        ACTIONS(KEY_NONE),
-        ACTIONS(KEY_NONE)
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),  // X rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),  // Y rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)   // Z rotation.
     );
 
     return profile;

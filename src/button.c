@@ -38,15 +38,20 @@ bool Button__is_pressed(Button *self) {
 }
 
 void Button__report(Button *self) {
-    if (self->behavior == NORMAL) self->handle_normal(self);
-    else if (self->behavior == STICKY) self->handle_sticky(self);
-    else if (self->behavior == HOLD_OVERLAP) self->handle_hold_overlap(self);
-    else if (self->behavior == HOLD_DOUBLE_PRESS) self->handle_hold_double_press(self);
-    else if (self->behavior == HOLD_EXCLUSIVE) {
+    if (self->mode == NORMAL) self->handle_normal(self);
+    else if (self->mode == STICKY) self->handle_sticky(self);
+    else if (self->mode == HOLD_DOUBLE_PRESS) self->handle_hold_double_press(self);
+    else if (self->mode == HOLD_EXCLUSIVE) {
         self->handle_hold_exclusive(self, CFG_HOLD_EXCLUSIVE_TIME);
     }
-    else if (self->behavior == HOLD_EXCLUSIVE_LONG) {
+    else if (self->mode == HOLD_EXCLUSIVE_LONG) {
         self->handle_hold_exclusive(self, CFG_HOLD_EXCLUSIVE_LONG_TIME);
+    }
+    else if (self->mode == HOLD_OVERLAP) {
+        self->handle_hold_overlap(self, CFG_HOLD_OVERLAP_TIME);
+    }
+    else if (self->mode == HOLD_OVERLAP_LONG) {
+        self->handle_hold_overlap(self, CFG_HOLD_OVERLAP_LONG_TIME);
     }
 }
 
@@ -114,7 +119,7 @@ void Button__handle_hold_exclusive(Button *self, uint16_t time) {
     }
 }
 
-void Button__handle_hold_overlap(Button *self) {
+void Button__handle_hold_overlap(Button *self, uint16_t time) {
     bool pressed = self->is_pressed(self);
     if(pressed && !self->state && !self->state_secondary) {
         hid_press_multiple(self->actions);
@@ -123,7 +128,7 @@ void Button__handle_hold_overlap(Button *self) {
         return;
     }
     if(pressed && self->state && !self->state_secondary) {
-        uint64_t hold_time_us = CFG_HOLD_OVERLAP_TIME * 1000;
+        uint64_t hold_time_us = time * 1000;
         if (time_us_64() > self->hold_timestamp + hold_time_us) {
             hid_press_multiple(self->actions_secondary);
             self->state_secondary = true;
@@ -180,7 +185,7 @@ void Button__reset(Button *self) {
 
 Button Button_ (
     uint8_t pin,
-    uint8_t behavior,
+    ButtonMode mode,
     ...  // Actions.
 ) {
     if (pin) {
@@ -198,7 +203,7 @@ Button Button_ (
     button.handle_hold_overlap = Button__handle_hold_overlap;
     button.handle_hold_double_press = Button__handle_hold_double_press;
     button.pin = pin;
-    button.behavior = behavior;
+    button.mode = mode;
     button.state = false;
     button.virtual_press = false;
     button.state_secondary = false;
@@ -216,7 +221,7 @@ Button Button_ (
         if (value == SENTINEL) break;
         button.actions[i] = value;
     }
-    if (button.behavior != NORMAL) {
+    if (button.mode != NORMAL) {
         for(uint8_t i=0; true; i++) {
             uint8_t value = va_arg(va, int);
             if (value == SENTINEL) break;
