@@ -119,6 +119,5 @@ Profile profile_init_racing() {
     );
     profile.gyro.config_absolute_x_range(&profile.gyro, -90, 90);
 
-    printf("OK\n");
     return profile;
 }
