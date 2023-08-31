@@ -45,18 +45,24 @@ fi
 
 echo "Expecting drive at: ${DRIVE}"
 bootsel
+printf $YELLOW"Waiting for Pico in Bootsel mode / RPI-RP2 drive     "
+i=0;
+progress=("[◥]" "[◢]" "[◣]" "[◤]")
 while true; do
     wsl_mount
     if [ -d $DRIVE ]; then
         if [ -f $DRIVE/INFO_UF2.TXT ]; then
+            printf "\b\b\b\b    "
+            printf "\n"$YELLOW"Loading UF2 into Pico"
             cp $UF2 $DRIVE
             break
-        else
-            echo $RED"RPI-RP2 exist but cannot be read" $RESET
         fi
     fi
-    echo $YELLOW"Waiting for RPI-RP2 drive" $RESET
-    sleep 1
+    printf "$YELLOW\b\b\b\b"
+    printf ${progress[i % 4]}
+    printf "$RESET "
+    sleep 0.2
+    ((i=i+1))
 done
-echo $GREEN"UF2 loaded into Pico" $RESET
+echo $GREEN"\nSuccessfully loaded UF2 into Pico" $RESET
 
