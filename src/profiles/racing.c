@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <stdio.h>
+#include "config.h"
 #include "pin.h"
 #include "hid.h"
 #include "button.h"
@@ -20,10 +21,17 @@ Profile profile_init_racing() {
     profile.dpad_up =    Button_(PIN_DPAD_UP,    NORMAL, ACTIONS(GAMEPAD_UP));
     profile.dpad_down =  Button_(PIN_DPAD_DOWN,  NORMAL, ACTIONS(GAMEPAD_DOWN));
 
-    profile.a = Button_(PIN_A, NORMAL, ACTIONS(GAMEPAD_A));
-    profile.b = Button_(PIN_B, NORMAL, ACTIONS(GAMEPAD_B));
-    profile.x = Button_(PIN_X, NORMAL, ACTIONS(GAMEPAD_X));
-    profile.y = Button_(PIN_Y, NORMAL, ACTIONS(GAMEPAD_Y));
+    if (!CFG_SWAP_AB_XY) {
+        profile.a = Button_(PIN_A, NORMAL, ACTIONS(GAMEPAD_A));
+        profile.b = Button_(PIN_B, NORMAL, ACTIONS(GAMEPAD_B));
+        profile.x = Button_(PIN_X, NORMAL, ACTIONS(GAMEPAD_X));
+        profile.y = Button_(PIN_Y, NORMAL, ACTIONS(GAMEPAD_Y));
+    } else {
+        profile.a = Button_(PIN_A, NORMAL, ACTIONS(GAMEPAD_B));
+        profile.b = Button_(PIN_B, NORMAL, ACTIONS(GAMEPAD_A));
+        profile.x = Button_(PIN_X, NORMAL, ACTIONS(GAMEPAD_Y));
+        profile.y = Button_(PIN_Y, NORMAL, ACTIONS(GAMEPAD_X));
+    }
 
     profile.l1 = Button_(PIN_L1, NORMAL, ACTIONS(GAMEPAD_L1));
     profile.r1 = Button_(PIN_R1, NORMAL, ACTIONS(GAMEPAD_R1));
