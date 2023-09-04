@@ -4,6 +4,8 @@
 #pragma once
 #include <stdint.h>
 
+#define WEBUSB_BUFFER_SIZE 2048
+
 typedef struct Ctrl_struct {
     uint8_t protocol_version;
     uint8_t device_id;

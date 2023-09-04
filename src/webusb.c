@@ -12,7 +12,7 @@
 #include "helper.h"
 #include "logging.h"
 
-char webusb_buffer[1024] = {0,};
+char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
@@ -26,7 +26,7 @@ void webusb_flush_force() {
             sleep_ms(1);
             i++;
             if (i>500) {
-                printf("USB: WebUSB timed out\n");
+                // printf("USB: WebUSB timed out\n");
                 webusb_timedout = true;
                 return;
             }
@@ -54,7 +54,7 @@ bool webusb_flush() {
 void webusb_write(char *msg) {
     // if (webusb_timedout) return;
     uint16_t len = strlen(msg);
-    if (webusb_ptr_in + len >= 1023-64) {
+    if (webusb_ptr_in + len >= WEBUSB_BUFFER_SIZE-64-1) {
         printf("Warning: WebUSB buffer is full\n");
         return;
     }
