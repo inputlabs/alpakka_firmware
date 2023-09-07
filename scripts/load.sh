@@ -6,6 +6,7 @@ DRIVE_LINUX="/media/RPI-RP2"
 DRIVE_MACOS="/Volumes/RPI-RP2"
 DRIVE_WSL="/mnt/RPI-RP2"
 WSL=0
+HAVE_PICOTOOL=0
 
 RED=`tput setaf 1`
 GREEN=`tput setaf 2`
@@ -33,6 +34,23 @@ wsl_mount() {
     fi
 }
 
+try_picotool_update() {
+    if picotool info -d >/dev/null 2>/dev/null; then
+        echo "Picotool: Pico in bootsel mode was found"
+        picotool load -uvx $UF2
+        return 0
+    fi
+  return 1
+}
+
+if command -v picotool &> /dev/null
+then
+    HAVE_PICOTOOL=1
+    echo "Picotool: Picotool available in PATH"
+else
+    echo $YELLOW"Picotool: Picotool could not be found in PATH"$RESET
+fi
+
 if `uname -s | grep -q Darwin`; then DRIVE=$DRIVE_MACOS; fi
 if `uname -s | grep -q Linux`; then
     if ! `uname -r | grep -q microsoft`; then
@@ -43,20 +61,25 @@ if `uname -s | grep -q Linux`; then
     fi
 fi
 
-echo "Expecting drive at: ${DRIVE}"
+echo "Expecting drive at ${DRIVE} or Picotool connection"
 bootsel
+echo $YELLOW"Waiting for Pico in Bootsel mode / RPI-RP2 drive"$RESET
 while true; do
+    if [ $HAVE_PICOTOOL -eq 1 ]; then
+        if try_picotool_update; then
+            break
+        fi
+    fi
     wsl_mount
     if [ -d $DRIVE ]; then
         if [ -f $DRIVE/INFO_UF2.TXT ]; then
+            echo "Loading UF2 into Pico"
             cp $UF2 $DRIVE
             break
-        else
-            echo $RED"RPI-RP2 exist but cannot be read" $RESET
         fi
     fi
-    echo $YELLOW"Waiting for RPI-RP2 drive" $RESET
-    sleep 1
+    sleep 0.2
+    ((i=i+1))
 done
-echo $GREEN"UF2 loaded into Pico" $RESET
+echo $GREEN"Successfully loaded UF2 into Pico" $RESET
 
