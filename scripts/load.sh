@@ -36,21 +36,19 @@ wsl_mount() {
 
 try_picotool_update() {
     if picotool info -d >/dev/null 2>/dev/null; then
-        echo "Found Pico device:"
-        picotool info -d
+        echo "Picotool: Pico in bootsel mode was found"
         picotool load -uvx $UF2
-        echo "Successfully updated via picotool"
         return 0
-    fi  
-  return 1  
+    fi
+  return 1
 }
 
 if command -v picotool &> /dev/null
 then
     HAVE_PICOTOOL=1
-    echo $GREEN"picotool found in PATH."$RESET
+    echo "Picotool: Picotool available in PATH"
 else
-    echo $YELLOW"picotool could not be found in PATH."$RESET
+    echo $YELLOW"Picotool: Picotool could not be found in PATH"$RESET
 fi
 
 if `uname -s | grep -q Darwin`; then DRIVE=$DRIVE_MACOS; fi
@@ -63,11 +61,9 @@ if `uname -s | grep -q Linux`; then
     fi
 fi
 
-echo "Expecting drive at: ${DRIVE}"
+echo "Expecting drive at ${DRIVE} or Picotool connection"
 bootsel
-printf $YELLOW"Waiting for Pico in Bootsel mode / RPI-RP2 drive     "
-i=0;
-progress=("[◥]" "[◢]" "[◣]" "[◤]")
+echo $YELLOW"Waiting for Pico in Bootsel mode / RPI-RP2 drive"$RESET
 while true; do
     if [ $HAVE_PICOTOOL -eq 1 ]; then
         if try_picotool_update; then
@@ -77,17 +73,13 @@ while true; do
     wsl_mount
     if [ -d $DRIVE ]; then
         if [ -f $DRIVE/INFO_UF2.TXT ]; then
-            printf "\b\b\b\b    "
-            printf "\n"$YELLOW"Loading UF2 into Pico"
+            echo "Loading UF2 into Pico"
             cp $UF2 $DRIVE
             break
         fi
     fi
-    printf "$YELLOW\b\b\b\b"
-    printf ${progress[i % 4]}
-    printf "$RESET "
     sleep 0.2
     ((i=i+1))
 done
-echo $GREEN"\nSuccessfully loaded UF2 into Pico" $RESET
+echo $GREEN"Successfully loaded UF2 into Pico" $RESET
 
