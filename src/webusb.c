@@ -16,6 +16,7 @@ char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
+uint8_t pending_config_give = 0;
 
 void webusb_flush_force() {
     uint16_t i = 0;
@@ -38,10 +39,26 @@ bool webusb_flush() {
     // if (webusb_timedout) return true;
     if (webusb_ptr_in == 0) return true;
     if (!tud_ready() || usbd_edpt_busy(0, ADDR_WEBUSB_IN)) return false;
-    uint16_t len = max(0, min(64, webusb_ptr_in - webusb_ptr_out));
+    uint16_t len = max(0, min(64-3, webusb_ptr_in - webusb_ptr_out));
     uint8_t* offset_ptr = webusb_buffer + webusb_ptr_out;
+    Ctrl data = {
+        .protocol_version = 1,
+        .device_id = 1,
+    };
+    if (pending_config_give) {
+        data.message_type = 4;
+        data.payload[0] = 10;
+        data.payload[1] = 11;
+        pending_config_give = 0;
+        printf("pendingConfigGive OUT\n");
+    } else {
+        data.message_type = 1;
+        for (uint8_t i=0; i<len; i++) {
+            data.payload[i] = offset_ptr[i];
+        }
+    }
     usbd_edpt_claim(0, ADDR_WEBUSB_IN);
-    usbd_edpt_xfer(0, ADDR_WEBUSB_IN, offset_ptr, len);
+    usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (unsigned char *)&data, len+3);
     usbd_edpt_release(0, ADDR_WEBUSB_IN);
     webusb_ptr_out += len;
     if (webusb_ptr_out >= webusb_ptr_in) {
@@ -82,12 +99,20 @@ void webusb_read() {
     usbd_edpt_claim(0, ADDR_WEBUSB_OUT);
     usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)message, 64);
     usbd_edpt_release(0, ADDR_WEBUSB_OUT);
+    info("CTRL: Message received type=%i\n", message->message_type);
     if (
         message->protocol_version == 1 &&
         message->device_id == 1 &&
         message->message_type == 2
     ) {
-        // info("CTRL: Message received type=%i\n", message->message_type);
         webusb_handle_proc(message->payload[0]);
+    }
+    if (
+        message->protocol_version == 1 &&
+        message->device_id == 1 &&
+        message->message_type == 3
+    ) {
+        pending_config_give = message->payload[0];
+        printf("pendingConfigGive IN %i\n", message->payload[0]);
     }
 }
