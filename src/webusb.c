@@ -59,10 +59,10 @@ Ctrl webusb_ctrl_config_give() {
     Ctrl ctrl = {
         .protocol_version = 1,
         .device_id = 1,
-        .message_type = CONFIG_GIVE
+        .message_type = CONFIG_GIVE,
+        .len = 2
     };
     ctrl.payload[0] = pending_config_give;
-    ctrl.len = 2;
     if      (pending_config_give == PROTOCOL)   ctrl.payload[1] = 0;
     else if (pending_config_give == SENS_TOUCH) ctrl.payload[1] = 0;
     else if (pending_config_give == SENS_MOUSE) ctrl.payload[1] = config_get_mouse_sens();
@@ -74,7 +74,7 @@ Ctrl webusb_ctrl_config_give() {
 
 bool webusb_flush() {
     // if (webusb_timedout) return true;
-    if (webusb_ptr_in == 0) return true;
+    if (webusb_ptr_in == 0 && !pending_config_give) return true;
     if (!tud_ready() || usbd_edpt_busy(0, ADDR_WEBUSB_IN)) return false;
     Ctrl ctrl;
     if (pending_config_give) ctrl = webusb_ctrl_config_give();
