@@ -197,23 +197,14 @@ void config_tune(bool direction) {
         profile_pending_reboot = true;
         hid_allow_communication = false;
     }
-    if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
-        config.sensitivity = constrain(config.sensitivity + value, 0, 2);
-        config_write(&config);
-        info("Tune: Mouse sensitivity set to preset %i\n", config.sensitivity);
-        gyro_update_sensitivity();
+    else if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
+        config_set_mouse_sens(constrain(config.sensitivity + value, 0, 2));
     }
-    if (config_tune_mode == PROC_TUNE_DEADZONE) {
-        config.deadzone = constrain(config.deadzone + value, 0, 2);
-        config_write(&config);
-        info("Tune: Thumbstick deadzone set to preset %i\n", config.deadzone);
-        thumbstick_update_deadzone();
+    else if (config_tune_mode == PROC_TUNE_DEADZONE) {
+        config_set_deadzone(constrain(config.deadzone + value, 0, 2));
     }
-    if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
-        config.touch_threshold = constrain(config.touch_threshold + value, 0, 4);
-        info("Tune: Touch threshold set to preset %i\n", config.touch_threshold);
-        config_write(&config);
-        touch_update_threshold();
+    else if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
+        config_set_touch_sens(constrain(config.touch_threshold + value, 0, 4));
     }
     config_tune_update_leds();
 }
@@ -270,6 +261,21 @@ uint8_t config_get_pcb_gen() {
     return pcb_gen;
 }
 
+uint8_t config_get_touch_sens() {
+    config_nvm_t config;
+    config_read(&config);
+    return config.touch_threshold;
+}
+
+void config_set_touch_sens(uint8_t preset) {
+    config_nvm_t config;
+    config_read(&config);
+    config.touch_threshold = preset;
+    config_write(&config);
+    touch_update_threshold();
+    info("Config: Touch sensitivity preset %i\n", preset);
+}
+
 uint8_t config_get_mouse_sens() {
     config_nvm_t config;
     config_read(&config);
@@ -282,7 +288,22 @@ void config_set_mouse_sens(uint8_t preset) {
     config.sensitivity = preset;
     config_write(&config);
     gyro_update_sensitivity();
-    info("Config: Mouse sensitivity set to preset %i\n", preset);
+    info("Config: Mouse sensitivity preset %i\n", preset);
+}
+
+uint8_t config_get_deadzone() {
+    config_nvm_t config;
+    config_read(&config);
+    return config.deadzone;
+}
+
+void config_set_deadzone(uint8_t preset) {
+    config_nvm_t config;
+    config_read(&config);
+    config.deadzone = preset;
+    config_write(&config);
+    thumbstick_update_deadzone();
+    info("Config: Deadzone preset %i\n", preset);
 }
 
 void config_init() {

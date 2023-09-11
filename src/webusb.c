@@ -64,9 +64,9 @@ Ctrl webusb_ctrl_config_give() {
     };
     ctrl.payload[0] = pending_config_give;
     if      (pending_config_give == PROTOCOL)   ctrl.payload[1] = 0;
-    else if (pending_config_give == SENS_TOUCH) ctrl.payload[1] = 0;
+    else if (pending_config_give == SENS_TOUCH) ctrl.payload[1] = config_get_touch_sens();
     else if (pending_config_give == SENS_MOUSE) ctrl.payload[1] = config_get_mouse_sens();
-    else if (pending_config_give == DEADZONE)   ctrl.payload[1] = 0;
+    else if (pending_config_give == DEADZONE)   ctrl.payload[1] = config_get_deadzone();
     // printf("CONFIG_GIVE %i %i\n", pending_config_give, ctrl.payload[1]);
     pending_config_give = 0;
     return ctrl;
@@ -115,9 +115,9 @@ void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset) {
     // printf("CONFIG_SET %i %i\n", key, preset);
     pending_config_give = key;
     if      (key == PROTOCOL)   return;
-    else if (key == SENS_TOUCH) return;
+    else if (key == SENS_TOUCH) config_set_touch_sens(preset);
     else if (key == SENS_MOUSE) config_set_mouse_sens(preset);
-    else if (key == DEADZONE)   return;
+    else if (key == DEADZONE)   config_set_deadzone(preset);
 }
 
 void webusb_read() {
