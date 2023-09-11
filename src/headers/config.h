@@ -92,3 +92,6 @@ void config_write_init();
 void config_print();
 void config_set_pcb_gen(uint8_t gen);
 uint8_t config_get_pcb_gen();
+
+uint8_t config_get_mouse_sens();
+void config_set_mouse_sens(uint8_t preset);

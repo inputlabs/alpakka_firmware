@@ -270,6 +270,21 @@ uint8_t config_get_pcb_gen() {
     return pcb_gen;
 }
 
+uint8_t config_get_mouse_sens() {
+    config_nvm_t config;
+    config_read(&config);
+    return config.sensitivity;
+}
+
+void config_set_mouse_sens(uint8_t preset) {
+    config_nvm_t config;
+    config_read(&config);
+    config.sensitivity = preset;
+    config_write(&config);
+    gyro_update_sensitivity();
+    info("Config: Mouse sensitivity set to preset %i\n", preset);
+}
+
 void config_init() {
     char pico_id[64];
     pico_get_unique_board_id_string(pico_id, 64);
