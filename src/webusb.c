@@ -46,7 +46,7 @@ Ctrl webusb_ctrl_log() {
     for (uint8_t i=0; i<ctrl.len; i++) {
         ctrl.payload[i] = offset_ptr[i];
     }
-    printf("%s", ctrl.payload);
+    // printf("%s", ctrl.payload);
     webusb_ptr_out += ctrl.len;
     if (webusb_ptr_out >= webusb_ptr_in) {
         webusb_ptr_in = 0;
@@ -67,7 +67,7 @@ Ctrl webusb_ctrl_config_give() {
     else if (pending_config_give == SENS_TOUCH) ctrl.payload[1] = 0;
     else if (pending_config_give == SENS_MOUSE) ctrl.payload[1] = config_get_mouse_sens();
     else if (pending_config_give == DEADZONE)   ctrl.payload[1] = 0;
-    printf("CONFIG_GIVE %i %i\n", pending_config_give, ctrl.payload[1]);
+    // printf("CONFIG_GIVE %i %i\n", pending_config_give, ctrl.payload[1]);
     pending_config_give = 0;
     return ctrl;
 }
@@ -112,7 +112,7 @@ void webusb_handle_proc(uint8_t proc) {
 
 void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset) {
     if (key > 4) return;
-    printf("CONFIG_SET %i %i\n", key, preset);
+    // printf("CONFIG_SET %i %i\n", key, preset);
     pending_config_give = key;
     if      (key == PROTOCOL)   return;
     else if (key == SENS_TOUCH) return;
@@ -126,12 +126,12 @@ void webusb_read() {
     usbd_edpt_claim(0, ADDR_WEBUSB_OUT);
     usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)message, 64);
     usbd_edpt_release(0, ADDR_WEBUSB_OUT);
-    info("CTRL: Message received type=%i\n", message->message_type);
+    // print("CTRL: Message received type=%i\n", message->message_type);
     if (message->message_type == PROC) {
         webusb_handle_proc(message->payload[0]);
     }
     if (message->message_type == CONFIG_GET) {
-        printf("CONFIG_GET %i\n", message->payload[0]);
+        // printf("CONFIG_GET %i\n", message->payload[0]);
         pending_config_give = message->payload[0];
     }
     if (message->message_type == CONFIG_SET) {

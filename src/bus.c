@@ -115,8 +115,8 @@ void bus_i2c_io_init_single(uint8_t id) {
     bus_i2c_write(id, I2C_IO_REG_PULL+1, 0b11111111);
     info("  IO id=%i ", id);
     info("ack=%i ", bus_i2c_acknowledge(id));
-    info("polarity=%i ", bin(bus_i2c_read_one(id, I2C_IO_REG_POLARITY)));
-    info("pull=%i\n", bin(bus_i2c_read_one(id, I2C_IO_REG_PULL)));
+    info("polarity=0x%i ", bin(bus_i2c_read_one(id, I2C_IO_REG_POLARITY)));
+    info("pull=0x%i\n", bin(bus_i2c_read_one(id, I2C_IO_REG_PULL)));
 }
 
 void bus_i2c_io_init() {
