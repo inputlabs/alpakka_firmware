@@ -114,6 +114,7 @@ void profile_update_leds() {
 }
 
 void profile_report_active() {
+    if (profile_pending_reboot && !home_is_active) config_reboot();
     if (pending_reset) {
         hid_matrix_reset();
         profile_reset_all();
@@ -127,10 +128,7 @@ void profile_set_home(bool state) {
     info("Profile: Home %s\n", state ? "on" : "off");
     home_is_active = state;
     if (state) led_shape_all_on();
-    else {
-        profile_update_leds();
-        if (profile_pending_reboot) config_reboot();
-    }
+    else profile_update_leds();
     pending_reset = true;
 }
 

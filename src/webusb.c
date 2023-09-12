@@ -16,7 +16,8 @@ char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
-Ctrl_cfg_type pending_config_give = 0;
+bool webusb_pending_proc_refresh = false;
+Ctrl_cfg_type webusb_pending_config_give = 0;
 
 void webusb_flush_force() {
     uint16_t i = 0;
@@ -62,22 +63,35 @@ Ctrl webusb_ctrl_config_give() {
         .message_type = CONFIG_GIVE,
         .len = 2
     };
-    ctrl.payload[0] = pending_config_give;
-    if      (pending_config_give == PROTOCOL)   ctrl.payload[1] = 0;
-    else if (pending_config_give == SENS_TOUCH) ctrl.payload[1] = config_get_touch_sens();
-    else if (pending_config_give == SENS_MOUSE) ctrl.payload[1] = config_get_mouse_sens();
-    else if (pending_config_give == DEADZONE)   ctrl.payload[1] = config_get_deadzone();
+    ctrl.payload[0] = webusb_pending_config_give;
+    if      (webusb_pending_config_give == PROTOCOL)   ctrl.payload[1] = config_get_protocol();
+    else if (webusb_pending_config_give == SENS_TOUCH) ctrl.payload[1] = config_get_touch_sens();
+    else if (webusb_pending_config_give == SENS_MOUSE) ctrl.payload[1] = config_get_mouse_sens();
+    else if (webusb_pending_config_give == DEADZONE)   ctrl.payload[1] = config_get_deadzone();
     // printf("CONFIG_GIVE %i %i\n", pending_config_give, ctrl.payload[1]);
-    pending_config_give = 0;
+    webusb_pending_config_give = 0;
+    return ctrl;
+}
+
+Ctrl webusb_ctrl_proc_refresh() {
+    Ctrl ctrl = {
+        .protocol_version = 1,
+        .device_id = 1,
+        .message_type = PROC,
+        .len = 1
+    };
+    ctrl.payload[0] = 0;
+    webusb_pending_proc_refresh = false;
     return ctrl;
 }
 
 bool webusb_flush() {
     // if (webusb_timedout) return true;
-    if (webusb_ptr_in == 0 && !pending_config_give) return true;
+    if (webusb_ptr_in == 0 && !webusb_pending_config_give) return true;
     if (!tud_ready() || usbd_edpt_busy(0, ADDR_WEBUSB_IN)) return false;
     Ctrl ctrl;
-    if (pending_config_give) ctrl = webusb_ctrl_config_give();
+    if (webusb_pending_config_give) ctrl = webusb_ctrl_config_give();
+    else if (webusb_pending_proc_refresh) ctrl = webusb_ctrl_proc_refresh();
     else ctrl = webusb_ctrl_log();
     usbd_edpt_claim(0, ADDR_WEBUSB_IN);
     usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (unsigned char *)&ctrl, ctrl.len+4);
@@ -113,8 +127,8 @@ void webusb_handle_proc(uint8_t proc) {
 void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset) {
     if (key > 4) return;
     // printf("CONFIG_SET %i %i\n", key, preset);
-    pending_config_give = key;
-    if      (key == PROTOCOL)   return;
+    webusb_pending_config_give = key;
+    if      (key == PROTOCOL)   config_set_protocol(preset);
     else if (key == SENS_TOUCH) config_set_touch_sens(preset);
     else if (key == SENS_MOUSE) config_set_mouse_sens(preset);
     else if (key == DEADZONE)   config_set_deadzone(preset);
@@ -132,9 +146,13 @@ void webusb_read() {
     }
     if (message->message_type == CONFIG_GET) {
         // printf("CONFIG_GET %i\n", message->payload[0]);
-        pending_config_give = message->payload[0];
+        webusb_pending_config_give = message->payload[0];
     }
     if (message->message_type == CONFIG_SET) {
         webusb_handle_config_set(message->payload[0], message->payload[1]);
     }
+}
+
+void webusb_set_pending_proc_refresh(bool value) {
+    webusb_pending_proc_refresh = value;
 }

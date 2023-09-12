@@ -14,6 +14,7 @@
 #include "thumbstick.h"
 #include "touch.h"
 #include "profile.h"
+#include "webusb.h"
 #include "helper.h"
 #include "logging.h"
 
@@ -191,11 +192,7 @@ void config_tune(bool direction) {
     config_read(&config);
     int8_t value = direction ? 1 : -1;
     if (config_tune_mode == PROC_TUNE_OS) {
-        config.os_mode = constrain(config.os_mode + value, 0, 2);
-        info("Tune: OS mode set to preset %i\n", config.os_mode);
-        config_write(&config);
-        profile_pending_reboot = true;
-        hid_allow_communication = false;
+        config_set_protocol(constrain(config.os_mode + value, 0, 2));
     }
     else if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
         config_set_mouse_sens(constrain(config.sensitivity + value, 0, 2));
@@ -210,7 +207,8 @@ void config_tune(bool direction) {
 }
 
 void config_reboot() {
-    watchdog_enable(100, false);  // Reboot after 100 milliseconds.
+    watchdog_enable(1, false);  // Reboot after 1 millisecond.
+    sleep_ms(10);
 }
 
 void config_bootsel() {
@@ -261,6 +259,23 @@ uint8_t config_get_pcb_gen() {
     return pcb_gen;
 }
 
+uint8_t config_get_protocol() {
+    config_nvm_t config;
+    config_read(&config);
+    return config.os_mode;
+}
+
+void config_set_protocol(uint8_t preset) {
+    config_nvm_t config;
+    config_read(&config);
+    if (preset == config.os_mode) return;
+    config.os_mode = preset;
+    config_write(&config);
+    profile_pending_reboot = true;
+    hid_allow_communication = false;
+    info("Config: Protocol preset %i\n", preset);
+}
+
 uint8_t config_get_touch_sens() {
     config_nvm_t config;
     config_read(&config);
@@ -273,6 +288,7 @@ void config_set_touch_sens(uint8_t preset) {
     config.touch_threshold = preset;
     config_write(&config);
     touch_update_threshold();
+    webusb_set_pending_proc_refresh(true);
     info("Config: Touch sensitivity preset %i\n", preset);
 }
 
@@ -288,6 +304,7 @@ void config_set_mouse_sens(uint8_t preset) {
     config.sensitivity = preset;
     config_write(&config);
     gyro_update_sensitivity();
+    webusb_set_pending_proc_refresh(true);
     info("Config: Mouse sensitivity preset %i\n", preset);
 }
 
@@ -303,6 +320,7 @@ void config_set_deadzone(uint8_t preset) {
     config.deadzone = preset;
     config_write(&config);
     thumbstick_update_deadzone();
+    webusb_set_pending_proc_refresh(true);
     info("Config: Deadzone preset %i\n", preset);
 }
 
