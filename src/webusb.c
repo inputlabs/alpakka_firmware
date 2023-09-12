@@ -19,23 +19,6 @@ bool webusb_timedout = false;
 bool webusb_pending_proc_refresh = false;
 Ctrl_cfg_type webusb_pending_config_give = 0;
 
-void webusb_flush_force() {
-    uint16_t i = 0;
-    while(true) {
-        tud_task();
-        if (webusb_flush()) break;
-        else {
-            sleep_ms(1);
-            i++;
-            if (i>500) {
-                // printf("USB: WebUSB timed out\n");
-                webusb_timedout = true;
-                return;
-            }
-        }
-    }
-}
-
 Ctrl webusb_ctrl_log() {
     Ctrl ctrl = {
         .protocol_version = 1,
@@ -85,15 +68,48 @@ Ctrl webusb_ctrl_proc_refresh() {
     return ctrl;
 }
 
+void webusb_flush_force() {
+    uint16_t i = 0;
+    while(true) {
+        tud_task();
+        if (webusb_flush()) break;
+        else {
+            sleep_ms(1);
+            i++;
+            if (i>500) {
+                // printf("USB: WebUSB timed out\n");
+                webusb_timedout = true;
+                return;
+            }
+        }
+    }
+}
+
 bool webusb_flush() {
-    // if (webusb_timedout) return true;
-    if (webusb_ptr_in == 0 && !webusb_pending_config_give) return true;
-    if (!tud_ready() || usbd_edpt_busy(0, ADDR_WEBUSB_IN)) return false;
-    Ctrl ctrl;
+    // Check if there is anything to flush.
+    if (
+        webusb_ptr_in == 0 &&
+        !webusb_pending_config_give &&
+        !webusb_pending_proc_refresh
+    ) {
+        return true;
+    }
+    // Check if the WebUSB interface/endpoint is ready.
+    if (
+        !tud_ready() ||
+        usbd_edpt_busy(0, ADDR_WEBUSB_IN) ||
+        !usbd_edpt_claim(0, ADDR_WEBUSB_IN)
+    ) {
+        return false;
+    }
+    // Using static to ensure the variable lives long enough in memory to be
+    // referenced by the transfer underlying mechanisms.
+    static Ctrl ctrl;
+    // Generate message.
     if (webusb_pending_config_give) ctrl = webusb_ctrl_config_give();
     else if (webusb_pending_proc_refresh) ctrl = webusb_ctrl_proc_refresh();
     else ctrl = webusb_ctrl_log();
-    usbd_edpt_claim(0, ADDR_WEBUSB_IN);
+    // Transfer message.
     usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (unsigned char *)&ctrl, ctrl.len+4);
     usbd_edpt_release(0, ADDR_WEBUSB_IN);
     return true;
