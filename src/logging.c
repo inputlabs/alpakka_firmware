@@ -30,7 +30,7 @@ bool logging_get_onloop() {
 
 void logging_init() {
     if (logging_level < LOG_DEBUG) return;
-    FOR(i, 80) printf("_");
+    for(uint8_t i=0; i<80; i++) printf("_");
     printf("\n");
 }
 

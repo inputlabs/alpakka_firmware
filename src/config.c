@@ -237,7 +237,7 @@ void config_calibrate() {
     profile_led_lock = true;
     led_shape_all_off();
     led_blink_mask(LED_MASK_LEFT | LED_MASK_RIGHT);
-    FOR(i, 5) {
+    for(uint8_t i=0; i<5; i++) {
         info("%i... ", 5-i);
         sleep_ms(1000);
     }
