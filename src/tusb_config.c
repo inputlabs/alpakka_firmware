@@ -77,7 +77,7 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance) {
 
 const uint16_t *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     loguart("USB: tud_descriptor_string_cb index=0x%x\n", index);
-    if (index == 0xEE && config_get_os_mode() == OS_MODE_XINPUT_WIN) {
+    if (index == 0xEE && config_get_os_mode() != OS_MODE_XINPUT_UNIX) {
         static uint8_t msos[] = {MS_OS_DESCRIPTOR};
         return (uint16_t*)msos;
     }
@@ -110,7 +110,7 @@ const bool tud_vendor_control_xfer_cb(
     if (
         request->wIndex == 0x0004 &&
         request->bRequest == MS_OS_VENDOR &&
-        config_get_os_mode() == OS_MODE_XINPUT_WIN
+        config_get_os_mode() != OS_MODE_XINPUT_UNIX
     ) {
         static uint8_t response[] = {MS_OS_COMPATIDS};
         return tud_control_xfer(rhport, request, response, sizeof(response));
@@ -119,7 +119,7 @@ const bool tud_vendor_control_xfer_cb(
     if (
         request->wIndex == 0x0005 &&
         request->bRequest == MS_OS_VENDOR &&
-        config_get_os_mode() == OS_MODE_XINPUT_WIN
+        config_get_os_mode() != OS_MODE_XINPUT_UNIX
     ) {
         static uint8_t response[] = {MS_OS_PROPERTIES};
         return tud_control_xfer(rhport, request, response, sizeof(response));
