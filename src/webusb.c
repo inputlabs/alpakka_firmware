@@ -30,7 +30,6 @@ Ctrl webusb_ctrl_log() {
     for (uint8_t i=0; i<ctrl.len; i++) {
         ctrl.payload[i] = offset_ptr[i];
     }
-    // printf("%s", ctrl.payload);
     webusb_ptr_out += ctrl.len;
     if (webusb_ptr_out >= webusb_ptr_in) {
         webusb_ptr_in = 0;
@@ -51,7 +50,6 @@ Ctrl webusb_ctrl_config_give() {
     else if (webusb_pending_config_give == SENS_TOUCH) ctrl.payload[1] = config_get_touch_sens();
     else if (webusb_pending_config_give == SENS_MOUSE) ctrl.payload[1] = config_get_mouse_sens();
     else if (webusb_pending_config_give == DEADZONE)   ctrl.payload[1] = config_get_deadzone();
-    // printf("CONFIG_GIVE %i %i\n", pending_config_give, ctrl.payload[1]);
     webusb_pending_config_give = 0;
     return ctrl;
 }
@@ -116,7 +114,6 @@ bool webusb_flush() {
 }
 
 void webusb_write(char *msg) {
-    // if (webusb_timedout) return;
     uint16_t len = strlen(msg);
     if (webusb_ptr_in + len >= WEBUSB_BUFFER_SIZE-64-1) {
         printf("Warning: WebUSB buffer is full\n");
@@ -140,9 +137,12 @@ void webusb_handle_proc(uint8_t proc) {
     else if (proc == PROC_FACTORY) config_factory();
 }
 
+void webusb_handle_config_get(Ctrl_cfg_type key) {
+    webusb_pending_config_give = key;
+}
+
 void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset) {
     if (key > 4) return;
-    // printf("CONFIG_SET %i %i\n", key, preset);
     webusb_pending_config_give = key;
     if      (key == PROTOCOL)   config_set_protocol(preset);
     else if (key == SENS_TOUCH) config_set_touch_sens(preset);
@@ -156,13 +156,12 @@ void webusb_read() {
     usbd_edpt_claim(0, ADDR_WEBUSB_OUT);
     usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)message, 64);
     usbd_edpt_release(0, ADDR_WEBUSB_OUT);
-    // print("CTRL: Message received type=%i\n", message->message_type);
+    // Handle incomming messages.
     if (message->message_type == PROC) {
         webusb_handle_proc(message->payload[0]);
     }
     if (message->message_type == CONFIG_GET) {
-        // printf("CONFIG_GET %i\n", message->payload[0]);
-        webusb_pending_config_give = message->payload[0];
+        webusb_handle_config_get(message->payload[0]);
     }
     if (message->message_type == CONFIG_SET) {
         webusb_handle_config_set(message->payload[0], message->payload[1]);
