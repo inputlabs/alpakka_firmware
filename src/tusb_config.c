@@ -109,11 +109,17 @@ const bool tud_vendor_control_xfer_cb(
     // Compatibility IDs.
     if (
         request->wIndex == 0x0004 &&
-        request->bRequest == MS_OS_VENDOR &&
-        config_get_os_mode() != OS_MODE_XINPUT_UNIX
+        request->bRequest == MS_OS_VENDOR
     ) {
-        static uint8_t response[] = {MS_OS_COMPATIDS};
-        return tud_control_xfer(rhport, request, response, sizeof(response));
+        if (config_get_os_mode() == OS_MODE_XINPUT_WIN) {
+            static uint8_t response[] = {MS_OS_COMPATIDS_ALL};
+            return tud_control_xfer(rhport, request, response, sizeof(response));
+        }
+        if (config_get_os_mode() == OS_MODE_GENERIC) {
+            static uint8_t response[] = {MS_OS_COMPATIDS_GENERIC};
+            return tud_control_xfer(rhport, request, response, sizeof(response));
+        }
+
     }
     // Extended properties.
     if (

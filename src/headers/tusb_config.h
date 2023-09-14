@@ -45,13 +45,13 @@
 #define MS_OS_VENDOR 0x17
 
 #define USB_WIN_VENDOR  0x0170  // Input Labs.
-#define USB_WIN_PRODUCT 0xAE29  // Alpakka (Xinput)
+#define USB_WIN_PRODUCT 0xAE2B  // Alpakka (Xinput)
 
 #define USB_UNIX_VENDOR  0x045E  // 360 controller vendor.
 #define USB_UNIX_PRODUCT 0x028E  // 360 controller product.
 
 #define USB_GENERIC_VENDOR  0x0170  // Input Labs.
-#define USB_GENERIC_PRODUCT 0xAE2A  // Alpakka (HID complilant gamepad)
+#define USB_GENERIC_PRODUCT 0xAE2C  // Alpakka (HID complilant gamepad)
 
 #define DESCRIPTOR_DEVICE \
     0x12,    /* .bLength */\
@@ -142,13 +142,15 @@
     MS_OS_VENDOR,            /* Vendor code */\
     0x00                     /* Padding */
 
-#define MS_OS_COMPATIDS \
-    0x40, 0x00, 0x00, 0x00,  /* Length */\
+#define MS_OS_COMPATIDS(len, itfs) \
+    len , 0x00, 0x00, 0x00,  /* Length */\
     0x00, 0x01,              /* Version */\
     0x04, 0x00,              /* Descriptor type: Compatibility ID */\
-    0x02, 0x00,              /* Sections */\
+    itfs, 0x00,              /* Sections */\
     0x00, 0x00, 0x00, 0x00,  /* Reserved */\
-    0x00, 0x00,              /* Reserved */\
+    0x00, 0x00               /* Reserved */\
+
+#define MS_OS_COMPATIDS_WINUSB \
     ITF_WEBUSB,              /* Interface index */\
     0x01,                    /* Reserved */\
     'W' , 'I' , 'N' , 'U' ,  /* Compat ID */\
@@ -156,7 +158,9 @@
     0x00, 0x00, 0x00, 0x00,  /* Sub-compat ID. */\
     0x00, 0x00, 0x00, 0x00,  \
     0x00, 0x00, 0x00, 0x00,  /* Reserved */\
-    0x00, 0x00,              /* Reserved */\
+    0x00, 0x00               /* Reserved */\
+
+#define MS_OS_COMPATIDS_XUSB \
     ITF_XINPUT,              /* Interface index */\
     0x01,                    /* Reserved */\
     'X' , 'U' , 'S' , 'B',   /* Compat ID */\
@@ -165,6 +169,15 @@
     0x00, 0x00, 0x00, 0x00,  \
     0x00, 0x00, 0x00, 0x00,  /* Reserved */\
     0x00, 0x00               /* Reserved */
+
+#define MS_OS_COMPATIDS_ALL \
+    MS_OS_COMPATIDS(64, 2), \
+    MS_OS_COMPATIDS_WINUSB, \
+    MS_OS_COMPATIDS_XUSB
+
+#define MS_OS_COMPATIDS_GENERIC \
+    MS_OS_COMPATIDS(40, 1), \
+    MS_OS_COMPATIDS_WINUSB
 
 #define MS_OS_PROPERTIES \
     0x8E, 0x00, 0x00, 0x00,  /* Length */\
