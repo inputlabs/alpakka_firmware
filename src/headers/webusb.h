@@ -33,4 +33,4 @@ void webusb_read();
 void webusb_write(char *msg);
 bool webusb_flush();
 void webusb_flush_force();
-void webusb_set_pending_proc_refresh(bool value);
+void webusb_set_pending_config_give(bool value);

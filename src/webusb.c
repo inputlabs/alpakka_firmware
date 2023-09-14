@@ -16,7 +16,6 @@ char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
-bool webusb_pending_proc_refresh = false;
 Ctrl_cfg_type webusb_pending_config_give = 0;
 
 Ctrl webusb_ctrl_log() {
@@ -54,18 +53,6 @@ Ctrl webusb_ctrl_config_give() {
     return ctrl;
 }
 
-Ctrl webusb_ctrl_proc_refresh() {
-    Ctrl ctrl = {
-        .protocol_version = 1,
-        .device_id = 1,
-        .message_type = PROC,
-        .len = 1
-    };
-    ctrl.payload[0] = 0;
-    webusb_pending_proc_refresh = false;
-    return ctrl;
-}
-
 void webusb_flush_force() {
     uint16_t i = 0;
     while(true) {
@@ -87,8 +74,7 @@ bool webusb_flush() {
     // Check if there is anything to flush.
     if (
         webusb_ptr_in == 0 &&
-        !webusb_pending_config_give &&
-        !webusb_pending_proc_refresh
+        !webusb_pending_config_give
     ) {
         return true;
     }
@@ -105,7 +91,6 @@ bool webusb_flush() {
     static Ctrl ctrl;
     // Generate message.
     if (webusb_pending_config_give) ctrl = webusb_ctrl_config_give();
-    else if (webusb_pending_proc_refresh) ctrl = webusb_ctrl_proc_refresh();
     else ctrl = webusb_ctrl_log();
     // Transfer message.
     usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (unsigned char *)&ctrl, ctrl.len+4);
@@ -168,6 +153,6 @@ void webusb_read() {
     }
 }
 
-void webusb_set_pending_proc_refresh(bool value) {
-    webusb_pending_proc_refresh = value;
+void webusb_set_pending_config_give(bool value) {
+    webusb_pending_config_give = value;
 }

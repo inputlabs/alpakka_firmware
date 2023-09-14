@@ -288,7 +288,7 @@ void config_set_touch_sens(uint8_t preset) {
     config.touch_threshold = preset;
     config_write(&config);
     touch_update_threshold();
-    webusb_set_pending_proc_refresh(true);
+    webusb_set_pending_config_give(SENS_TOUCH);
     info("Config: Touch sensitivity preset %i\n", preset);
 }
 
@@ -304,7 +304,7 @@ void config_set_mouse_sens(uint8_t preset) {
     config.sensitivity = preset;
     config_write(&config);
     gyro_update_sensitivity();
-    webusb_set_pending_proc_refresh(true);
+    webusb_set_pending_config_give(SENS_MOUSE);
     info("Config: Mouse sensitivity preset %i\n", preset);
 }
 
@@ -320,7 +320,7 @@ void config_set_deadzone(uint8_t preset) {
     config.deadzone = preset;
     config_write(&config);
     thumbstick_update_deadzone();
-    webusb_set_pending_proc_refresh(true);
+    webusb_set_pending_config_give(DEADZONE);
     info("Config: Deadzone preset %i\n", preset);
 }
 
