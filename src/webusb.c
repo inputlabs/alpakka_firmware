@@ -130,9 +130,9 @@ void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset) {
     if (key > 4) return;
     webusb_pending_config_give = key;
     if      (key == PROTOCOL)   config_set_protocol(preset);
-    else if (key == SENS_TOUCH) config_set_touch_sens(preset);
-    else if (key == SENS_MOUSE) config_set_mouse_sens(preset);
-    else if (key == DEADZONE)   config_set_deadzone(preset);
+    else if (key == SENS_TOUCH) config_set_touch_sens(preset, false);
+    else if (key == SENS_MOUSE) config_set_mouse_sens(preset, false);
+    else if (key == DEADZONE)   config_set_deadzone(preset, false);
 }
 
 void webusb_read() {

@@ -195,13 +195,13 @@ void config_tune(bool direction) {
         config_set_protocol(constrain(config.os_mode + value, 0, 2));
     }
     else if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
-        config_set_mouse_sens(constrain(config.sensitivity + value, 0, 2));
+        config_set_mouse_sens(constrain(config.sensitivity + value, 0, 2), true);
     }
     else if (config_tune_mode == PROC_TUNE_DEADZONE) {
-        config_set_deadzone(constrain(config.deadzone + value, 0, 2));
+        config_set_deadzone(constrain(config.deadzone + value, 0, 2), true);
     }
     else if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
-        config_set_touch_sens(constrain(config.touch_threshold + value, 0, 4));
+        config_set_touch_sens(constrain(config.touch_threshold + value, 0, 4), true);
     }
     config_tune_update_leds();
 }
@@ -282,13 +282,13 @@ uint8_t config_get_touch_sens() {
     return config.touch_threshold;
 }
 
-void config_set_touch_sens(uint8_t preset) {
+void config_set_touch_sens(uint8_t preset, bool notify_webusb) {
     config_nvm_t config;
     config_read(&config);
     config.touch_threshold = preset;
     config_write(&config);
     touch_update_threshold();
-    webusb_set_pending_config_give(SENS_TOUCH);
+    if (notify_webusb) webusb_set_pending_config_give(SENS_TOUCH);
     info("Config: Touch sensitivity preset %i\n", preset);
 }
 
@@ -298,13 +298,13 @@ uint8_t config_get_mouse_sens() {
     return config.sensitivity;
 }
 
-void config_set_mouse_sens(uint8_t preset) {
+void config_set_mouse_sens(uint8_t preset, bool notify_webusb) {
     config_nvm_t config;
     config_read(&config);
     config.sensitivity = preset;
     config_write(&config);
     gyro_update_sensitivity();
-    webusb_set_pending_config_give(SENS_MOUSE);
+    if (notify_webusb) webusb_set_pending_config_give(SENS_MOUSE);
     info("Config: Mouse sensitivity preset %i\n", preset);
 }
 
@@ -314,13 +314,13 @@ uint8_t config_get_deadzone() {
     return config.deadzone;
 }
 
-void config_set_deadzone(uint8_t preset) {
+void config_set_deadzone(uint8_t preset, bool notify_webusb) {
     config_nvm_t config;
     config_read(&config);
     config.deadzone = preset;
     config_write(&config);
     thumbstick_update_deadzone();
-    webusb_set_pending_config_give(DEADZONE);
+    if (notify_webusb) webusb_set_pending_config_give(DEADZONE);
     info("Config: Deadzone preset %i\n", preset);
 }
 
