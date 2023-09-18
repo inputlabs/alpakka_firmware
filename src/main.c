@@ -33,6 +33,8 @@ void title() {
 }
 
 void main_init() {
+    // LED feedback ASAP after booting.
+    led_init();
     // Init stdio and logging.
     stdio_uart_init();
     stdio_init_all();
@@ -46,7 +48,6 @@ void main_init() {
     config_init();
     bus_init();
     hid_init();
-    led_init();
     thumbstick_init();
     touch_init();
     rotary_init();

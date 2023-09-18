@@ -8,6 +8,7 @@
 #include "led.h"
 #include "pin.h"
 #include "config.h"
+#include "helper.h"
 
 repeating_timer_t timer;
 uint8_t cycle_position;
@@ -114,6 +115,4 @@ void led_init() {
     led_init_each(PIN_LED_DOWN);
     led_init_each(PIN_LED_LEFT);
     led_blink_mask(0b1111);
-    sleep_ms(1000);
-    led_stop();
 }
