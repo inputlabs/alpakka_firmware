@@ -20,7 +20,7 @@ typedef enum Ctrl_msg_type_enum {
     PROC,
     CONFIG_GET,
     CONFIG_SET,
-    CONFIG_GIVE,
+    CONFIG_SHARE,
 } Ctrl_msg_type;
 
 typedef enum Ctrl_cfg_type_enum {

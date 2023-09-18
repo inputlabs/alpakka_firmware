@@ -41,7 +41,7 @@ Ctrl webusb_ctrl_config_share() {
     Ctrl ctrl = {
         .protocol_version = CTRL_VERSION,
         .device_id = ALPAKKA,
-        .message_type = CONFIG_GIVE,
+        .message_type = CONFIG_SHARE,
         .len = 2
     };
     ctrl.payload[0] = webusb_pending_config_share;
