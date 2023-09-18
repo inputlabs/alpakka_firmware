@@ -43,15 +43,15 @@ uint8_t descriptor_configuration_xinput[] = {
 uint8_t const *tud_descriptor_device_cb() {
     debug_uart("USB: tud_descriptor_device_cb\n");
     static tusb_desc_device_t descriptor_device = {DESCRIPTOR_DEVICE};
-    if (config_get_os_mode() == OS_MODE_XINPUT_WIN) {
+    if (config_get_protocol() == PROTOCOL_XINPUT_WIN) {
         descriptor_device.idVendor = USB_WIN_VENDOR;
         descriptor_device.idProduct = USB_WIN_PRODUCT;
     }
-    if (config_get_os_mode() == OS_MODE_XINPUT_UNIX) {
+    if (config_get_protocol() == PROTOCOL_XINPUT_UNIX) {
         descriptor_device.idVendor = USB_UNIX_VENDOR;
         descriptor_device.idProduct = USB_UNIX_PRODUCT;
     }
-    if (config_get_os_mode() == OS_MODE_GENERIC) {
+    if (config_get_protocol() == PROTOCOL_GENERIC) {
         descriptor_device.idVendor = USB_GENERIC_VENDOR;
         descriptor_device.idProduct = USB_GENERIC_PRODUCT;
     }
@@ -60,7 +60,7 @@ uint8_t const *tud_descriptor_device_cb() {
 
 uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
     debug_uart("USB: tud_descriptor_configuration_cb index=0x%x\n", index);
-    if (config_get_os_mode() == OS_MODE_GENERIC) {
+    if (config_get_protocol() == PROTOCOL_GENERIC) {
         descriptor_configuration_generic[2] = sizeof(descriptor_configuration_generic);
         return descriptor_configuration_generic;
     } else {
@@ -71,13 +71,13 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
 
 uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance) {
     debug_uart("USB: tud_hid_descriptor_report_cb\n");
-    if (config_get_os_mode() == OS_MODE_GENERIC) return descriptor_report_generic;
+    if (config_get_protocol() == PROTOCOL_GENERIC) return descriptor_report_generic;
     else return descriptor_report_xinput;
 }
 
 const uint16_t *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     debug_uart("USB: tud_descriptor_string_cb index=0x%x\n", index);
-    if (index == 0xEE && config_get_os_mode() != OS_MODE_XINPUT_UNIX) {
+    if (index == 0xEE && config_get_protocol() != PROTOCOL_XINPUT_UNIX) {
         static uint8_t msos[] = {MS_OS_DESCRIPTOR};
         return (uint16_t*)msos;
     }
@@ -111,11 +111,11 @@ const bool tud_vendor_control_xfer_cb(
         request->wIndex == 0x0004 &&
         request->bRequest == MS_OS_VENDOR
     ) {
-        if (config_get_os_mode() == OS_MODE_XINPUT_WIN) {
+        if (config_get_protocol() == PROTOCOL_XINPUT_WIN) {
             static uint8_t response[] = {MS_OS_COMPATIDS_ALL};
             return tud_control_xfer(rhport, request, response, sizeof(response));
         }
-        if (config_get_os_mode() == OS_MODE_GENERIC) {
+        if (config_get_protocol() == PROTOCOL_GENERIC) {
             static uint8_t response[] = {MS_OS_COMPATIDS_GENERIC};
             return tud_control_xfer(rhport, request, response, sizeof(response));
         }
@@ -125,7 +125,7 @@ const bool tud_vendor_control_xfer_cb(
     if (
         request->wIndex == 0x0005 &&
         request->bRequest == MS_OS_VENDOR &&
-        config_get_os_mode() != OS_MODE_XINPUT_UNIX
+        config_get_protocol() != PROTOCOL_XINPUT_UNIX
     ) {
         static uint8_t response[] = {MS_OS_PROPERTIES};
         return tud_control_xfer(rhport, request, response, sizeof(response));

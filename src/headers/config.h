@@ -8,12 +8,12 @@
 
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
+#define NVM_STRUCT_VERSION 11
 
-#define OS_MODE_XINPUT_WIN 0
-#define OS_MODE_XINPUT_UNIX 1
-#define OS_MODE_GENERIC 2
+#define PROTOCOL_XINPUT_WIN 0
+#define PROTOCOL_XINPUT_UNIX 1
+#define PROTOCOL_GENERIC 2
 
-#define CFG_STRUCT_VERSION 10
 #define CFG_LED_BRIGHTNESS 0.2
 
 #define CFG_TICK_FREQUENCY 250  // Hz.
@@ -51,12 +51,12 @@
 typedef struct {
     uint8_t header;
     uint8_t config_version;
-    uint8_t os_mode;
-    uint8_t profile;
-    int8_t sensitivity;
+    int8_t protocol;
+    int8_t sens_mouse;
+    int8_t sens_touch;
     int8_t deadzone;
-    int8_t touch_threshold;
     int8_t vibration;
+    uint8_t profile;
     float offset_ts_x;
     float offset_ts_y;
     double offset_gyro_0_x;
@@ -81,7 +81,7 @@ uint8_t config_get_profile();
 void config_set_thumbstick_offset(float x, float y);
 void config_set_gyro_offset(double ax, double ay, double az, double bx, double by, double bz);
 void config_set_accel_offset(double ax, double ay, double az, double bx, double by, double bz);
-uint8_t config_get_os_mode();
+uint8_t config_get_protocol();
 void config_tune_set_mode(uint8_t mode);
 void config_tune(bool direction);
 void config_calibrate();

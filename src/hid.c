@@ -440,13 +440,13 @@ void hid_report() {
                 synced_mouse = true;
                 priority_mouse = 0;
             }
-            else if (!synced_gamepad && config_get_os_mode() == OS_MODE_GENERIC) {
+            else if (!synced_gamepad && config_get_protocol() == PROTOCOL_GENERIC) {
                 hid_gamepad_report();
                 synced_gamepad = true;
                 priority_gamepad = 0;
             }
         }
-        if (!synced_gamepad && config_get_os_mode() != OS_MODE_GENERIC) {
+        if (!synced_gamepad && config_get_protocol() != PROTOCOL_GENERIC) {
             if (tud_suspended()) {
                 tud_remote_wakeup();
             }
