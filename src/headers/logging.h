@@ -5,6 +5,8 @@
 
 typedef enum LogLevel_enum {
     LOG_INFO,
+    LOG_WARN,
+    LOG_ERROR,
     LOG_DEBUG,
 } LogLevel;
 
@@ -16,6 +18,7 @@ bool logging_get_level();
 
 void logging_init();
 void info(char *msg, ...);
-void warning(char *msg, ...);
+void warn(char *msg, ...);
+void error(char *msg, ...);
 void debug(char *msg, ...);
-void loguart(char *msg, ...);
+void debug_uart(char *msg, ...);

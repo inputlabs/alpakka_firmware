@@ -19,7 +19,7 @@ static uint16_t xinput_open(
     tusb_desc_interface_t const *itf_desc,
     uint16_t max_len
 ) {
-    loguart(
+    debug_uart(
         "USB: xinput_open rhport=%i itf=0x%x max_len=%i\n",
         rhport,
         itf_desc->iInterface,

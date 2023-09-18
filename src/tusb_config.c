@@ -41,7 +41,7 @@ uint8_t descriptor_configuration_xinput[] = {
 };
 
 uint8_t const *tud_descriptor_device_cb() {
-    loguart("USB: tud_descriptor_device_cb\n");
+    debug_uart("USB: tud_descriptor_device_cb\n");
     static tusb_desc_device_t descriptor_device = {DESCRIPTOR_DEVICE};
     if (config_get_os_mode() == OS_MODE_XINPUT_WIN) {
         descriptor_device.idVendor = USB_WIN_VENDOR;
@@ -59,7 +59,7 @@ uint8_t const *tud_descriptor_device_cb() {
 }
 
 uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
-    loguart("USB: tud_descriptor_configuration_cb index=0x%x\n", index);
+    debug_uart("USB: tud_descriptor_configuration_cb index=0x%x\n", index);
     if (config_get_os_mode() == OS_MODE_GENERIC) {
         descriptor_configuration_generic[2] = sizeof(descriptor_configuration_generic);
         return descriptor_configuration_generic;
@@ -70,13 +70,13 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
 }
 
 uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance) {
-    loguart("USB: tud_hid_descriptor_report_cb\n");
+    debug_uart("USB: tud_hid_descriptor_report_cb\n");
     if (config_get_os_mode() == OS_MODE_GENERIC) return descriptor_report_generic;
     else return descriptor_report_xinput;
 }
 
 const uint16_t *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
-    loguart("USB: tud_descriptor_string_cb index=0x%x\n", index);
+    debug_uart("USB: tud_descriptor_string_cb index=0x%x\n", index);
     if (index == 0xEE && config_get_os_mode() != OS_MODE_XINPUT_UNIX) {
         static uint8_t msos[] = {MS_OS_DESCRIPTOR};
         return (uint16_t*)msos;
@@ -100,7 +100,7 @@ const bool tud_vendor_control_xfer_cb(
     uint8_t stage,
     tusb_control_request_t const *request
 ) {
-    loguart(
+    debug_uart(
         "USB: tud_vendor_control_xfer_cb stage=%i wIndex=0x%x\n",
         stage,
         request->wIndex
@@ -130,6 +130,7 @@ const bool tud_vendor_control_xfer_cb(
         static uint8_t response[] = {MS_OS_PROPERTIES};
         return tud_control_xfer(rhport, request, response, sizeof(response));
     }
+    // Return false if there is no control data to transfer.
     return false;
 }
 
@@ -152,19 +153,19 @@ void tud_hid_set_report_cb(
 ) {}
 
 void tud_mount_cb(void) {
-    loguart("USB: tud_mount_cb\n");
+    debug_uart("USB: tud_mount_cb\n");
 }
 
 void tud_umount_cb(void) {
-    loguart("USB: tud_umount_cb\n");
+    debug_uart("USB: tud_umount_cb\n");
 }
 
 void tud_suspend_cb(bool remote_wakeup_en) {
-    loguart("USB: tud_suspend_cb\n");
+    debug_uart("USB: tud_suspend_cb\n");
 }
 
 void tud_resume_cb(void) {
-    loguart("USB: tud_resume_cb\n");
+    debug_uart("USB: tud_resume_cb\n");
 }
 
 void wait_for_usb_init() {
@@ -173,5 +174,5 @@ void wait_for_usb_init() {
         if (tud_ready()) break;
         else sleep_ms(1);
     }
-    loguart("USB: Ready\n");
+    debug_uart("USB: Ready\n");
 }

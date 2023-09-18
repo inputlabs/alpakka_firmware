@@ -17,7 +17,6 @@
 
 #define min(a, b)  ((a < b) ? a : b)
 #define max(a, b)  ((a > b) ? a : b)
-#define max3(a, b, c)  (max(max(a, b), c))
 #define constrain(value, low, high)  max(low, min(high, value))
 #define is_between(value, low, high)  ( (value >= low) && (value <= high) )
 #define sign(value)  ( value >= 0 ? 1 : -1 )

@@ -16,15 +16,15 @@ char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
-Ctrl_cfg_type webusb_pending_config_give = 0;
+Ctrl_cfg_type webusb_pending_config_share = 0;
 
 Ctrl webusb_ctrl_log() {
     Ctrl ctrl = {
-        .protocol_version = 1,
-        .device_id = 1,
+        .protocol_version = CTRL_VERSION,
+        .device_id = ALPAKKA,
         .message_type = LOG
     };
-    ctrl.len = max(0, min(64-4, webusb_ptr_in - webusb_ptr_out));
+    ctrl.len = constrain(webusb_ptr_in-webusb_ptr_out, 0, CTRL_MAX_PAYLOAD_SIZE);
     uint8_t* offset_ptr = webusb_buffer + webusb_ptr_out;
     for (uint8_t i=0; i<ctrl.len; i++) {
         ctrl.payload[i] = offset_ptr[i];
@@ -37,19 +37,20 @@ Ctrl webusb_ctrl_log() {
     return ctrl;
 }
 
-Ctrl webusb_ctrl_config_give() {
+Ctrl webusb_ctrl_config_share() {
     Ctrl ctrl = {
-        .protocol_version = 1,
-        .device_id = 1,
+        .protocol_version = CTRL_VERSION,
+        .device_id = ALPAKKA,
         .message_type = CONFIG_GIVE,
         .len = 2
     };
-    ctrl.payload[0] = webusb_pending_config_give;
-    if      (webusb_pending_config_give == PROTOCOL)   ctrl.payload[1] = config_get_protocol();
-    else if (webusb_pending_config_give == SENS_TOUCH) ctrl.payload[1] = config_get_touch_sens();
-    else if (webusb_pending_config_give == SENS_MOUSE) ctrl.payload[1] = config_get_mouse_sens();
-    else if (webusb_pending_config_give == DEADZONE)   ctrl.payload[1] = config_get_deadzone();
-    webusb_pending_config_give = 0;
+    ctrl.payload[0] = webusb_pending_config_share;
+    uint8_t index = webusb_pending_config_share;
+    if      (index == PROTOCOL)   ctrl.payload[1] = config_get_protocol();
+    else if (index == SENS_TOUCH) ctrl.payload[1] = config_get_touch_sens();
+    else if (index == SENS_MOUSE) ctrl.payload[1] = config_get_mouse_sens();
+    else if (index == DEADZONE)   ctrl.payload[1] = config_get_deadzone();
+    webusb_pending_config_share = 0;
     return ctrl;
 }
 
@@ -74,7 +75,7 @@ bool webusb_flush() {
     // Check if there is anything to flush.
     if (
         webusb_ptr_in == 0 &&
-        !webusb_pending_config_give
+        !webusb_pending_config_share
     ) {
         return true;
     }
@@ -90,7 +91,7 @@ bool webusb_flush() {
     // referenced by the transfer underlying mechanisms.
     static Ctrl ctrl;
     // Generate message.
-    if (webusb_pending_config_give) ctrl = webusb_ctrl_config_give();
+    if (webusb_pending_config_share) ctrl = webusb_ctrl_config_share();
     else ctrl = webusb_ctrl_log();
     // Transfer message.
     usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (unsigned char *)&ctrl, ctrl.len+4);
@@ -123,12 +124,12 @@ void webusb_handle_proc(uint8_t proc) {
 }
 
 void webusb_handle_config_get(Ctrl_cfg_type key) {
-    webusb_pending_config_give = key;
+    webusb_pending_config_share = key;
 }
 
 void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset) {
     if (key > 4) return;
-    webusb_pending_config_give = key;
+    webusb_pending_config_share = key;
     if      (key == PROTOCOL)   config_set_protocol(preset);
     else if (key == SENS_TOUCH) config_set_touch_sens(preset, false);
     else if (key == SENS_MOUSE) config_set_mouse_sens(preset, false);
@@ -153,6 +154,6 @@ void webusb_read() {
     }
 }
 
-void webusb_set_pending_config_give(bool value) {
-    webusb_pending_config_give = value;
+void webusb_set_pending_config_share(bool value) {
+    webusb_pending_config_share = value;
 }

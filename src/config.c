@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <hardware/sync.h>
 #include <hardware/watchdog.h>
 #include <pico/bootrom.h>
@@ -208,7 +209,7 @@ void config_tune(bool direction) {
 
 void config_reboot() {
     watchdog_enable(1, false);  // Reboot after 1 millisecond.
-    sleep_ms(10);
+    sleep_ms(10);  // Stall the exexution to avoid resetting the timer.
 }
 
 void config_bootsel() {
@@ -253,8 +254,8 @@ void config_set_pcb_gen(uint8_t gen) {
 
 uint8_t config_get_pcb_gen() {
     if (pcb_gen == 255) {
-        info("ERROR: PCB gen could not be determined\n");
-        sleep_ms(1000000000);
+        error("PCB gen could not be determined\n");
+        exit(1);
     }
     return pcb_gen;
 }
@@ -288,7 +289,7 @@ void config_set_touch_sens(uint8_t preset, bool notify_webusb) {
     config.touch_threshold = preset;
     config_write(&config);
     touch_update_threshold();
-    if (notify_webusb) webusb_set_pending_config_give(SENS_TOUCH);
+    if (notify_webusb) webusb_set_pending_config_share(SENS_TOUCH);
     info("Config: Touch sensitivity preset %i\n", preset);
 }
 
@@ -304,7 +305,7 @@ void config_set_mouse_sens(uint8_t preset, bool notify_webusb) {
     config.sensitivity = preset;
     config_write(&config);
     gyro_update_sensitivity();
-    if (notify_webusb) webusb_set_pending_config_give(SENS_MOUSE);
+    if (notify_webusb) webusb_set_pending_config_share(SENS_MOUSE);
     info("Config: Mouse sensitivity preset %i\n", preset);
 }
 
@@ -320,7 +321,7 @@ void config_set_deadzone(uint8_t preset, bool notify_webusb) {
     config.deadzone = preset;
     config_write(&config);
     thumbstick_update_deadzone();
-    if (notify_webusb) webusb_set_pending_config_give(DEADZONE);
+    if (notify_webusb) webusb_set_pending_config_share(DEADZONE);
     info("Config: Deadzone preset %i\n", preset);
 }
 
@@ -335,7 +336,7 @@ void config_init() {
         config.header != NVM_CONFIG_HEADER ||
         config.config_version != CFG_STRUCT_VERSION
     ) {
-        info("  config not found or incompatible, writing default instead\n");
+        warn("NVM config not found or incompatible, writing default instead\n");
         config_write_init();
     }
     config_print();

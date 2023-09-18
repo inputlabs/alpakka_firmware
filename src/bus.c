@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <hardware/gpio.h>
 #include <hardware/i2c.h>
 #include <hardware/spi.h>
@@ -103,8 +104,8 @@ void bus_i2c_init() {
     gpio_pull_up(PIN_SDA);
     gpio_pull_up(PIN_SCL);
     if (!gpio_get(PIN_SDA) || !gpio_get(PIN_SCL)) {
-        info("ERROR: I2C bus is not clean, unplug the controller\n");
-        sleep_ms(1000000000);
+        error("I2C bus is not clean, unplug the controller\n");
+        exit(1);
     }
 }
 
@@ -115,8 +116,8 @@ void bus_i2c_io_init_single(uint8_t id) {
     bus_i2c_write(id, I2C_IO_REG_PULL+1, 0b11111111);
     info("  IO id=%i ", id);
     info("ack=%i ", bus_i2c_acknowledge(id));
-    info("polarity=0x%i ", bin(bus_i2c_read_one(id, I2C_IO_REG_POLARITY)));
-    info("pull=0x%i\n", bin(bus_i2c_read_one(id, I2C_IO_REG_PULL)));
+    info("polarity=0b%i ", bin(bus_i2c_read_one(id, I2C_IO_REG_POLARITY)));
+    info("pull=0b%i\n", bin(bus_i2c_read_one(id, I2C_IO_REG_PULL)));
 }
 
 void bus_i2c_io_init() {

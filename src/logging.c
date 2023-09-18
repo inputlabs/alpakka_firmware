@@ -10,6 +10,9 @@
 #include "helper.h"
 
 LogLevel logging_level = LOG_INFO;
+
+// Control if the logging logic should assume the execution is withint the
+// main loop or not.
 bool logging_onloop = false;
 
 void logging_set_level(LogLevel level) {
@@ -47,6 +50,22 @@ void info(char *msg, ...) {
     write(msg, va);
 }
 
+void warn(char *msg, ...) {
+    va_list va;
+    va_start(va, 0);
+    char warn[256] = {0,};
+    sprintf(warn, "WARNING: %s", msg);
+    write(warn, va);
+}
+
+void error(char *msg, ...) {
+    va_list va;
+    va_start(va, 0);
+    char error[256] = {0,};
+    sprintf(error, "ERROR: %s", msg);
+    write(error, va);
+}
+
 void debug(char *msg, ...) {
     if (logging_level < LOG_DEBUG) return;
     va_list va;
@@ -54,9 +73,9 @@ void debug(char *msg, ...) {
     write(msg, va);
 }
 
-void loguart(char *msg, ...) {
+void debug_uart(char *msg, ...) {
     if (logging_level < LOG_DEBUG) return;
     va_list va;
     va_start(va, 0);
-    vprintf(msg, va);  // UART.
+    vprintf(msg, va);  // UART only.
 }
