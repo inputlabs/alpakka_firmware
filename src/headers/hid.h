@@ -198,13 +198,12 @@
 #define PROC_TUNE_TOUCH_THRESHOLD  PROC_INDEX + 18
 #define PROC_TUNE_VIBRATION        PROC_INDEX + 19
 #define PROC_CALIBRATE             PROC_INDEX + 20
-#define PROC_BOOTSEL               PROC_INDEX + 21
-#define PROC_THANKS                PROC_INDEX + 22
-#define PROC_MACRO                 PROC_INDEX + 23
-#define PROC_HOME_GAMEPAD          PROC_INDEX + 24
-
-#define PROC_ADZ    PROC_INDEX + 25
-#define PROC_ADZN   PROC_INDEX + 26
+#define PROC_RESTART               PROC_INDEX + 21
+#define PROC_BOOTSEL               PROC_INDEX + 22
+#define PROC_FACTORY               PROC_INDEX + 23
+#define PROC_THANKS                PROC_INDEX + 24
+#define PROC_MACRO                 PROC_INDEX + 25
+#define PROC_HOME_GAMEPAD          PROC_INDEX + 26
 
 #define PROC_ROTARY_MODE_0  PROC_INDEX + 27
 #define PROC_ROTARY_MODE_1  PROC_INDEX + 28
@@ -212,6 +211,10 @@
 #define PROC_ROTARY_MODE_3  PROC_INDEX + 30
 #define PROC_ROTARY_MODE_4  PROC_INDEX + 31
 #define PROC_ROTARY_MODE_5  PROC_INDEX + 32
+
+// Experimental anti-deadzone.
+#define PROC_ADZ    PROC_INDEX + 33
+#define PROC_ADZN   PROC_INDEX + 34
 
 void hid_thanks();
 void hid_matrix_reset();

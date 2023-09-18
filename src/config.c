@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <hardware/sync.h>
 #include <hardware/watchdog.h>
 #include <pico/bootrom.h>
@@ -14,7 +15,9 @@
 #include "thumbstick.h"
 #include "touch.h"
 #include "profile.h"
+#include "webusb.h"
 #include "helper.h"
+#include "logging.h"
 
 uint8_t config_tune_mode = 0;
 uint8_t pcb_gen = 255;
@@ -59,28 +62,38 @@ void config_write_init() {
 void config_print() {
     config_nvm_t config;
     config_read(&config);
-    printf("NVM: dump\n");
-    printf("  config_version=%i\n", config.config_version);
-    printf("  os_mode=%i\n", config.os_mode);
-    printf("  profile=%i\n", config.profile);
-    printf("  sensitivity=%i\n", config.sensitivity);
-    printf("  deadzone=%i\n", config.deadzone);
-    printf("  touch_threshold=%i\n", config.touch_threshold);
-    printf("  vibration=%i\n", config.vibration);
-    printf("  offset_ts_x=%f\n", config.offset_ts_x);
-    printf("  offset_ts_y=%f\n", config.offset_ts_y);
-    printf("  offset_gyro_0_x=%f\n", config.offset_gyro_0_x);
-    printf("  offset_gyro_0_y=%f\n", config.offset_gyro_0_y);
-    printf("  offset_gyro_0_z=%f\n", config.offset_gyro_0_z);
-    printf("  offset_gyro_1_x=%f\n", config.offset_gyro_1_x);
-    printf("  offset_gyro_1_y=%f\n", config.offset_gyro_1_y);
-    printf("  offset_gyro_1_z=%f\n", config.offset_gyro_1_z);
-    printf("  offset_accel_0_x=%f\n", config.offset_accel_0_x);
-    printf("  offset_accel_0_y=%f\n", config.offset_accel_0_y);
-    printf("  offset_accel_0_z=%f\n", config.offset_accel_0_z);
-    printf("  offset_accel_1_x=%f\n", config.offset_accel_1_x);
-    printf("  offset_accel_1_y=%f\n", config.offset_accel_1_y);
-    printf("  offset_accel_1_z=%f\n", config.offset_accel_1_z);
+    info("NVM: dump\n");
+    info("  config_version=%i\n", config.config_version);
+    info("  os_mode=%i\n", config.os_mode);
+    info("  profile=%i\n", config.profile);
+    info("  sensitivity=%i\n", config.sensitivity);
+    info("  deadzone=%i\n", config.deadzone);
+    info("  touch_threshold=%i\n", config.touch_threshold);
+    info("  vibration=%i\n", config.vibration);
+    info("  offset_thumbstick x=%.4f y=%.4f\n",
+        config.offset_ts_x,
+        config.offset_ts_y
+    );
+    info("  offset_gyro_0  x=%8.2f y=%8.2f z=%8.2f\n",
+        config.offset_gyro_0_x,
+        config.offset_gyro_0_y,
+        config.offset_gyro_0_z
+    );
+    info("  offset_gyro_1  x=%8.2f y=%8.2f z=%8.2f\n",
+        config.offset_gyro_1_x,
+        config.offset_gyro_1_y,
+        config.offset_gyro_1_z
+    );
+    info("  offset_accel_0 x=%8.2f y=%8.2f z=%8.2f\n",
+        config.offset_accel_0_x,
+        config.offset_accel_0_y,
+        config.offset_accel_0_z
+    );
+    info("  offset_accel_1 x=%8.2f y=%8.2f z=%8.2f\n",
+        config.offset_accel_1_x,
+        config.offset_accel_1_y,
+        config.offset_accel_1_z
+    );
 }
 
 void config_set_profile(uint8_t profile) {
@@ -170,7 +183,7 @@ void config_tune_update_leds() {
 }
 
 void config_tune_set_mode(uint8_t mode) {
-    // printf("Tune: mode %i\n", mode);
+    // info("Tune: mode %i\n", mode);
     config_tune_mode = mode;
     config_tune_update_leds();
 }
@@ -180,43 +193,37 @@ void config_tune(bool direction) {
     config_read(&config);
     int8_t value = direction ? 1 : -1;
     if (config_tune_mode == PROC_TUNE_OS) {
-        config.os_mode = constrain(config.os_mode + value, 0, 2);
-        printf("Tune: OS mode set to preset %i\n", config.os_mode);
-        config_write(&config);
-        profile_pending_reboot = true;
-        hid_allow_communication = false;
+        config_set_protocol(constrain(config.os_mode + value, 0, 2));
     }
-    if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
-        config.sensitivity = constrain(config.sensitivity + value, 0, 2);
-        config_write(&config);
-        printf("Tune: Mouse sensitivity set to preset %i\n", config.sensitivity);
-        gyro_update_sensitivity();
+    else if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
+        config_set_mouse_sens(constrain(config.sensitivity + value, 0, 2), true);
     }
-    if (config_tune_mode == PROC_TUNE_DEADZONE) {
-        config.deadzone = constrain(config.deadzone + value, 0, 2);
-        config_write(&config);
-        printf("Tune: Thumbstick deadzone set to preset %i\n", config.deadzone);
-        thumbstick_update_deadzone();
+    else if (config_tune_mode == PROC_TUNE_DEADZONE) {
+        config_set_deadzone(constrain(config.deadzone + value, 0, 2), true);
     }
-    if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
-        config.touch_threshold = constrain(config.touch_threshold + value, 0, 4);
-        printf("Tune: Touch threshold set to preset %i\n", config.touch_threshold);
-        config_write(&config);
-        touch_update_threshold();
+    else if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
+        config_set_touch_sens(constrain(config.touch_threshold + value, 0, 4), true);
     }
     config_tune_update_leds();
 }
 
 void config_reboot() {
-    watchdog_enable(100, false);  // Reboot after 100 milliseconds.
+    watchdog_enable(1, false);  // Reboot after 1 millisecond.
+    sleep_ms(10);  // Stall the exexution to avoid resetting the timer.
 }
 
 void config_bootsel() {
     reset_usb_boot(0, 0);
 }
 
-void config_calibrate_execute(alarm_id_t alarm) {
-    cancel_alarm(alarm);
+void config_factory() {
+    info("NVM: Reset to factory defaults\n");
+    config_write_init();
+    config_print();
+    config_reboot();
+}
+
+void config_calibrate_execute() {
     led_shape_all_off();
     thumbstick_calibrate();
     imu_calibrate();
@@ -226,10 +233,19 @@ void config_calibrate_execute(alarm_id_t alarm) {
 }
 
 void config_calibrate() {
+    logging_set_onloop(false);
+    info("Calibration about to start, leave the controller on a flat surface\n");
     profile_led_lock = true;
     led_shape_all_off();
     led_blink_mask(LED_MASK_LEFT | LED_MASK_RIGHT);
-    add_alarm_in_ms(5000, (alarm_callback_t)config_calibrate_execute, NULL, true);
+    for(uint8_t i=0; i<5; i++) {
+        info("%i... ", 5-i);
+        sleep_ms(1000);
+    }
+    info("\n");
+    config_calibrate_execute();
+    info("Calibration completed\n");
+    logging_set_onloop(true);
 }
 
 void config_set_pcb_gen(uint8_t gen) {
@@ -238,24 +254,89 @@ void config_set_pcb_gen(uint8_t gen) {
 
 uint8_t config_get_pcb_gen() {
     if (pcb_gen == 255) {
-        printf("ERROR: PCB gen could not be determined\n");
-        sleep_ms(1000000000);
+        error("PCB gen could not be determined\n");
+        exit(1);
     }
     return pcb_gen;
+}
+
+uint8_t config_get_protocol() {
+    config_nvm_t config;
+    config_read(&config);
+    return config.os_mode;
+}
+
+void config_set_protocol(uint8_t preset) {
+    config_nvm_t config;
+    config_read(&config);
+    if (preset == config.os_mode) return;
+    config.os_mode = preset;
+    config_write(&config);
+    profile_pending_reboot = true;
+    hid_allow_communication = false;
+    info("Config: Protocol preset %i\n", preset);
+}
+
+uint8_t config_get_touch_sens() {
+    config_nvm_t config;
+    config_read(&config);
+    return config.touch_threshold;
+}
+
+void config_set_touch_sens(uint8_t preset, bool notify_webusb) {
+    config_nvm_t config;
+    config_read(&config);
+    config.touch_threshold = preset;
+    config_write(&config);
+    touch_update_threshold();
+    if (notify_webusb) webusb_set_pending_config_share(SENS_TOUCH);
+    info("Config: Touch sensitivity preset %i\n", preset);
+}
+
+uint8_t config_get_mouse_sens() {
+    config_nvm_t config;
+    config_read(&config);
+    return config.sensitivity;
+}
+
+void config_set_mouse_sens(uint8_t preset, bool notify_webusb) {
+    config_nvm_t config;
+    config_read(&config);
+    config.sensitivity = preset;
+    config_write(&config);
+    gyro_update_sensitivity();
+    if (notify_webusb) webusb_set_pending_config_share(SENS_MOUSE);
+    info("Config: Mouse sensitivity preset %i\n", preset);
+}
+
+uint8_t config_get_deadzone() {
+    config_nvm_t config;
+    config_read(&config);
+    return config.deadzone;
+}
+
+void config_set_deadzone(uint8_t preset, bool notify_webusb) {
+    config_nvm_t config;
+    config_read(&config);
+    config.deadzone = preset;
+    config_write(&config);
+    thumbstick_update_deadzone();
+    if (notify_webusb) webusb_set_pending_config_share(DEADZONE);
+    info("Config: Deadzone preset %i\n", preset);
 }
 
 void config_init() {
     char pico_id[64];
     pico_get_unique_board_id_string(pico_id, 64);
-    printf("Pico UID: %s\n", pico_id);
-    printf("INIT: Config\n");
+    info("Pico UID: %s\n", pico_id);
+    info("INIT: Config\n");
     config_nvm_t config;
     config_read(&config);
     if (
         config.header != NVM_CONFIG_HEADER ||
         config.config_version != CFG_STRUCT_VERSION
     ) {
-        printf("  config not found or incompatible, writing default instead\n");
+        warn("NVM config not found or incompatible, writing default instead\n");
         config_write_init();
     }
     config_print();

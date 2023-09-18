@@ -25,14 +25,12 @@ Vector world_right;
 Vector accel_smooth;
 
 void gyro_update_sensitivity() {
-    config_nvm_t config;
-    config_read(&config);
     float multipliers[3] = {
         CFG_GYRO_SENSITIVITY_MULTIPLIER_LOW,
         CFG_GYRO_SENSITIVITY_MULTIPLIER_MID,
         CFG_GYRO_SENSITIVITY_MULTIPLIER_HIGH
     };
-    sensitivity_multiplier = multipliers[config.sensitivity];
+    sensitivity_multiplier = multipliers[config_get_mouse_sens()];
 }
 
 // TODO: Experimental.

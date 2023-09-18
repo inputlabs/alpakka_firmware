@@ -12,6 +12,7 @@
 #include "button.h"
 #include "rotary.h"
 #include "hid.h"
+#include "logging.h"
 
 void rotary_set_mode(uint8_t value) {
     Profile* profile = profile_get_active(false);
@@ -28,7 +29,7 @@ void rotary_callback(uint gpio, uint32_t events) {
 }
 
 void rotary_init() {
-    printf("INIT: Rotary\n");
+    info("INIT: Rotary\n");
     gpio_init(PIN_ROTARY_A);
     gpio_init(PIN_ROTARY_B);
     gpio_set_dir(PIN_ROTARY_A, GPIO_IN);

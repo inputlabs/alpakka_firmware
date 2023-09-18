@@ -53,6 +53,7 @@ target_sources(${PROJECT} PUBLIC
     src/hid.c
     src/imu.c
     src/led.c
+    src/logging.c
     src/nvm.c
     src/profile.c
     src/profiles/console_legacy.c
@@ -70,6 +71,7 @@ target_sources(${PROJECT} PUBLIC
     src/tusb_config.c
     src/uart.c
     src/vector.c
+    src/webusb.c
     src/xinput.c
 )
 

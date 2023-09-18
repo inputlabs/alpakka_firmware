@@ -7,6 +7,8 @@
 #include "profile.h"
 #include "xinput.h"
 #include "helper.h"
+#include "webusb.h"
+#include "logging.h"
 #include "thanks.c"
 
 bool hid_allow_communication = true;  // Extern.
@@ -58,6 +60,7 @@ void hid_procedure_press(uint8_t procedure){
     if (procedure == PROC_TUNE_TOUCH_THRESHOLD) config_tune_set_mode(procedure);
     if (procedure == PROC_TUNE_VIBRATION) config_tune_set_mode(procedure);
     if (procedure == PROC_CALIBRATE) config_calibrate();
+    if (procedure == PROC_RESTART) config_reboot();
     if (procedure == PROC_BOOTSEL) config_bootsel();
     if (procedure == PROC_THANKS) hid_thanks();
     // Scrollwheel alternative modes. (Used for example in Racing profile).
@@ -423,11 +426,11 @@ void hid_report() {
         is_tud_ready = true;
         if (!is_tud_ready_logged) {
             is_tud_ready_logged = true;
-            // hid_matrix_reset();
-            printf("USB: tud_ready TRUE\n");
+            info("USB: tud_ready TRUE\n");
         }
-        // xinput_receive_report();
         if (tud_hid_ready()) {
+            webusb_read();
+            webusb_flush();
             if (!synced_keyboard) {
                 hid_keyboard_report();
                 synced_keyboard = true;
@@ -457,7 +460,7 @@ void hid_report() {
         is_tud_ready = false;
         if (is_tud_ready_logged) {
             is_tud_ready_logged = false;
-            printf("USB: tud_ready FALSE\n");
+            info("USB: tud_ready FALSE\n");
         }
     }
 }
@@ -492,6 +495,6 @@ void hid_thanks() {
 }
 
 void hid_init() {
-    printf("INIT: HID\n");
+    info("INIT: HID\n");
     alarm_pool = alarm_pool_create(2, 255);
 }

@@ -7,15 +7,16 @@
 #include "pin.h"
 #include "profile.h"
 #include "uart.h"
+#include "logging.h"
 
 void self_test_button_press(const char *buttonName, Button* button) {
-    printf("Press button '%s': WAITING", buttonName);
+    info("Press button '%s': WAITING", buttonName);
     while (!button->is_pressed(button)) {
         uart_listen_char_limited();
         bus_i2c_io_cache_update();
         sleep_ms(1);
     }
-    printf("\rPress button '%s': OK     \n", buttonName);
+    info("\rPress button '%s': OK     \n", buttonName);
 }
 
 void self_test_buttons(Profile* profile) {
@@ -44,13 +45,13 @@ void self_test_buttons(Profile* profile) {
 }
 
 void self_test_thumbstick_direction(const char *buttonName, Button* button, Thumbstick* thumbstick) {
-    printf("Move thumbstick %s: WAITING", buttonName);
+    info("Move thumbstick %s: WAITING", buttonName);
     while (!button->virtual_press) {
         uart_listen_char_limited();
         thumbstick->report(thumbstick);
         sleep_ms(1);
     }
-    printf("\rMove thumbstick %s: OK     \n", buttonName);
+    info("\rMove thumbstick %s: OK     \n", buttonName);
 }
 
 void self_test_thumbstick(Thumbstick* thumbstick) {
@@ -63,14 +64,14 @@ void self_test_thumbstick(Thumbstick* thumbstick) {
 }
 
 void self_test_dhat_press(Dhat* dhat, const char *buttonName, Button* button) {
-    printf("Press DHat '%s': WAITING", buttonName);
+    info("Press DHat '%s': WAITING", buttonName);
     while (!button->is_pressed(button)) {
         uart_listen_char_limited();
         bus_i2c_io_cache_update();
         dhat->update(dhat);
         sleep_ms(1);
     }
-    printf("\rPress DHat '%s': OK     \n", buttonName);
+    info("\rPress DHat '%s': OK     \n", buttonName);
 }
 
 void self_test_dhat(Dhat* dhat) {
@@ -83,12 +84,12 @@ void self_test_dhat(Dhat* dhat) {
 
 void self_test_rotary_direction(Rotary* rotary, const char *name, int8_t direction) {
     rotary->increment = 0;
-    printf("Scroll %s: WAITING", name);
+    info("Scroll %s: WAITING", name);
     while (rotary->increment != direction) {
         uart_listen_char_limited();
         sleep_ms(1);
     }
-    printf("\rScroll %s: OK     \n", name);
+    info("\rScroll %s: OK     \n", name);
 }
 
 void self_test_rotary(Rotary* rotary) {
@@ -99,15 +100,15 @@ void self_test_rotary(Rotary* rotary) {
 
 void self_test() {
     profile_enable_all(false);
-    printf("Tests start\n");
-    printf("===========\n");
+    info("Tests start\n");
+    info("===========\n");
     Profile* profile = profile_get_active(true);
     self_test_buttons(profile);
     self_test_thumbstick(&(profile->thumbstick));
     self_test_dhat(&(profile->dhat));
     self_test_rotary(&(profile->rotary));
-    printf("Tests done\n");
-    printf("==========\n");
+    info("Tests done\n");
+    info("==========\n");
     profile->reset(profile);
     profile_enable_all(true);
 }

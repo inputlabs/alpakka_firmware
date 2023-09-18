@@ -7,6 +7,7 @@
 #include <pico/time.h>
 #include <tusb.h>
 #include "config.h"
+#include "tusb_config.h"
 #include "led.h"
 #include "bus.h"
 #include "profile.h"
@@ -14,6 +15,8 @@
 #include "imu.h"
 #include "hid.h"
 #include "uart.h"
+#include "logging.h"
+#include "helper.h"
 
 #if __has_include("version.h")
     #include "version.h"
@@ -21,22 +24,24 @@
     #define VERSION "undefined"
 #endif
 
-void stdio_init() {
-    stdio_uart_init();
-    stdio_init_all();
-}
-
 void title() {
-    printf("\n");
-    printf("╔════════════════════╗\n");
-    printf("║ Input Labs Oy.     ║\n");
-    printf("║ Alpakka controller ║\n");
-    printf("╚════════════════════╝\n");
-    printf("Firmware version: %s\n", VERSION);
+    info("╔====================╗\n");
+    info("║ Input Labs Oy.     ║\n");
+    info("║ Alpakka controller ║\n");
+    info("╚====================╝\n");
+    info("Firmware version: %s\n", VERSION);
 }
 
 void main_init() {
-    stdio_init();
+    // Init stdio and logging.
+    stdio_uart_init();
+    stdio_init_all();
+    logging_set_level(LOG_INFO);
+    logging_init();
+    // Init USB.
+    tusb_init();
+    wait_for_usb_init();
+    // Init components.
     title();
     config_init();
     bus_init();
@@ -47,12 +52,13 @@ void main_init() {
     rotary_init();
     profile_init();
     imu_init();
-    tusb_init();
 }
 
 void main_loop() {
     int16_t i = 0;
+    logging_set_onloop(true);
     while (true) {
+        i++;
         // Start timer.
         uint32_t tick_start = time_us_32();
         // Report.
@@ -63,20 +69,16 @@ void main_loop() {
         uint16_t tick_interval = 1000000 / CFG_TICK_FREQUENCY;
         int32_t tick_idle = tick_interval - (int32_t)tick_completed;
         // Listen to incoming UART messages.
-        if (!(i % CFG_TICK_FREQUENCY)) {
-            uart_listen_char();
+        uart_listen_char(i);
+        // Timing stats.
+        if (logging_get_level() >= LOG_DEBUG) {
+            static float average = 0;
+            average = smooth(average, tick_completed, 100);
+            if (!(i % 2000)) debug("Loop: avg=%.0f (us)\n", average);
         }
-        // Print additional timing data.
-        if (CFG_LOG_LEVEL && !(i % 1000)) {
-            printf("Tick comp=%li idle=%i\n", tick_completed, tick_idle);
-        }
-        if (tick_idle > 0) {
-            sleep_us((uint32_t)tick_idle);
-        } else {
-            printf("+");
-            // if (!(i % 50)) printf("%i", tick_idle);
-        }
-        i++;
+        // Idling control.
+        if (tick_idle > 0) sleep_us((uint32_t)tick_idle);
+        else info("+");
     }
 }
 

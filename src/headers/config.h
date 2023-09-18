@@ -14,7 +14,6 @@
 #define OS_MODE_GENERIC 2
 
 #define CFG_STRUCT_VERSION 10
-#define CFG_LOG_LEVEL 0
 #define CFG_LED_BRIGHTNESS 0.2
 
 #define CFG_TICK_FREQUENCY 250  // Hz.
@@ -88,7 +87,17 @@ void config_tune(bool direction);
 void config_calibrate();
 void config_reboot();
 void config_bootsel();
+void config_factory();
 void config_write_init();
 void config_print();
 void config_set_pcb_gen(uint8_t gen);
 uint8_t config_get_pcb_gen();
+
+uint8_t config_get_protocol();
+uint8_t config_get_touch_sens();
+uint8_t config_get_mouse_sens();
+uint8_t config_get_deadzone();
+void config_set_protocol(uint8_t preset);
+void config_set_touch_sens(uint8_t preset, bool notify_webusb);
+void config_set_mouse_sens(uint8_t preset, bool notify_webusb);
+void config_set_deadzone(uint8_t preset, bool notify_webusb);

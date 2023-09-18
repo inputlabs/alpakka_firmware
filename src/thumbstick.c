@@ -14,6 +14,7 @@
 #include "hid.h"
 #include "led.h"
 #include "profile.h"
+#include "logging.h"
 
 float offset_x = 0;
 float offset_y = 0;
@@ -34,14 +35,12 @@ float thumbstick_adc(uint8_t adc_index, float offset) {
 }
 
 void thumbstick_update_deadzone() {
-    config_nvm_t config;
-    config_read(&config);
     float deadzones[3] = {
         CFG_THUMBSTICK_DEADZONE_LOW,
         CFG_THUMBSTICK_DEADZONE_MID,
         CFG_THUMBSTICK_DEADZONE_HIGH
     };
-    config_deadzone = deadzones[config.deadzone];
+    config_deadzone = deadzones[config_get_deadzone()];
 }
 
 void thumbstick_update_offsets() {
@@ -52,7 +51,7 @@ void thumbstick_update_offsets() {
 }
 
 void thumbstick_calibrate() {
-    printf("Thumbstick: calibrating...");
+    info("Thumbstick: calibrating...\n");
     float x = 0;
     float y = 0;
     uint32_t len = 100000;
@@ -63,13 +62,13 @@ void thumbstick_calibrate() {
     }
     x /= len;
     y /= len;
-    printf("\rThumbstick: calibration x=%f y=%f\n", x, y);
+    info("Thumbstick: calibration x=%f y=%f\n", x, y);
     config_set_thumbstick_offset(x, y);
     thumbstick_update_offsets();
 }
 
 void thumbstick_init() {
-    printf("INIT: Thumbstick\n");
+    info("INIT: Thumbstick\n");
     adc_init();
     adc_gpio_init(PIN_TX);
     adc_gpio_init(PIN_TY);

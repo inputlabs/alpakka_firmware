@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <hardware/gpio.h>
 #include <hardware/i2c.h>
 #include <hardware/spi.h>
@@ -9,6 +10,7 @@
 #include "config.h"
 #include "pin.h"
 #include "helper.h"
+#include "logging.h"
 
 uint16_t io_cache_0;
 uint16_t io_cache_1;
@@ -95,15 +97,15 @@ uint8_t bus_spi_read_one(uint8_t cs, uint8_t reg) {
 }
 
 void bus_i2c_init() {
-    printf("INIT: I2C bus\n");
+    info("INIT: I2C bus\n");
     i2c_init(i2c1, I2C_FREQ);
     gpio_set_function(PIN_SDA, GPIO_FUNC_I2C);
     gpio_set_function(PIN_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(PIN_SDA);
     gpio_pull_up(PIN_SCL);
     if (!gpio_get(PIN_SDA) || !gpio_get(PIN_SCL)) {
-        printf("ERROR: I2C bus is not clean\n");
-        sleep_ms(1000000000);
+        error("I2C bus is not clean, unplug the controller\n");
+        exit(1);
     }
 }
 
@@ -112,22 +114,22 @@ void bus_i2c_io_init_single(uint8_t id) {
     bus_i2c_write(id, I2C_IO_REG_POLARITY+1, 0b11111111);
     bus_i2c_write(id, I2C_IO_REG_PULL,   0b11111111);
     bus_i2c_write(id, I2C_IO_REG_PULL+1, 0b11111111);
-    printf("  IO id=%i ", id);
-    printf("ack=%i ", bus_i2c_acknowledge(id));
-    printf("polarity=%i ", bin(bus_i2c_read_one(id, I2C_IO_REG_POLARITY)));
-    printf("pull=%i\n", bin(bus_i2c_read_one(id, I2C_IO_REG_PULL)));
+    info("  IO id=%i ", id);
+    info("ack=%i ", bus_i2c_acknowledge(id));
+    info("polarity=0b%i ", bin(bus_i2c_read_one(id, I2C_IO_REG_POLARITY)));
+    info("pull=0b%i\n", bin(bus_i2c_read_one(id, I2C_IO_REG_PULL)));
 }
 
 void bus_i2c_io_init() {
-    printf("INIT: I2C IO\n");
+    info("INIT: I2C IO\n");
     bus_i2c_io_pcb_gen_determine();
-    printf("  PCB GEN: gen-%i\n", config_get_pcb_gen());
+    info("  PCB GEN: gen-%i\n", config_get_pcb_gen());
     bus_i2c_io_init_single(I2C_IO_0);
     bus_i2c_io_init_single(I2C_IO_1);
 }
 
 void bus_spi_init() {
-    printf("INIT: SPI bus\n");
+    info("INIT: SPI bus\n");
     spi_init(spi1, SPI_FREQ);
     gpio_set_function(PIN_SPI_CK, GPIO_FUNC_SPI);
     gpio_set_function(PIN_SPI_TX, GPIO_FUNC_SPI);

@@ -16,7 +16,9 @@
 #include "touch.h"
 #include "hid.h"
 #include "led.h"
+#include "vector.h"
 #include "helper.h"
+#include "logging.h"
 
 double offset_gyro_0_x;
 double offset_gyro_0_y;
@@ -38,11 +40,11 @@ void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     bus_spi_write(cs, IMU_CTRL2_G, gyro_conf);
     uint8_t xl = bus_spi_read_one(cs, IMU_CTRL1_XL);
     uint8_t g = bus_spi_read_one(cs, IMU_CTRL2_G);
-    printf("  IMU cs=%i id=0x%02x xl=0x%08i g=0x%08i\n", cs, id, bin(xl), bin(g));
+    info("  IMU cs=%i id=0x%02x xl=0x%08i g=0x%08i\n", cs, id, bin(xl), bin(g));
 }
 
 void imu_init() {
-    printf("INIT: IMU\n");
+    info("INIT: IMU\n");
     imu_init_single(PIN_SPI_CS0, IMU_CTRL2_G_500);
     imu_init_single(PIN_SPI_CS1, IMU_CTRL2_G_125);
     config_nvm_t config;
@@ -133,7 +135,7 @@ Vector imu_read_accel() {
 
 Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double* z) {
     char *mode_str = mode ? "accel" : "gyro";
-    printf("IMU: cs=%i calibrating %s...", cs, mode_str);
+    info("IMU: cs=%i calibrating %s...\n", cs, mode_str);
     *x = 0;
     *y = 0;
     *z = 0;
@@ -155,7 +157,7 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
     // Assuming the resting state of the controller is having a vector of 1G
     // pointing down. (Newton's fault for inventing the gravity /jk).
     if (mode==1) *z -= BIT_14;
-    printf("\rIMU: cs=%i %s calibration x=%f y=%f z=%f\n", cs, mode_str, *x, *y, *z);
+    info("IMU: cs=%i %s calibration x=%f y=%f z=%f\n", cs, mode_str, *x, *y, *z);
 }
 
 void imu_calibrate() {
@@ -179,5 +181,4 @@ void imu_calibrate() {
         offset_accel_1_y,
         offset_accel_1_z
     );
-    printf("Calibration done\n");
 }

@@ -8,6 +8,7 @@
 #include "touch.h"
 #include "pin.h"
 #include "helper.h"
+#include "logging.h"
 
 uint8_t loglevel = 0;
 uint8_t sens_from_config = 0;
@@ -16,8 +17,6 @@ uint8_t timeout = 0;
 float threshold = 0;
 
 void touch_update_threshold() {
-    config_nvm_t config;
-    config_read(&config);
     uint8_t values_gen0[5] = {
         CFG_GEN0_TOUCH_SENS_0,
         CFG_GEN0_TOUCH_SENS_1,
@@ -33,21 +32,22 @@ void touch_update_threshold() {
         CFG_GEN1_TOUCH_SENS_4
     };
     // See https://github.com/inputlabs/alpakka_pcb/blob/main/generations.md
+    uint8_t preset = config_get_touch_sens();
     if (config_get_pcb_gen() == 0) {
          // PCB gen 0.
-        sens_from_config = values_gen0[config.touch_threshold];
+        sens_from_config = values_gen0[preset];
         timeout = CFG_GEN0_TOUCH_TIMEOUT;
         dynamic_min = CFG_GEN0_TOUCH_DYNAMIC_MIN;
     } else {
         // PCB gen 1+.
-        sens_from_config = values_gen1[config.touch_threshold];
+        sens_from_config = values_gen1[preset];
         timeout = CFG_GEN1_TOUCH_TIMEOUT;
         dynamic_min = CFG_GEN1_TOUCH_DYNAMIC_MIN;
     }
 }
 
 void touch_init() {
-    printf("INIT: Touch\n");
+    info("INIT: Touch\n");
     gpio_init(PIN_TOUCH_OUT);
     gpio_set_dir(PIN_TOUCH_OUT, GPIO_OUT);
     gpio_init(PIN_TOUCH_IN);
@@ -68,7 +68,7 @@ uint32_t touch_get_elapsed() {
         }
     };
     uint32_t elapsed = timedout ? 0 : time_us_32() - time_low;
-    if (loglevel >= 1 && timedout) printf("T");
+    if (loglevel >= 1 && timedout) info("T");
     gpio_put(PIN_TOUCH_OUT, false); // Send low (so is ready for next cycle).
     return elapsed;
 }
@@ -115,7 +115,7 @@ bool touch_status() {
         static uint16_t x = 0;
         x++;
         if (!(x % DEBUG_TOUCH_ELAPSED_FREQ)) {
-            printf("%i %.2f\n", elapsed, threshold);
+            info("%i %.2f\n", elapsed, threshold);
         }
     }
     // Determine if the surface is considered touched and report.
@@ -127,7 +127,7 @@ bool touch_status() {
         hits++;
         if (hits >= CFG_TOUCH_SMOOTH) {
             touched = over;
-            if (loglevel >= 1) printf("Touch status %i\n", touched);
+            if (loglevel >= 1) info("Touch status %i\n", touched);
         }
     } else {
         hits = 0;
