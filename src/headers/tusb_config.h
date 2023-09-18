@@ -45,13 +45,13 @@
 #define MS_OS_VENDOR 0x17
 
 #define USB_WIN_VENDOR  0x0170  // Input Labs.
-#define USB_WIN_PRODUCT 0xAE2B  // Alpakka (Xinput)
+#define USB_WIN_PRODUCT 0xA09A  // Alpakka (Xinput)
 
 #define USB_UNIX_VENDOR  0x045E  // 360 controller vendor.
 #define USB_UNIX_PRODUCT 0x028E  // 360 controller product.
 
 #define USB_GENERIC_VENDOR  0x0170  // Input Labs.
-#define USB_GENERIC_PRODUCT 0xAE2C  // Alpakka (HID complilant gamepad)
+#define USB_GENERIC_PRODUCT 0xA09B  // Alpakka (HID complilant gamepad)
 
 #define DESCRIPTOR_DEVICE \
     0x12,    /* .bLength */\
