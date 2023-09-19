@@ -143,17 +143,22 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
     double ty = 0;
     double tz = 0;
     uint32_t i = 0;
-    while(i < CFG_IMU_CALIBRATION_SAMPLES) {
-        if (!(i % IMU_CALIBRATION_BLINK_FREQ)) led_cycle_step();
+    uint32_t samples = (
+        mode ?
+        CFG_CALIBRATION_SAMPLES_ACCEL :
+        CFG_CALIBRATION_SAMPLES_GYRO
+    );
+    while(i < samples) {
+        if (!(i % CFG_CALIBRATION_BLINK_FREQ)) led_cycle_step();
         Vector sample = mode ? imu_read_accel_bits(cs) : imu_read_gyro_bits(cs);
         tx += sample.x;
         ty += sample.y;
         tz += sample.z;
         i++;
     }
-    *x = tx / CFG_IMU_CALIBRATION_SAMPLES;
-    *y = ty / CFG_IMU_CALIBRATION_SAMPLES;
-    *z = tz / CFG_IMU_CALIBRATION_SAMPLES;
+    *x = tx / samples;
+    *y = ty / samples;
+    *z = tz / samples;
     // Assuming the resting state of the controller is having a vector of 1G
     // pointing down. (Newton's fault for inventing the gravity /jk).
     if (mode==1) *z -= BIT_14;

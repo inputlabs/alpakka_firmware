@@ -21,9 +21,6 @@
 #define IMU_OUTY_L_XL 0x30  // Accelerometer read Y address.
 #define IMU_OUTZ_L_XL 0x2A  // Accelerometer read Z address.
 
-// LED animation speed while calibration.
-#define IMU_CALIBRATION_BLINK_FREQ 5000  // Ticks.
-
 void imu_init();
 Vector imu_read_gyro();
 Vector imu_read_accel();
