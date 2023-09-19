@@ -149,7 +149,7 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
         CFG_CALIBRATION_SAMPLES_GYRO
     );
     while(i < samples) {
-        if (!(i % IMU_CALIBRATION_BLINK_FREQ)) led_cycle_step();
+        if (!(i % CFG_CALIBRATION_BLINK_FREQ)) led_cycle_step();
         Vector sample = mode ? imu_read_accel_bits(cs) : imu_read_gyro_bits(cs);
         tx += sample.x;
         ty += sample.y;

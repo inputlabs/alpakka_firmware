@@ -54,14 +54,13 @@ void thumbstick_calibrate() {
     info("Thumbstick: calibrating...\n");
     float x = 0;
     float y = 0;
-    uint32_t len = 100000;
-    for(uint32_t i=0; i<len; i++) {
-        if (!(i % 5000)) led_cycle_step();
+    for(uint32_t i=0; i<CFG_CALIBRATION_SAMPLES_THUMBSTICK; i++) {
+        if (!(i % CFG_CALIBRATION_BLINK_FREQ)) led_cycle_step();
         x += thumbstick_adc(1, 0.0);
         y += thumbstick_adc(0, 0.0);
     }
-    x /= len;
-    y /= len;
+    x /= CFG_CALIBRATION_SAMPLES_THUMBSTICK;
+    y /= CFG_CALIBRATION_SAMPLES_THUMBSTICK;
     info("Thumbstick: calibration x=%f y=%f\n", x, y);
     config_set_thumbstick_offset(x, y);
     thumbstick_update_offsets();

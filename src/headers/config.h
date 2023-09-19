@@ -18,11 +18,13 @@
 
 #define CFG_TICK_FREQUENCY 250  // Hz.
 #define CFG_TICK_INTERVAL  (1000 / CFG_TICK_FREQUENCY)
+#define CFG_IMU_TICK_SAMPLES 128  // Multi-sampling per pooling cycle.
 #define CFG_HID_REPORT_PRIORITY_RATIO 8
 
-#define CFG_CALIBRATION_SAMPLES_GYRO 200000  // How long the calibration takes.
-#define CFG_CALIBRATION_SAMPLES_ACCEL 100000  // How long the calibration takes.
-#define CFG_IMU_TICK_SAMPLES 128  // Multi-sampling per pooling cycle.
+#define CFG_CALIBRATION_SAMPLES_THUMBSTICK 100000  // Samples.
+#define CFG_CALIBRATION_SAMPLES_GYRO 200000  // Samples.
+#define CFG_CALIBRATION_SAMPLES_ACCEL 100000  // Samples.
+#define CFG_CALIBRATION_BLINK_FREQ 5000  // Ticks.
 
 #define CFG_GYRO_SENSITIVITY  pow(2, -9) * 1.45
 #define CFG_GYRO_SENSITIVITY_X  CFG_GYRO_SENSITIVITY * 1
