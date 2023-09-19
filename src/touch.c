@@ -46,16 +46,6 @@ void touch_update_threshold() {
     }
 }
 
-void touch_init() {
-    info("INIT: Touch\n");
-    gpio_init(PIN_TOUCH_OUT);
-    gpio_set_dir(PIN_TOUCH_OUT, GPIO_OUT);
-    gpio_init(PIN_TOUCH_IN);
-    gpio_set_dir(PIN_TOUCH_IN, GPIO_IN);
-    gpio_set_pulls(PIN_TOUCH_IN, false, false);
-    touch_update_threshold();
-}
-
 uint32_t touch_get_elapsed() {
     uint32_t time_low;
     time_low = time_us_32();
@@ -133,4 +123,26 @@ bool touch_status() {
         hits = 0;
     }
     return touched;
+}
+
+void touch_log_baseline() {
+    uint8_t t0 = touch_get_elapsed();
+    sleep_ms(CFG_TICK_INTERVAL);
+    uint8_t t1 = touch_get_elapsed();
+    sleep_ms(CFG_TICK_INTERVAL);
+    uint8_t t2 = touch_get_elapsed();
+    sleep_ms(CFG_TICK_INTERVAL);
+    uint8_t t3 = touch_get_elapsed();
+    info("  Touch readings: %ius %ius %ius %ius\n", t0, t1, t2, t3);
+}
+
+void touch_init() {
+    info("INIT: Touch\n");
+    gpio_init(PIN_TOUCH_OUT);
+    gpio_set_dir(PIN_TOUCH_OUT, GPIO_OUT);
+    gpio_init(PIN_TOUCH_IN);
+    gpio_set_dir(PIN_TOUCH_IN, GPIO_IN);
+    gpio_set_pulls(PIN_TOUCH_IN, false, false);
+    touch_update_threshold();
+    touch_log_baseline();
 }

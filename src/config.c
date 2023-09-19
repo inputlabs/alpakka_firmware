@@ -34,13 +34,13 @@ void config_write_init() {
     // Default values when the config is created for first time.
     config_nvm_t config = {
         .header = NVM_CONFIG_HEADER,
-        .config_version = CFG_STRUCT_VERSION,
-        .os_mode = 0,
-        .profile = 1,
-        .sensitivity = 0,
+        .config_version = NVM_STRUCT_VERSION,
+        .protocol = 0,
+        .sens_mouse = 0,
+        .sens_touch = 0,
         .deadzone = 0,
-        .touch_threshold = 0,
         .vibration = 0,
+        .profile = 1,
         .offset_ts_x = 0,
         .offset_ts_y = 0,
         .offset_gyro_0_x = 0,
@@ -64,12 +64,12 @@ void config_print() {
     config_read(&config);
     info("NVM: dump\n");
     info("  config_version=%i\n", config.config_version);
-    info("  os_mode=%i\n", config.os_mode);
-    info("  profile=%i\n", config.profile);
-    info("  sensitivity=%i\n", config.sensitivity);
+    info("  protocol=%i\n", config.protocol);
+    info("  sens_mouse=%i\n", config.sens_mouse);
+    info("  sens_touch=%i\n", config.sens_touch);
     info("  deadzone=%i\n", config.deadzone);
-    info("  touch_threshold=%i\n", config.touch_threshold);
     info("  vibration=%i\n", config.vibration);
+    info("  profile=%i\n", config.profile);
     info("  offset_thumbstick x=%.4f y=%.4f\n",
         config.offset_ts_x,
         config.offset_ts_y
@@ -141,28 +141,22 @@ void config_set_accel_offset(double ax, double ay, double az, double bx, double 
     config_write(&config);
 }
 
-uint8_t config_get_os_mode() {
-    config_nvm_t config;
-    config_read(&config);
-    return config.os_mode;
-}
-
 void config_tune_update_leds() {
     config_nvm_t config;
     config_read(&config);
     if (config_tune_mode == PROC_TUNE_OS) {
         led_shape_all_off();
         led_set(LED_UP, true);
-        if (config.os_mode == 0) led_blink_mask(LED_MASK_LEFT);
-        if (config.os_mode == 1) led_blink_mask(LED_MASK_DOWN);
-        if (config.os_mode == 2) led_blink_mask(LED_MASK_RIGHT);
+        if (config.protocol == 0) led_blink_mask(LED_MASK_LEFT);
+        if (config.protocol == 1) led_blink_mask(LED_MASK_DOWN);
+        if (config.protocol == 2) led_blink_mask(LED_MASK_RIGHT);
     }
     if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
         led_shape_all_off();
         led_set(LED_DOWN, true);
-        if (config.sensitivity == 0) led_blink_mask(LED_MASK_LEFT);
-        if (config.sensitivity == 1) led_blink_mask(LED_MASK_UP);
-        if (config.sensitivity == 2) led_blink_mask(LED_MASK_RIGHT);
+        if (config.sens_mouse == 0) led_blink_mask(LED_MASK_LEFT);
+        if (config.sens_mouse == 1) led_blink_mask(LED_MASK_UP);
+        if (config.sens_mouse == 2) led_blink_mask(LED_MASK_RIGHT);
     }
     if (config_tune_mode == PROC_TUNE_DEADZONE) {
         led_shape_all_off();
@@ -174,11 +168,11 @@ void config_tune_update_leds() {
     if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
         led_shape_all_off();
         led_set(LED_RIGHT, true);
-        if (config.touch_threshold == 0) led_blink_mask(LED_MASK_DOWN);
-        if (config.touch_threshold == 1) led_blink_mask(LED_MASK_DOWN + LED_MASK_LEFT);
-        if (config.touch_threshold == 2) led_blink_mask(LED_MASK_LEFT);
-        if (config.touch_threshold == 3) led_blink_mask(LED_MASK_LEFT + LED_MASK_UP);
-        if (config.touch_threshold == 4) led_blink_mask(LED_MASK_UP);
+        if (config.sens_touch == 0) led_blink_mask(LED_MASK_DOWN);
+        if (config.sens_touch == 1) led_blink_mask(LED_MASK_DOWN + LED_MASK_LEFT);
+        if (config.sens_touch == 2) led_blink_mask(LED_MASK_LEFT);
+        if (config.sens_touch == 3) led_blink_mask(LED_MASK_LEFT + LED_MASK_UP);
+        if (config.sens_touch == 4) led_blink_mask(LED_MASK_UP);
     }
 }
 
@@ -193,16 +187,16 @@ void config_tune(bool direction) {
     config_read(&config);
     int8_t value = direction ? 1 : -1;
     if (config_tune_mode == PROC_TUNE_OS) {
-        config_set_protocol(constrain(config.os_mode + value, 0, 2));
+        config_set_protocol(constrain(config.protocol + value, 0, 2));
     }
     else if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
-        config_set_mouse_sens(constrain(config.sensitivity + value, 0, 2), true);
+        config_set_mouse_sens(constrain(config.sens_mouse + value, 0, 2), true);
     }
     else if (config_tune_mode == PROC_TUNE_DEADZONE) {
         config_set_deadzone(constrain(config.deadzone + value, 0, 2), true);
     }
     else if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
-        config_set_touch_sens(constrain(config.touch_threshold + value, 0, 4), true);
+        config_set_touch_sens(constrain(config.sens_touch + value, 0, 4), true);
     }
     config_tune_update_leds();
 }
@@ -263,14 +257,14 @@ uint8_t config_get_pcb_gen() {
 uint8_t config_get_protocol() {
     config_nvm_t config;
     config_read(&config);
-    return config.os_mode;
+    return config.protocol;
 }
 
 void config_set_protocol(uint8_t preset) {
     config_nvm_t config;
     config_read(&config);
-    if (preset == config.os_mode) return;
-    config.os_mode = preset;
+    if (preset == config.protocol) return;
+    config.protocol = preset;
     config_write(&config);
     profile_pending_reboot = true;
     hid_allow_communication = false;
@@ -280,13 +274,13 @@ void config_set_protocol(uint8_t preset) {
 uint8_t config_get_touch_sens() {
     config_nvm_t config;
     config_read(&config);
-    return config.touch_threshold;
+    return config.sens_touch;
 }
 
 void config_set_touch_sens(uint8_t preset, bool notify_webusb) {
     config_nvm_t config;
     config_read(&config);
-    config.touch_threshold = preset;
+    config.sens_touch = preset;
     config_write(&config);
     touch_update_threshold();
     if (notify_webusb) webusb_set_pending_config_share(SENS_TOUCH);
@@ -296,13 +290,13 @@ void config_set_touch_sens(uint8_t preset, bool notify_webusb) {
 uint8_t config_get_mouse_sens() {
     config_nvm_t config;
     config_read(&config);
-    return config.sensitivity;
+    return config.sens_mouse;
 }
 
 void config_set_mouse_sens(uint8_t preset, bool notify_webusb) {
     config_nvm_t config;
     config_read(&config);
-    config.sensitivity = preset;
+    config.sens_mouse = preset;
     config_write(&config);
     gyro_update_sensitivity();
     if (notify_webusb) webusb_set_pending_config_share(SENS_MOUSE);
@@ -334,7 +328,7 @@ void config_init() {
     config_read(&config);
     if (
         config.header != NVM_CONFIG_HEADER ||
-        config.config_version != CFG_STRUCT_VERSION
+        config.config_version != NVM_STRUCT_VERSION
     ) {
         warn("NVM config not found or incompatible, writing default instead\n");
         config_write_init();
