@@ -138,19 +138,21 @@ void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset) {
 
 void webusb_read() {
     if (!tud_ready() || usbd_edpt_busy(0, ADDR_WEBUSB_OUT)) return;
-    Ctrl message[8];
+    // Using static to ensure the variable lives long enough in memory to be
+    // referenced by the transfer underlying mechanisms.
+    static Ctrl ctrl;
     usbd_edpt_claim(0, ADDR_WEBUSB_OUT);
-    usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)message, 64);
+    usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)&ctrl, 64);
     usbd_edpt_release(0, ADDR_WEBUSB_OUT);
-    // Handle incomming messages.
-    if (message->message_type == PROC) {
-        webusb_handle_proc(message->payload[0]);
+    // Handle incomming message.
+    if (ctrl.message_type == PROC) {
+        webusb_handle_proc(ctrl.payload[0]);
     }
-    if (message->message_type == CONFIG_GET) {
-        webusb_handle_config_get(message->payload[0]);
+    if (ctrl.message_type == CONFIG_GET) {
+        webusb_handle_config_get(ctrl.payload[0]);
     }
-    if (message->message_type == CONFIG_SET) {
-        webusb_handle_config_set(message->payload[0], message->payload[1]);
+    if (ctrl.message_type == CONFIG_SET) {
+        webusb_handle_config_set(ctrl.payload[0], ctrl.payload[1]);
     }
 }
 
