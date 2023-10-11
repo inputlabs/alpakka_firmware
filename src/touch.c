@@ -17,30 +17,13 @@ uint8_t timeout = 0;
 float threshold = 0;
 
 void touch_update_threshold() {
-    uint8_t values_gen0[5] = {
-        CFG_GEN0_TOUCH_SENS_0,
-        CFG_GEN0_TOUCH_SENS_1,
-        CFG_GEN0_TOUCH_SENS_2,
-        CFG_GEN0_TOUCH_SENS_3,
-        CFG_GEN0_TOUCH_SENS_4
-    };
-    uint8_t values_gen1[5] = {
-        CFG_GEN1_TOUCH_SENS_0,
-        CFG_GEN1_TOUCH_SENS_1,
-        CFG_GEN1_TOUCH_SENS_2,
-        CFG_GEN1_TOUCH_SENS_3,
-        CFG_GEN1_TOUCH_SENS_4
-    };
-    // See https://github.com/inputlabs/alpakka_pcb/blob/main/generations.md
-    uint8_t preset = config_get_touch_sens();
+    sens_from_config = config_get_touch_sens_value();
     if (config_get_pcb_gen() == 0) {
          // PCB gen 0.
-        sens_from_config = values_gen0[preset];
         timeout = CFG_GEN0_TOUCH_TIMEOUT;
         dynamic_min = CFG_GEN0_TOUCH_DYNAMIC_MIN;
     } else {
         // PCB gen 1+.
-        sens_from_config = values_gen1[preset];
         timeout = CFG_GEN1_TOUCH_TIMEOUT;
         dynamic_min = CFG_GEN1_TOUCH_DYNAMIC_MIN;
     }

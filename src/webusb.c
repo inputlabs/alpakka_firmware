@@ -42,14 +42,36 @@ Ctrl webusb_ctrl_config_share() {
         .protocol_version = CTRL_VERSION,
         .device_id = ALPAKKA,
         .message_type = CONFIG_SHARE,
-        .len = 2
+        .len = 7
     };
     ctrl.payload[0] = webusb_pending_config_share;
     uint8_t index = webusb_pending_config_share;
-    if      (index == PROTOCOL)   ctrl.payload[1] = config_get_protocol();
-    else if (index == SENS_TOUCH) ctrl.payload[1] = config_get_touch_sens();
-    else if (index == SENS_MOUSE) ctrl.payload[1] = config_get_mouse_sens();
-    else if (index == DEADZONE)   ctrl.payload[1] = config_get_deadzone();
+    config_nvm_t config;
+    config_read(&config);
+    if (index == PROTOCOL) {
+        ctrl.payload[1] = config_get_protocol();
+        ctrl.payload[2] = 0;
+    }
+    else if (index == SENS_TOUCH) {
+        ctrl.payload[1] = config_get_touch_sens_preset();
+        ctrl.payload[2] = 0;  // Auto.
+        ctrl.payload[3] = config.sens_touch_value_1;
+        ctrl.payload[4] = config.sens_touch_value_2;
+        ctrl.payload[5] = config.sens_touch_value_3;
+        ctrl.payload[6] = config.sens_touch_value_4;
+    }
+    else if (index == SENS_MOUSE) {
+        ctrl.payload[1] = config_get_mouse_sens_preset();
+        ctrl.payload[2] = config.sens_mouse_value_0 * 10;
+        ctrl.payload[3] = config.sens_mouse_value_1 * 10;
+        ctrl.payload[4] = config.sens_mouse_value_2 * 10;
+    }
+    else if (index == DEADZONE) {
+        ctrl.payload[1] = config_get_deadzone_preset();
+        ctrl.payload[2] = config.deadzone_value_0 * 100;
+        ctrl.payload[3] = config.deadzone_value_1 * 100;
+        ctrl.payload[4] = config.deadzone_value_2 * 100;
+    }
     webusb_pending_config_share = 0;
     return ctrl;
 }
@@ -127,13 +149,34 @@ void webusb_handle_config_get(Ctrl_cfg_type key) {
     webusb_pending_config_share = key;
 }
 
-void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset) {
+void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[5]) {
     if (key > 4) return;
     webusb_pending_config_share = key;
-    if      (key == PROTOCOL)   config_set_protocol(preset);
-    else if (key == SENS_TOUCH) config_set_touch_sens(preset, false);
-    else if (key == SENS_MOUSE) config_set_mouse_sens(preset, false);
-    else if (key == DEADZONE)   config_set_deadzone(preset, false);
+    config_nvm_t config;
+    config_read(&config);
+    if (key == PROTOCOL) config_set_protocol(preset);
+    else if (key == SENS_TOUCH) {
+        config.sens_touch_value_1 = values[1];
+        config.sens_touch_value_2 = values[2];
+        config.sens_touch_value_3 = values[3];
+        config.sens_touch_value_4 = values[4];
+        config_write(&config);
+        config_set_touch_sens_preset(preset, false);
+    }
+    else if (key == SENS_MOUSE) {
+        config.sens_mouse_value_0 = values[0] / 10.0;
+        config.sens_mouse_value_1 = values[1] / 10.0;
+        config.sens_mouse_value_2 = values[2] / 10.0;
+        config_write(&config);
+        config_set_mouse_sens_preset(preset, false);
+    }
+    else if (key == DEADZONE) {
+        config.deadzone_value_0 = values[0] / 100.0;
+        config.deadzone_value_1 = values[1] / 100.0;
+        config.deadzone_value_2 = values[2] / 100.0;
+        config_write(&config);
+        config_set_deadzone_preset(preset, false);
+    }
 }
 
 void webusb_read() {
@@ -152,7 +195,7 @@ void webusb_read() {
         webusb_handle_config_get(ctrl.payload[0]);
     }
     if (ctrl.message_type == CONFIG_SET) {
-        webusb_handle_config_set(ctrl.payload[0], ctrl.payload[1]);
+        webusb_handle_config_set(ctrl.payload[0], ctrl.payload[1], &ctrl.payload[2]);
     }
 }
 

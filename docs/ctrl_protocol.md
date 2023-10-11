@@ -16,7 +16,7 @@ Padding zeros to complete the 64 bytes may be used. Therefore the protocol avoid
 
 ## Package general structure
 
-| Byte 0 | 1 | 2 | 3 | 4-63 |
+| Byte 0 | 1 | 2 | 3 | 4~63 |
 | - | - | - | - | - |
 | Protocol version | Device Id | Message type | Payload size | Payload
 
@@ -51,7 +51,7 @@ Message output by the firmware, as strings of arbitrary size.
 
 Direction: `Controller` -> `App`
 
-| Byte 0 | 1 | 2 | 3 | 4-63 |
+| Byte 0 | 1 | 2 | 3 | 4~63 |
 | - | - | - | - | - |
 | Protocol version | Device Id | Message type | Payload size | Payload
 |                  |           | LOG          | 1-60         | Log message
@@ -63,8 +63,8 @@ Direction: `Controller` <- `App`
 
 | Byte 0 | 1 | 2 | 3 | 4 |
 | - | - | - | - | - |
-| Protocol version | Device Id | Message type | Payload size | Payload
-|                  |           | PROC         | 1            | PROC INDEX
+| Version | Device Id | Message type | Payload size | Payload
+|         |           | PROC         | 1            | PROC INDEX
 
 ### Procedure index
 Procedure index as defined in [hid.h](/src/headers/hid.h#L179).
@@ -76,28 +76,28 @@ Direction: `Controller` <- `App`
 
 | Byte 0 | 1 | 2 | 3 | 4 |
 | - | - | - | - | - |
-| Protocol version | Device Id | Message type | Payload size | Payload
-|                  |           | CONFIG_GET   | 1            | CONFIG INDEX
+| Version | Device Id | Message type | Payload size | Payload
+|         |           | CONFIG_GET   | 1            | CONFIG INDEX
 
 ## Config SET message
 Change the value of some specific configuration parameter.
 
 Direction: `Controller` <- `App`
 
-| Byte 0 | 1 | 2 | 3 | 4 | 5 |
-| - | - | - | - | - | - |
-| Protocol version | Device Id | Message type | Payload size | Payload      | Payload
-|                  |           | CONFIG_SET   | 2            | CONFIG INDEX | VALUE
+| Byte 0 | 1 | 2 | 3 | 4 | 5 | 6~10
+| - | - | - | - | - | - | - |
+| Version | Device Id | Message type | Payload size | Payload      | Payload       | Payload
+|         |           | CONFIG_SET   | 7            | CONFIG INDEX | PRESET INDEX  | PRESETS VALUE
 
 ## Config SHARE message
 Notify the current value of some specific configuration parameter.
 
 Direction: `Controller` -> `App`
 
-| Byte 0 | 1 | 2 | 3 | 4 | 5 |
-| - | - | - | - | - | - |
-| Protocol version | Device Id | Message type | Payload size | Payload      | Payload
-|                  |           | CONFIG_SHARE | 2            | CONFIG INDEX | VALUE
+| Byte 0 | 1 | 2 | 3 | 4 | 5 | 6~10 |
+| - | - | - | - | - | - | - |
+| Version | Device Id | Message type | Payload size | Payload      | Payload       | Payload
+|         |           | CONFIG_SHARE | 7            | CONFIG INDEX | PRESET INDEX  | PRESETS VALUE
 
 ### Config index
 

@@ -40,6 +40,17 @@ void config_write_init() {
         .sens_touch = 0,
         .deadzone = 0,
         .vibration = 0,
+        .sens_mouse_value_0 = 1.0,
+        .sens_mouse_value_1 = 1.5,
+        .sens_mouse_value_2 = 2.0,
+        // See https://github.com/inputlabs/alpakka_pcb/blob/main/generations.md
+        .sens_touch_value_1 = config_get_pcb_gen() == 0 ? 8 : 40,
+        .sens_touch_value_2 = config_get_pcb_gen() == 0 ? 5 : 25,
+        .sens_touch_value_3 = config_get_pcb_gen() == 0 ? 3 : 15,
+        .sens_touch_value_4 = config_get_pcb_gen() == 0 ? 2 : 10,
+        .deadzone_value_0 = 0.07,
+        .deadzone_value_1 = 0.10,
+        .deadzone_value_2 = 0.15,
         .profile = 1,
         .offset_ts_x = 0,
         .offset_ts_y = 0,
@@ -65,9 +76,25 @@ void config_print() {
     info("NVM: dump\n");
     info("  config_version=%i\n", config.config_version);
     info("  protocol=%i\n", config.protocol);
-    info("  sens_mouse=%i\n", config.sens_mouse);
-    info("  sens_touch=%i\n", config.sens_touch);
-    info("  deadzone=%i\n", config.deadzone);
+    info("  sens_mouse: preset=%i (%.1f, %.1f, %.1f)\n",
+        config.sens_mouse,
+        config.sens_mouse_value_0,
+        config.sens_mouse_value_1,
+        config.sens_mouse_value_2
+    );
+    info("  sens_touch: preset=%i (auto, %i, %i, %i, %i) \n",
+        config.sens_touch,
+        config.sens_touch_value_1,
+        config.sens_touch_value_2,
+        config.sens_touch_value_3,
+        config.sens_touch_value_4
+    );
+    info("  deadzone: preset=%i (%.2f, %.2f, %.2f)\n",
+        config.deadzone,
+        config.deadzone_value_0,
+        config.deadzone_value_1,
+        config.deadzone_value_2
+    );
     info("  vibration=%i\n", config.vibration);
     info("  profile=%i\n", config.profile);
     info("  offset_thumbstick x=%.4f y=%.4f\n",
@@ -190,13 +217,13 @@ void config_tune(bool direction) {
         config_set_protocol(constrain(config.protocol + value, 0, 2));
     }
     else if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
-        config_set_mouse_sens(constrain(config.sens_mouse + value, 0, 2), true);
+        config_set_mouse_sens_preset(constrain(config.sens_mouse + value, 0, 2), true);
     }
     else if (config_tune_mode == PROC_TUNE_DEADZONE) {
-        config_set_deadzone(constrain(config.deadzone + value, 0, 2), true);
+        config_set_deadzone_preset(constrain(config.deadzone + value, 0, 2), true);
     }
     else if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
-        config_set_touch_sens(constrain(config.sens_touch + value, 0, 4), true);
+        config_set_touch_sens_preset(constrain(config.sens_touch + value, 0, 4), true);
     }
     config_tune_update_leds();
 }
@@ -271,13 +298,13 @@ void config_set_protocol(uint8_t preset) {
     info("Config: Protocol preset %i\n", preset);
 }
 
-uint8_t config_get_touch_sens() {
+uint8_t config_get_touch_sens_preset() {
     config_nvm_t config;
     config_read(&config);
     return config.sens_touch;
 }
 
-void config_set_touch_sens(uint8_t preset, bool notify_webusb) {
+void config_set_touch_sens_preset(uint8_t preset, bool notify_webusb) {
     config_nvm_t config;
     config_read(&config);
     config.sens_touch = preset;
@@ -287,13 +314,22 @@ void config_set_touch_sens(uint8_t preset, bool notify_webusb) {
     info("Config: Touch sensitivity preset %i\n", preset);
 }
 
-uint8_t config_get_mouse_sens() {
+uint8_t config_get_touch_sens_value() {
+    config_nvm_t config;
+    config_read(&config);
+    if (config.sens_touch == 1) return config.sens_touch_value_1;
+    if (config.sens_touch == 2) return config.sens_touch_value_2;
+    if (config.sens_touch == 3) return config.sens_touch_value_3;
+    if (config.sens_touch == 4) return config.sens_touch_value_4;
+}
+
+uint8_t config_get_mouse_sens_preset() {
     config_nvm_t config;
     config_read(&config);
     return config.sens_mouse;
 }
 
-void config_set_mouse_sens(uint8_t preset, bool notify_webusb) {
+void config_set_mouse_sens_preset(uint8_t preset, bool notify_webusb) {
     config_nvm_t config;
     config_read(&config);
     config.sens_mouse = preset;
@@ -303,13 +339,21 @@ void config_set_mouse_sens(uint8_t preset, bool notify_webusb) {
     info("Config: Mouse sensitivity preset %i\n", preset);
 }
 
-uint8_t config_get_deadzone() {
+double config_get_mouse_sens_value() {
+    config_nvm_t config;
+    config_read(&config);
+    if (config.sens_mouse == 0) return config.sens_mouse_value_0;
+    if (config.sens_mouse == 1) return config.sens_mouse_value_1;
+    if (config.sens_mouse == 2) return config.sens_mouse_value_2;
+}
+
+uint8_t config_get_deadzone_preset() {
     config_nvm_t config;
     config_read(&config);
     return config.deadzone;
 }
 
-void config_set_deadzone(uint8_t preset, bool notify_webusb) {
+void config_set_deadzone_preset(uint8_t preset, bool notify_webusb) {
     config_nvm_t config;
     config_read(&config);
     config.deadzone = preset;
@@ -317,6 +361,14 @@ void config_set_deadzone(uint8_t preset, bool notify_webusb) {
     thumbstick_update_deadzone();
     if (notify_webusb) webusb_set_pending_config_share(DEADZONE);
     info("Config: Deadzone preset %i\n", preset);
+}
+
+float config_get_deadzone_value() {
+    config_nvm_t config;
+    config_read(&config);
+    if (config.deadzone == 0) return config.deadzone_value_0;
+    if (config.deadzone == 1) return config.deadzone_value_1;
+    if (config.deadzone == 2) return config.deadzone_value_2;
 }
 
 void config_init() {
