@@ -8,7 +8,7 @@
 
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
-#define NVM_STRUCT_VERSION 11
+#define NVM_STRUCT_VERSION 12
 
 #define PROTOCOL_XINPUT_WIN 0
 #define PROTOCOL_XINPUT_UNIX 1
@@ -30,9 +30,6 @@
 #define CFG_GYRO_SENSITIVITY_X  CFG_GYRO_SENSITIVITY * 1
 #define CFG_GYRO_SENSITIVITY_Y  CFG_GYRO_SENSITIVITY * 1
 #define CFG_GYRO_SENSITIVITY_Z  CFG_GYRO_SENSITIVITY * 1
-#define CFG_GYRO_SENSITIVITY_MULTIPLIER_LOW 1.0
-#define CFG_GYRO_SENSITIVITY_MULTIPLIER_MID 4.0 / 3.0
-#define CFG_GYRO_SENSITIVITY_MULTIPLIER_HIGH 2.0
 #define CFG_MOUSE_WHEEL_DEBOUNCE 1000
 #define CFG_ACCEL_CORRECTION_SMOOTH 50  // Number of averaged samples for the correction vector.
 #define CFG_ACCEL_CORRECTION_RATE 0.0007  // How fast the correction is applied.
@@ -44,9 +41,6 @@
 #define CFG_HOLD_OVERLAP_LONG_TIME 2000  // Milliseconds.
 #define CFG_DOUBLE_PRESS 300  // Milliseconds.
 
-#define CFG_THUMBSTICK_DEADZONE_LOW 0.07
-#define CFG_THUMBSTICK_DEADZONE_MID 0.10
-#define CFG_THUMBSTICK_DEADZONE_HIGH 0.15
 #define CFG_THUMBSTICK_SATURATION 1.8
 #define CFG_THUMBSTICK_INNER_RADIUS 0.75
 
@@ -55,12 +49,15 @@
 typedef struct {
     uint8_t header;
     uint8_t config_version;
+    uint8_t profile;
     int8_t protocol;
     int8_t sens_mouse;
     int8_t sens_touch;
     int8_t deadzone;
     int8_t vibration;
-    uint8_t profile;
+    double sens_mouse_values[3];
+    uint8_t sens_touch_values[5];
+    float deadzone_values[3];
     float offset_ts_x;
     float offset_ts_y;
     double offset_gyro_0_x;
@@ -98,10 +95,19 @@ void config_set_pcb_gen(uint8_t gen);
 uint8_t config_get_pcb_gen();
 
 uint8_t config_get_protocol();
-uint8_t config_get_touch_sens();
-uint8_t config_get_mouse_sens();
-uint8_t config_get_deadzone();
+uint8_t config_get_touch_sens_preset();
+uint8_t config_get_mouse_sens_preset();
+uint8_t config_get_deadzone_preset();
+
 void config_set_protocol(uint8_t preset);
-void config_set_touch_sens(uint8_t preset, bool notify_webusb);
-void config_set_mouse_sens(uint8_t preset, bool notify_webusb);
-void config_set_deadzone(uint8_t preset, bool notify_webusb);
+void config_set_touch_sens_preset(uint8_t preset, bool notify_webusb);
+void config_set_mouse_sens_preset(uint8_t preset, bool notify_webusb);
+void config_set_deadzone_preset(uint8_t preset, bool notify_webusb);
+
+uint8_t config_get_touch_sens_value(uint8_t index);
+double config_get_mouse_sens_value(uint8_t index);
+float config_get_deadzone_value(uint8_t index);
+
+void config_set_touch_sens_values(uint8_t* values);
+void config_set_mouse_sens_values(double* values);
+void config_set_deadzone_values(float* values);

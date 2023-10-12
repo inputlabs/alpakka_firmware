@@ -35,12 +35,8 @@ float thumbstick_adc(uint8_t adc_index, float offset) {
 }
 
 void thumbstick_update_deadzone() {
-    float deadzones[3] = {
-        CFG_THUMBSTICK_DEADZONE_LOW,
-        CFG_THUMBSTICK_DEADZONE_MID,
-        CFG_THUMBSTICK_DEADZONE_HIGH
-    };
-    config_deadzone = deadzones[config_get_deadzone()];
+    uint8_t preset = config_get_deadzone_preset();
+    config_deadzone = config_get_deadzone_value(preset);
 }
 
 void thumbstick_update_offsets() {
