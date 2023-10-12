@@ -46,31 +46,29 @@ Ctrl webusb_ctrl_config_share() {
     };
     ctrl.payload[0] = webusb_pending_config_share;
     uint8_t index = webusb_pending_config_share;
-    config_nvm_t config;
-    config_read(&config);
     if (index == PROTOCOL) {
         ctrl.payload[1] = config_get_protocol();
-        ctrl.payload[2] = 0;
+        // All values are sent as zero / ignored.
     }
     else if (index == SENS_TOUCH) {
         ctrl.payload[1] = config_get_touch_sens_preset();
         ctrl.payload[2] = 0;  // Auto.
-        ctrl.payload[3] = config.sens_touch_value_1;
-        ctrl.payload[4] = config.sens_touch_value_2;
-        ctrl.payload[5] = config.sens_touch_value_3;
-        ctrl.payload[6] = config.sens_touch_value_4;
+        ctrl.payload[3] = config_get_touch_sens_value(1);
+        ctrl.payload[4] = config_get_touch_sens_value(2);
+        ctrl.payload[5] = config_get_touch_sens_value(3);
+        ctrl.payload[6] = config_get_touch_sens_value(4);
     }
     else if (index == SENS_MOUSE) {
         ctrl.payload[1] = config_get_mouse_sens_preset();
-        ctrl.payload[2] = config.sens_mouse_value_0 * 10;
-        ctrl.payload[3] = config.sens_mouse_value_1 * 10;
-        ctrl.payload[4] = config.sens_mouse_value_2 * 10;
+        ctrl.payload[2] = config_get_mouse_sens_value(0) * 10;
+        ctrl.payload[3] = config_get_mouse_sens_value(1) * 10;
+        ctrl.payload[4] = config_get_mouse_sens_value(2) * 10;
     }
     else if (index == DEADZONE) {
         ctrl.payload[1] = config_get_deadzone_preset();
-        ctrl.payload[2] = config.deadzone_value_0 * 100;
-        ctrl.payload[3] = config.deadzone_value_1 * 100;
-        ctrl.payload[4] = config.deadzone_value_2 * 100;
+        ctrl.payload[2] = config_get_deadzone_value(0) * 100;
+        ctrl.payload[3] = config_get_deadzone_value(1) * 100;
+        ctrl.payload[4] = config_get_deadzone_value(2) * 100;
     }
     webusb_pending_config_share = 0;
     return ctrl;
@@ -122,6 +120,7 @@ bool webusb_flush() {
 }
 
 void webusb_write(char *msg) {
+    // Queue data to be sent (flushed) to the app later.
     uint16_t len = strlen(msg);
     if (webusb_ptr_in + len >= WEBUSB_BUFFER_SIZE-64-1) {
         printf("Warning: WebUSB buffer is full\n");
@@ -156,30 +155,35 @@ void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[
     config_read(&config);
     if (key == PROTOCOL) config_set_protocol(preset);
     else if (key == SENS_TOUCH) {
-        config.sens_touch_value_1 = values[1];
-        config.sens_touch_value_2 = values[2];
-        config.sens_touch_value_3 = values[3];
-        config.sens_touch_value_4 = values[4];
-        config_write(&config);
+        config_set_touch_sens_values(values);
         config_set_touch_sens_preset(preset, false);
     }
     else if (key == SENS_MOUSE) {
-        config.sens_mouse_value_0 = values[0] / 10.0;
-        config.sens_mouse_value_1 = values[1] / 10.0;
-        config.sens_mouse_value_2 = values[2] / 10.0;
-        config_write(&config);
+        // Scaled by 10 since the USB communication works with integers.
+        double values_fmt[] = {
+            values[0] / 10.0,
+            values[1] / 10.0,
+            values[2] / 10.0
+            // Indexes 3 and 4 are ignored.
+        };
+        config_set_mouse_sens_values(values_fmt);
         config_set_mouse_sens_preset(preset, false);
     }
     else if (key == DEADZONE) {
-        config.deadzone_value_0 = values[0] / 100.0;
-        config.deadzone_value_1 = values[1] / 100.0;
-        config.deadzone_value_2 = values[2] / 100.0;
-        config_write(&config);
+        // Scaled by 100 so the USB communication works with integers.
+        float values_fmt[] = {
+            values[0] / 100.0,
+            values[1] / 100.0,
+            values[2] / 100.0
+            // Indexes 3 and 4 are ignored.
+        };
+        config_set_deadzone_values(values_fmt);
         config_set_deadzone_preset(preset, false);
     }
 }
 
 void webusb_read() {
+    // Parse data coming from the app.
     if (!tud_ready() || usbd_edpt_busy(0, ADDR_WEBUSB_OUT)) return;
     // Using static to ensure the variable lives long enough in memory to be
     // referenced by the transfer underlying mechanisms.
@@ -195,7 +199,10 @@ void webusb_read() {
         webusb_handle_config_get(ctrl.payload[0]);
     }
     if (ctrl.message_type == CONFIG_SET) {
-        webusb_handle_config_set(ctrl.payload[0], ctrl.payload[1], &ctrl.payload[2]);
+        webusb_handle_config_set(
+            ctrl.payload[0],  // Config index.
+            ctrl.payload[1],  // Preset index.
+            &ctrl.payload[2]);  // Preset values. (Reference to sub-array).
     }
 }
 

@@ -49,22 +49,15 @@
 typedef struct {
     uint8_t header;
     uint8_t config_version;
+    uint8_t profile;
     int8_t protocol;
     int8_t sens_mouse;
     int8_t sens_touch;
     int8_t deadzone;
     int8_t vibration;
-    double sens_mouse_value_0;
-    double sens_mouse_value_1;
-    double sens_mouse_value_2;
-    uint8_t sens_touch_value_1;
-    uint8_t sens_touch_value_2;
-    uint8_t sens_touch_value_3;
-    uint8_t sens_touch_value_4;
-    float deadzone_value_0;
-    float deadzone_value_1;
-    float deadzone_value_2;
-    uint8_t profile;
+    double sens_mouse_values[3];
+    uint8_t sens_touch_values[5];
+    float deadzone_values[3];
     float offset_ts_x;
     float offset_ts_y;
     double offset_gyro_0_x;
@@ -84,7 +77,6 @@ typedef struct {
 
 void config_init();
 void config_read(config_nvm_t* config);
-void config_write(config_nvm_t* config);
 void config_set_profile(uint8_t profile);
 uint8_t config_get_profile();
 void config_set_thumbstick_offset(float x, float y);
@@ -112,6 +104,10 @@ void config_set_touch_sens_preset(uint8_t preset, bool notify_webusb);
 void config_set_mouse_sens_preset(uint8_t preset, bool notify_webusb);
 void config_set_deadzone_preset(uint8_t preset, bool notify_webusb);
 
-uint8_t config_get_touch_sens_value();
-double config_get_mouse_sens_value();
-float config_get_deadzone_value();
+uint8_t config_get_touch_sens_value(uint8_t index);
+double config_get_mouse_sens_value(uint8_t index);
+float config_get_deadzone_value(uint8_t index);
+
+void config_set_touch_sens_values(uint8_t* values);
+void config_set_mouse_sens_values(double* values);
+void config_set_deadzone_values(float* values);

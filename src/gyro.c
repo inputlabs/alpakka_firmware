@@ -25,7 +25,8 @@ Vector world_right;
 Vector accel_smooth;
 
 void gyro_update_sensitivity() {
-    sensitivity_multiplier = config_get_mouse_sens_value();
+    uint8_t preset = config_get_mouse_sens_preset();
+    sensitivity_multiplier = config_get_mouse_sens_value(preset);
 }
 
 // TODO: Experimental.

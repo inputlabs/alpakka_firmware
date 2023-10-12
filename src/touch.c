@@ -17,7 +17,8 @@ uint8_t timeout = 0;
 float threshold = 0;
 
 void touch_update_threshold() {
-    sens_from_config = config_get_touch_sens_value();
+    uint8_t preset = config_get_touch_sens_preset();
+    sens_from_config = config_get_touch_sens_value(preset);
     if (config_get_pcb_gen() == 0) {
          // PCB gen 0.
         timeout = CFG_GEN0_TOUCH_TIMEOUT;
