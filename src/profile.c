@@ -10,6 +10,7 @@
 #include "hid.h"
 #include "led.h"
 #include "logging.h"
+#include "helper.h"
 
 Profile profiles[16];
 uint8_t profile_active_index = -1;
@@ -74,10 +75,30 @@ void Profile__reset(Profile *self) {
     self->gyro.reset(&self->gyro);
 }
 
+Tuple16 Profile__get_section(Profile *self, ProfileSection section) {
+    Button button;
+    if (section == SECTION_A) button = self->a;
+    if (section == SECTION_B) button = self->b;
+    if (section == SECTION_X) button = self->x;
+    if (section == SECTION_Y) button = self->y;
+    return (Tuple16){
+        button.mode,
+        button.actions[0],
+        button.actions[1],
+        button.actions[2],
+        button.actions[3],
+        button.actions_secondary[0],
+        button.actions_secondary[1],
+        button.actions_secondary[2],
+        button.actions_secondary[3],
+    };
+}
+
 Profile Profile_ () {
     Profile profile;
     profile.report = Profile__report;
     profile.reset = Profile__reset;
+    profile.get_section = Profile__get_section;
     return profile;
 }
 
@@ -155,6 +176,10 @@ Profile* profile_get_active(bool strict) {
         else if (home_gamepad_is_active) return &profiles[PROFILE_CONSOLE_LEGACY];
         else return &profiles[profile_active_index];
     }
+}
+
+Profile* profile_get_profiles() {
+    return profiles;
 }
 
 void profile_enable_all(bool value) {

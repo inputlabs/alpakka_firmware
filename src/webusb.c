@@ -11,12 +11,15 @@
 #include "tusb_config.h"
 #include "helper.h"
 #include "logging.h"
+#include "profile.h"
 
 char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
 Ctrl_cfg_type webusb_pending_config_share = 0;
+uint8_t webusb_pending_profile_share = 0;
+uint8_t webusb_pending_section_share = 0;
 
 Ctrl webusb_ctrl_log() {
     Ctrl ctrl = {
@@ -74,6 +77,36 @@ Ctrl webusb_ctrl_config_share() {
     return ctrl;
 }
 
+Ctrl webusb_ctrl_profile_share() {
+    Ctrl ctrl = {
+        .protocol_version = CTRL_VERSION,
+        .device_id = ALPAKKA,
+        .message_type = PROFILE_SHARE,
+        .len = 11
+    };
+    Profile* profiles = profile_get_profiles();
+    Profile profile = profiles[webusb_pending_profile_share];
+    uint8_t section = webusb_pending_section_share;
+    if (section >= 10) { // TODO
+        u8* values = profile.get_section(&profile, section).values;
+        ctrl.payload[0] = webusb_pending_profile_share;
+        ctrl.payload[1] = section;
+        ctrl.payload[2] = values[0];
+        ctrl.payload[3] = values[1];
+        ctrl.payload[4] = values[2];
+        ctrl.payload[5] = values[3];
+        ctrl.payload[6] = values[4];
+        ctrl.payload[7] = values[5];
+        ctrl.payload[8] = values[6];
+        ctrl.payload[9] = values[7];
+        ctrl.payload[10] = values[8];
+        ctrl.payload[11] = values[9];
+    }
+    webusb_pending_profile_share = 0;
+    webusb_pending_section_share = 0;
+    return ctrl;
+}
+
 void webusb_flush_force() {
     uint16_t i = 0;
     while(true) {
@@ -95,7 +128,9 @@ bool webusb_flush() {
     // Check if there is anything to flush.
     if (
         webusb_ptr_in == 0 &&
-        !webusb_pending_config_share
+        !webusb_pending_config_share &&
+        !webusb_pending_profile_share &&
+        !webusb_pending_section_share
     ) {
         return true;
     }
@@ -111,8 +146,13 @@ bool webusb_flush() {
     // referenced by the transfer underlying mechanisms.
     static Ctrl ctrl;
     // Generate message.
-    if (webusb_pending_config_share) ctrl = webusb_ctrl_config_share();
-    else ctrl = webusb_ctrl_log();
+    if (webusb_pending_config_share) {
+        ctrl = webusb_ctrl_config_share();
+    } else if (webusb_pending_profile_share || webusb_pending_section_share) {
+        ctrl = webusb_ctrl_profile_share();
+    } else {
+        ctrl = webusb_ctrl_log();
+    }
     // Transfer message.
     usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (unsigned char *)&ctrl, ctrl.len+4);
     usbd_edpt_release(0, ADDR_WEBUSB_IN);
@@ -146,6 +186,11 @@ void webusb_handle_proc(uint8_t proc) {
 
 void webusb_handle_config_get(Ctrl_cfg_type key) {
     webusb_pending_config_share = key;
+}
+
+void webusb_handle_profile_get(u8 profile, u8 section) {
+    webusb_pending_profile_share = profile;
+    webusb_pending_section_share = section;
 }
 
 void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[5]) {
@@ -195,14 +240,17 @@ void webusb_read() {
     if (ctrl.message_type == PROC) {
         webusb_handle_proc(ctrl.payload[0]);
     }
-    if (ctrl.message_type == CONFIG_GET) {
+    else if (ctrl.message_type == CONFIG_GET) {
         webusb_handle_config_get(ctrl.payload[0]);
     }
-    if (ctrl.message_type == CONFIG_SET) {
+    else if (ctrl.message_type == CONFIG_SET) {
         webusb_handle_config_set(
             ctrl.payload[0],  // Config index.
             ctrl.payload[1],  // Preset index.
             &ctrl.payload[2]);  // Preset values. (Reference to sub-array).
+    }
+    else if (ctrl.message_type == PROFILE_GET) {
+        webusb_handle_profile_get(ctrl.payload[0], ctrl.payload[1]);
     }
 }
 

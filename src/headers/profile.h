@@ -7,6 +7,7 @@
 #include "dhat.h"
 #include "rotary.h"
 #include "gyro.h"
+#include "helper.h"
 
 typedef enum ProfileIndex_enum {
     PROFILE_HOME,
@@ -20,11 +21,19 @@ typedef enum ProfileIndex_enum {
     PROFILE_RTS,
 } ProfileIndex;
 
+typedef enum ProfileSection_enum {
+    SECTION_NAME = 1,
+    SECTION_A = 10,
+    SECTION_B,
+    SECTION_X,
+    SECTION_Y,
+} ProfileSection;
+
 typedef struct Profile_struct Profile;
 struct Profile_struct {
     void (*report) (Profile *self);
     void (*reset) (Profile *self);
-    bool (*was_used) (Profile *self);
+    Tuple16 (*get_section) (Profile *self, ProfileSection section);
     Button select_1;
     Button select_2;
     Button start_1;
@@ -54,7 +63,6 @@ struct Profile_struct {
     Rotary rotary;
     Gyro gyro;
 };
-
 Profile Profile_ ();
 
 void profile_init();
@@ -67,6 +75,7 @@ void profile_update_leds();
 void profile_enable_all(bool value);
 void profile_enable_abxy(bool value);
 Profile* profile_get_active(bool strict);
+Profile* profile_get_profiles();
 
 Profile profile_init_none();
 Profile profile_init_home();

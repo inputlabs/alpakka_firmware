@@ -21,6 +21,9 @@ typedef enum Ctrl_msg_type_enum {
     CONFIG_GET,
     CONFIG_SET,
     CONFIG_SHARE,
+    PROFILE_GET,
+    PROFILE_SET,
+    PROFILE_SHARE,
 } Ctrl_msg_type;
 
 typedef enum Ctrl_cfg_type_enum {
