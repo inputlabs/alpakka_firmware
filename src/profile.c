@@ -81,6 +81,16 @@ Tuple16 Profile__get_section(Profile *self, ProfileSection section) {
     if (section == SECTION_B) button = self->b;
     if (section == SECTION_X) button = self->x;
     if (section == SECTION_Y) button = self->y;
+    if (section == SECTION_DPAD_LEFT) button = self->dpad_left;
+    if (section == SECTION_DPAD_RIGHT) button = self->dpad_right;
+    if (section == SECTION_DPAD_UP) button = self->dpad_up;
+    if (section == SECTION_DPAD_DOWN) button = self->dpad_down;
+    if (section == SECTION_L1) button = self->l1;
+    if (section == SECTION_L2) button = self->l2;
+    if (section == SECTION_L4) button = self->l4;
+    if (section == SECTION_R1) button = self->r1;
+    if (section == SECTION_R2) button = self->r2;
+    if (section == SECTION_R4) button = self->r4;
     return (Tuple16){
         button.mode,
         button.actions[0],

@@ -27,6 +27,20 @@ typedef enum ProfileSection_enum {
     SECTION_B,
     SECTION_X,
     SECTION_Y,
+    SECTION_DPAD_LEFT,
+    SECTION_DPAD_RIGHT,
+    SECTION_DPAD_UP,
+    SECTION_DPAD_DOWN,
+    SECTION_SELECT_1,
+    SECTION_SELECT_2,
+    SECTION_START_1,
+    SECTION_START_2,
+    SECTION_L1,
+    SECTION_L2,
+    SECTION_L4,
+    SECTION_R1,
+    SECTION_R2,
+    SECTION_R4,
 } ProfileSection;
 
 typedef struct Profile_struct Profile;
