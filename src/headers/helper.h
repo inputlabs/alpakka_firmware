@@ -61,6 +61,7 @@ uint8_t random8();
 // Input MAX: Upper part of the range, that will result in +1.
 #define ramp(x, min, max)  constrain( 2 * ((x-min) / (max-min)) - 1, -1, 1)
 
+// Int type aliases.
 typedef int8_t i8;
 typedef int16_t i16;
 typedef int32_t i32;
@@ -68,7 +69,12 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
+// Anonymous tuples with known size, so they can be passed by value.
 typedef struct Tuple2_struct {u8 values[2];} Tuple2;
 typedef struct Tuple4_struct {u8 values[4];} Tuple4;
 typedef struct Tuple8_struct {u8 values[8];} Tuple8;
 typedef struct Tuple16_struct {u8 values[16];} Tuple16;
+
+// Switch statement without breaks.
+#define case_if break; case
+#define case_else break; default

@@ -77,24 +77,26 @@ void Profile__reset(Profile *self) {
 
 Tuple16 Profile__get_section(Profile *self, ProfileSection section) {
     Button button;
-    if (section == SECTION_A) button = self->a;
-    if (section == SECTION_B) button = self->b;
-    if (section == SECTION_X) button = self->x;
-    if (section == SECTION_Y) button = self->y;
-    if (section == SECTION_DPAD_LEFT) button = self->dpad_left;
-    if (section == SECTION_DPAD_RIGHT) button = self->dpad_right;
-    if (section == SECTION_DPAD_UP) button = self->dpad_up;
-    if (section == SECTION_DPAD_DOWN) button = self->dpad_down;
-    if (section == SECTION_SELECT_1) button = self->select_1;
-    if (section == SECTION_SELECT_2) button = self->select_2;
-    if (section == SECTION_START_1) button = self->start_1;
-    if (section == SECTION_START_2) button = self->start_2;
-    if (section == SECTION_L1) button = self->l1;
-    if (section == SECTION_L2) button = self->l2;
-    if (section == SECTION_L4) button = self->l4;
-    if (section == SECTION_R1) button = self->r1;
-    if (section == SECTION_R2) button = self->r2;
-    if (section == SECTION_R4) button = self->r4;
+    switch(section) {
+        case_if SECTION_A:          button = self->a;
+        case_if SECTION_B:          button = self->b;
+        case_if SECTION_X:          button = self->x;
+        case_if SECTION_Y:          button = self->y;
+        case_if SECTION_DPAD_LEFT:  button = self->dpad_left;
+        case_if SECTION_DPAD_RIGHT: button = self->dpad_right;
+        case_if SECTION_DPAD_UP:    button = self->dpad_up;
+        case_if SECTION_DPAD_DOWN:  button = self->dpad_down;
+        case_if SECTION_SELECT_1:   button = self->select_1;
+        case_if SECTION_SELECT_2:   button = self->select_2;
+        case_if SECTION_START_1:    button = self->start_1;
+        case_if SECTION_START_2:    button = self->start_2;
+        case_if SECTION_L1:         button = self->l1;
+        case_if SECTION_L2:         button = self->l2;
+        case_if SECTION_L4:         button = self->l4;
+        case_if SECTION_R1:         button = self->r1;
+        case_if SECTION_R2:         button = self->r2;
+        case_if SECTION_R4:         button = self->r4;
+    }
     return (Tuple16){
         button.mode,
         button.actions[0],

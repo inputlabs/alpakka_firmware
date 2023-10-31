@@ -237,20 +237,19 @@ void webusb_read() {
     usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)&ctrl, 64);
     usbd_edpt_release(0, ADDR_WEBUSB_OUT);
     // Handle incomming message.
-    if (ctrl.message_type == PROC) {
-        webusb_handle_proc(ctrl.payload[0]);
-    }
-    else if (ctrl.message_type == CONFIG_GET) {
-        webusb_handle_config_get(ctrl.payload[0]);
-    }
-    else if (ctrl.message_type == CONFIG_SET) {
-        webusb_handle_config_set(
-            ctrl.payload[0],  // Config index.
-            ctrl.payload[1],  // Preset index.
-            &ctrl.payload[2]);  // Preset values. (Reference to sub-array).
-    }
-    else if (ctrl.message_type == PROFILE_GET) {
-        webusb_handle_profile_get(ctrl.payload[0], ctrl.payload[1]);
+    switch(ctrl.message_type) {
+        case_if PROC:
+            webusb_handle_proc(ctrl.payload[0]);
+        case_if CONFIG_GET:
+            webusb_handle_config_get(ctrl.payload[0]);
+        case_if CONFIG_SET:
+            webusb_handle_config_set(
+                ctrl.payload[0],  // Config index.
+                ctrl.payload[1],  // Preset index.
+                &ctrl.payload[2]  // Preset values. (Reference to sub-array).
+            );
+        case_if PROFILE_GET:
+            webusb_handle_profile_get(ctrl.payload[0], ctrl.payload[1]);
     }
 }
 
