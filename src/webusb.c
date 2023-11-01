@@ -84,23 +84,22 @@ Ctrl webusb_ctrl_profile_share() {
         .message_type = PROFILE_SHARE,
         .len = 11
     };
-    Profile* profiles = profile_get_profiles();
-    Profile profile = profiles[webusb_pending_profile_share];
-    uint8_t section = webusb_pending_section_share;
+    u8 profile = webusb_pending_profile_share;
+    u8 section = webusb_pending_section_share;
     if (section >= 10) { // TODO
-        u8* values = profile.get_section(&profile, section).values;
-        ctrl.payload[0] = webusb_pending_profile_share;
-        ctrl.payload[1] = section;
-        ctrl.payload[2] = values[0];
-        ctrl.payload[3] = values[1];
-        ctrl.payload[4] = values[2];
-        ctrl.payload[5] = values[3];
-        ctrl.payload[6] = values[4];
-        ctrl.payload[7] = values[5];
-        ctrl.payload[8] = values[6];
-        ctrl.payload[9] = values[7];
-        ctrl.payload[10] = values[8];
-        ctrl.payload[11] = values[9];
+        u8* payload = config_read().profiles[profile].sections[section].payload;
+        ctrl.payload[0] = profile;
+        ctrl.payload[1] = payload[1];
+        ctrl.payload[2] = payload[2];
+        ctrl.payload[3] = payload[3];
+        ctrl.payload[4] = payload[4];
+        ctrl.payload[5] = payload[5];
+        ctrl.payload[6] = payload[6];
+        ctrl.payload[7] = payload[7];
+        ctrl.payload[8] = payload[8];
+        ctrl.payload[9] = payload[9];
+        ctrl.payload[10] = payload[10];
+        ctrl.payload[11] = payload[11];
     }
     webusb_pending_profile_share = 0;
     webusb_pending_section_share = 0;
@@ -196,8 +195,6 @@ void webusb_handle_profile_get(u8 profile, u8 section) {
 void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[5]) {
     if (key > 4) return;
     webusb_pending_config_share = key;
-    config_nvm_t config;
-    config_read(&config);
     if (key == PROTOCOL) config_set_protocol(preset);
     else if (key == SENS_TOUCH) {
         config_set_touch_sens_values(values);
@@ -238,17 +235,17 @@ void webusb_read() {
     usbd_edpt_release(0, ADDR_WEBUSB_OUT);
     // Handle incomming message.
     switch(ctrl.message_type) {
-        case_if PROC:
+        break; case PROC:
             webusb_handle_proc(ctrl.payload[0]);
-        case_if CONFIG_GET:
+        break; case CONFIG_GET:
             webusb_handle_config_get(ctrl.payload[0]);
-        case_if CONFIG_SET:
+        break; case CONFIG_SET:
             webusb_handle_config_set(
                 ctrl.payload[0],  // Config index.
                 ctrl.payload[1],  // Preset index.
                 &ctrl.payload[2]  // Preset values. (Reference to sub-array).
             );
-        case_if PROFILE_GET:
+        break; case PROFILE_GET:
             webusb_handle_profile_get(ctrl.payload[0], ctrl.payload[1]);
     }
 }

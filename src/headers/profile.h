@@ -21,33 +21,10 @@ typedef enum ProfileIndex_enum {
     PROFILE_RTS,
 } ProfileIndex;
 
-typedef enum ProfileSection_enum {
-    SECTION_NAME = 1,
-    SECTION_A = 10,
-    SECTION_B,
-    SECTION_X,
-    SECTION_Y,
-    SECTION_DPAD_LEFT,
-    SECTION_DPAD_RIGHT,
-    SECTION_DPAD_UP,
-    SECTION_DPAD_DOWN,
-    SECTION_SELECT_1,
-    SECTION_SELECT_2,
-    SECTION_START_1,
-    SECTION_START_2,
-    SECTION_L1,
-    SECTION_L2,
-    SECTION_L4,
-    SECTION_R1,
-    SECTION_R2,
-    SECTION_R4,
-} ProfileSection;
-
 typedef struct Profile_struct Profile;
 struct Profile_struct {
     void (*report) (Profile *self);
     void (*reset) (Profile *self);
-    Tuple16 (*get_section) (Profile *self, ProfileSection section);
     Button select_1;
     Button select_2;
     Button start_1;

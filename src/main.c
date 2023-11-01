@@ -62,6 +62,8 @@ void main_loop() {
         i++;
         // Start timer.
         uint32_t tick_start = time_us_32();
+        // Config.
+        config_sync();
         // Report.
         profile_report_active();
         hid_report();

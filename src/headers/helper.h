@@ -76,5 +76,5 @@ typedef struct Tuple8_struct {u8 values[8];} Tuple8;
 typedef struct Tuple16_struct {u8 values[16];} Tuple16;
 
 // Switch statement without breaks.
-#define case_if break; case
-#define case_else break; default
+// #define case_if break; case
+// #define case_else break; default

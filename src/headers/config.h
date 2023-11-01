@@ -5,10 +5,11 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include "webusb.h"
 
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
-#define NVM_STRUCT_VERSION 12
+#define NVM_STRUCT_VERSION 14
 
 #define PROTOCOL_XINPUT_WIN 0
 #define PROTOCOL_XINPUT_UNIX 1
@@ -46,7 +47,7 @@
 
 #define CFG_DHAT_DEBOUNCE_TIME 100  // Milliseconds.
 
-typedef struct {
+typedef struct Config_struct {
     uint8_t header;
     uint8_t config_version;
     uint8_t profile;
@@ -72,11 +73,13 @@ typedef struct {
     double offset_accel_1_x;
     double offset_accel_1_y;
     double offset_accel_1_z;
-    uint8_t padding[256];
-} config_nvm_t;
+    CtrlProfile profiles[13];
+} Config;
 
 void config_init();
-void config_read(config_nvm_t* config);
+void config_init_profiles();
+void config_sync();
+Config config_read();
 void config_set_profile(uint8_t profile);
 uint8_t config_get_profile();
 void config_set_thumbstick_offset(float x, float y);
@@ -111,3 +114,5 @@ float config_get_deadzone_value(uint8_t index);
 void config_set_touch_sens_values(uint8_t* values);
 void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
+
+CtrlProfile ctrl_init_fps_fusion();
