@@ -115,4 +115,4 @@ void config_set_touch_sens_values(uint8_t* values);
 void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
 
-CtrlProfile ctrl_init_fps_fusion();
+void config_profile_default_fps_fusion(CtrlProfile profile);

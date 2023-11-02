@@ -158,10 +158,6 @@ Profile* profile_get_active(bool strict) {
     }
 }
 
-Profile* profile_get_profiles() {
-    return profiles;
-}
-
 void profile_enable_all(bool value) {
     enabled_all = value;
 }

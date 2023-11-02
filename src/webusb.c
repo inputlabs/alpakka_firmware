@@ -11,7 +11,6 @@
 #include "tusb_config.h"
 #include "helper.h"
 #include "logging.h"
-#include "profile.h"
 
 char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;
@@ -84,25 +83,24 @@ Ctrl webusb_ctrl_profile_share() {
         .message_type = PROFILE_SHARE,
         .len = 11
     };
-    u8 profile = webusb_pending_profile_share;
-    u8 section = webusb_pending_section_share;
-    if (section >= 10) { // TODO
-        u8* payload = config_read().profiles[profile].sections[section].payload;
-        ctrl.payload[0] = profile;
-        ctrl.payload[1] = payload[1];
-        ctrl.payload[2] = payload[2];
-        ctrl.payload[3] = payload[3];
-        ctrl.payload[4] = payload[4];
-        ctrl.payload[5] = payload[5];
-        ctrl.payload[6] = payload[6];
-        ctrl.payload[7] = payload[7];
-        ctrl.payload[8] = payload[8];
-        ctrl.payload[9] = payload[9];
-        ctrl.payload[10] = payload[10];
-        ctrl.payload[11] = payload[11];
-    }
+    u8 profile_index = webusb_pending_profile_share;
+    u8 section_index = webusb_pending_section_share;
+    u8 *section = config_read().profiles[profile_index][section_index];
+    ctrl.payload[0] = profile_index;
+    ctrl.payload[1] = section_index;
+    ctrl.payload[2] = section[0];
+    ctrl.payload[3] = section[1];
+    ctrl.payload[4] = section[2];
+    ctrl.payload[5] = section[3];
+    ctrl.payload[6] = section[4];
+    ctrl.payload[7] = section[5];
+    ctrl.payload[8] = section[6];
+    ctrl.payload[9] = section[7];
+    ctrl.payload[10] = section[8];
+    ctrl.payload[11] = section[9];
     webusb_pending_profile_share = 0;
     webusb_pending_section_share = 0;
+    // printf("share %i %i\n", ctrl.payload[1], ctrl.payload[3]);
     return ctrl;
 }
 

@@ -66,7 +66,6 @@ void profile_update_leds();
 void profile_enable_all(bool value);
 void profile_enable_abxy(bool value);
 Profile* profile_get_active(bool strict);
-Profile* profile_get_profiles();
 
 Profile profile_init_none();
 Profile profile_init_home();

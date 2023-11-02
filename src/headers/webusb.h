@@ -3,6 +3,7 @@
 
 #pragma once
 #include <stdint.h>
+#include <helper.h>
 
 #define WEBUSB_BUFFER_SIZE 2048
 #define CTRL_VERSION 1
@@ -44,16 +45,16 @@ typedef enum CtrlSection_enum {
     SECTION_DPAD_UP,
     SECTION_DPAD_DOWN,
     SECTION_SELECT_1,
-    SECTION_SELECT_2,
     SECTION_START_1,
+    SECTION_SELECT_2,
     SECTION_START_2,
     SECTION_L1,
-    SECTION_L2,
-    SECTION_L4,
     SECTION_R1,
+    SECTION_L2,
     SECTION_R2,
+    SECTION_L4,
     SECTION_R4,
-    SECTION_DHAT_LEFT = 31,
+    SECTION_DHAT_LEFT,
     SECTION_DHAT_RIGHT,
     SECTION_DHAT_UP,
     SECTION_DHAT_DOWN,
@@ -62,19 +63,18 @@ typedef enum CtrlSection_enum {
     SECTION_DHAT_DL,
     SECTION_DHAT_DR,
     SECTION_DHAT_PUSH,
-} CtrlSection;
+} CtrlSectionType;
 
 typedef struct Ctrl_struct {
-    uint8_t protocol_version;
-    uint8_t device_id;
+    u8 protocol_version;
+    u8 device_id;
     Ctrl_msg_type message_type;
-    uint8_t len;
-    uint8_t payload[CTRL_MAX_PAYLOAD_SIZE];
+    u8 len;
+    u8 payload[CTRL_MAX_PAYLOAD_SIZE];
 } Ctrl;
 
-typedef struct CtrlProfile_struct {
-    Ctrl sections[64];
-} CtrlProfile;
+typedef u8 CtrlSection[64];
+typedef CtrlSection CtrlProfile[64];
 
 void webusb_read();
 void webusb_write(char *msg);

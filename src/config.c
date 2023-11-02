@@ -77,7 +77,8 @@ void config_write_init() {
     config_cache.deadzone_values[1] = 0.10,
     config_cache.deadzone_values[2] = 0.15,
     // Touch sens values are initialized elsewhere after determining the PCB gen.
-    config_init_profiles();
+
+    // config_init_profiles();
     config_write();
 }
 
@@ -363,20 +364,8 @@ void config_set_deadzone_values(float* values) {
     config_cache_synced = false;
 }
 
-Ctrl config_get_profile_section(u8 profileIndex, CtrlSection sectionIndex) {
-    return config_cache.profiles[profileIndex].sections[sectionIndex];
-}
-
-void config_set_profile_section(u8 profileIndex, CtrlSection sectionIndex, Ctrl section) {
-    config_cache.profiles[profileIndex].sections[sectionIndex] = section;
-    config_cache_synced = false;
-}
-
 void config_init_profiles() {
-    Ctrl* sections = ctrl_init_fps_fusion().sections;
-    for(u8 i; i<64; i++) {
-        config_set_profile_section(1, i, sections[i]);
-    }
+    config_profile_default_fps_fusion(config_cache.profiles[1]);
 }
 
 void config_init() {
@@ -392,6 +381,7 @@ void config_init() {
         warn("NVM config not found or incompatible, writing default instead\n");
         config_write_init();
     }
+    config_init_profiles(); ///////
     config_print();
 }
 
