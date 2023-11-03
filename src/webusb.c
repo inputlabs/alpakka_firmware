@@ -81,26 +81,18 @@ Ctrl webusb_ctrl_profile_share() {
         .protocol_version = CTRL_VERSION,
         .device_id = ALPAKKA,
         .message_type = PROFILE_SHARE,
-        .len = 11
+        .len = 60
     };
     u8 profile_index = webusb_pending_profile_share;
     u8 section_index = webusb_pending_section_share;
     u8 *section = config_read().profiles[profile_index][section_index];
     ctrl.payload[0] = profile_index;
     ctrl.payload[1] = section_index;
-    ctrl.payload[2] = section[0];
-    ctrl.payload[3] = section[1];
-    ctrl.payload[4] = section[2];
-    ctrl.payload[5] = section[3];
-    ctrl.payload[6] = section[4];
-    ctrl.payload[7] = section[5];
-    ctrl.payload[8] = section[6];
-    ctrl.payload[9] = section[7];
-    ctrl.payload[10] = section[8];
-    ctrl.payload[11] = section[9];
+    for(u8 i=2; i<60; i++) {
+        ctrl.payload[i] = section[i-2];
+    }
     webusb_pending_profile_share = 0;
     webusb_pending_section_share = 0;
-    // printf("share %i %i\n", ctrl.payload[1], ctrl.payload[3]);
     return ctrl;
 }
 

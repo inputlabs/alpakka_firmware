@@ -53,8 +53,8 @@ Profile profile_init_home() {
     profile.r1 = Button_(PIN_R1, STICKY, ACTIONS(KEY_LEFT_ALT), ACTIONS(KEY_TAB));
     profile.l2 = Button_(PIN_L2, NORMAL, ACTIONS(MOUSE_2));
     profile.r2 = Button_(PIN_R2, NORMAL, ACTIONS(MOUSE_1));
-    profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(KEY_G));
-    profile.r4 = Button_(PIN_R4, NORMAL, ACTIONS(KEY_P));
+    profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(KEY_NONE));
+    profile.r4 = Button_(PIN_R4, NORMAL, ACTIONS(KEY_NONE));
 
     profile.rotary = Rotary_(NULL, ACTIONS(PROC_TUNE_UP), ACTIONS(PROC_TUNE_DOWN));
 

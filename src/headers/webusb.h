@@ -34,7 +34,7 @@ typedef enum Ctrl_cfg_type_enum {
     DEADZONE,
 } Ctrl_cfg_type;
 
-typedef enum CtrlSection_enum {
+typedef enum CtrlSectionType_enum {
     SECTION_NAME = 1,
     SECTION_A,
     SECTION_B,

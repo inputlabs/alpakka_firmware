@@ -365,6 +365,7 @@ void config_set_deadzone_values(float* values) {
 }
 
 void config_init_profiles() {
+    config_profile_default_home(config_cache.profiles[0]);
     config_profile_default_fps_fusion(config_cache.profiles[1]);
 }
 

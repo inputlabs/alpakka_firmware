@@ -63,6 +63,7 @@ target_sources(${PROJECT} PUBLIC
     src/profiles/fps_fusion2.c
     src/profiles/fps_wasd.c
     src/profiles/home.c
+    src/profiles/home2.c
     src/profiles/racing.c
     src/profiles/none.c
     src/self_test.c

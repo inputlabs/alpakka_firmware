@@ -3,12 +3,15 @@
 
 #include <stdio.h>
 #include <pico/time.h>
+#include <stdarg.h>
+#include <string.h>
 #include "config.h"
 #include "profile.h"
 #include "bus.h"
 #include "pin.h"
 #include "hid.h"
 #include "led.h"
+#include "webusb.h"
 #include "logging.h"
 #include "helper.h"
 
@@ -164,6 +167,25 @@ void profile_enable_all(bool value) {
 
 void profile_enable_abxy(bool value) {
     enabled_abxy = value;
+}
+
+void profile_assign(CtrlProfile profile, CtrlSectionType section, ...) {
+    va_list va;
+    va_start(va, 0);
+    bool ended = false;
+    for (u8 i=0; i<64; i++) {
+        u8 value = 0;
+        if (!ended) {
+            u8 arg = va_arg(va, int);
+            if (arg == END) ended = true;
+            else value = arg;
+        }
+        profile[section][i] = value;
+    }
+}
+
+void profile_string(CtrlProfile profile, CtrlSectionType section, u8 offset, char *str) {
+    memcpy(profile[section] + offset, str, strlen(str));
 }
 
 void profile_init() {

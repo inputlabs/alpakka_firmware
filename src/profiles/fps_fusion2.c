@@ -2,50 +2,62 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <stdio.h>
-#include <string.h>
 #include "hid.h"
 #include "pin.h"
-#include "button.h"
 #include "webusb.h"
+#include "profile.h"
+#include "button.h"
+
+#define assign profile_assign
+#define string profile_string
 
 void config_profile_default_fps_fusion(CtrlProfile profile){
-    CtrlProfile profile_default = {
-        {0},
-        /* NAME       */  "FPS Fusion",
-
-        /* A          */  {NORMAL, KEY_F},
-        /* B          */  {NORMAL, KEY_V},
-        /* X          */  {NORMAL, KEY_R},
-        /* Y          */  {NORMAL, KEY_T},
-
-        /* DPAD_LEFT  */  {NORMAL, KEY_LEFT},
-        /* DPAD_RIGHT */  {NORMAL, KEY_RIGHT},
-        /* DPAD_UP    */  {NORMAL, KEY_UP},
-        /* DPAD_DOWN  */  {NORMAL, KEY_DOWN},
-
-        /* SELECT_1   */  {NORMAL, KEY_TAB},
-        /* START_1    */  {NORMAL, KEY_ESCAPE},
-        /* SELECT_2   */  {NORMAL, KEY_M},
-        /* START_2    */  {NORMAL, KEY_N},
-
-        /* L1         */  {NORMAL, KEY_Q},
-        /* R1         */  {NORMAL, KEY_E},
-
-        /* L2         */  {NORMAL, MOUSE_2},
-        /* R2         */  {NORMAL, MOUSE_1},
-
-        /* L4         */  {NORMAL, KEY_SPACE},
-        /* R4         */  {HOLD_OVERLAP, KEY_LEFT_CONTROL, 0, 0, 0, KEY_P},
-
-        /* DHAT_LEFT  */  {NORMAL, KEY_1},
-        /* DHAT_RIGHT */  {NORMAL, KEY_3},
-        /* DHAT_UP    */  {NORMAL, KEY_4},
-        /* DHAT_DOWN  */  {NORMAL, KEY_2},
-        /* DHAT_UL    */  {NORMAL, KEY_8},
-        /* DHAT_UR    */  {NORMAL, KEY_7},
-        /* DHAT_DL    */  {NORMAL, KEY_5},
-        /* DHAT_DR    */  {NORMAL, KEY_6},
-        /* DHAT_PUSH  */  {NORMAL, KEY_0},
-    };
-    memcpy(profile, profile_default, 64*64);
+    // ABXY.
+    assign(profile, SECTION_A, NORMAL, KEY_F, END);
+    assign(profile, SECTION_B, NORMAL, KEY_V, END);
+    assign(profile, SECTION_X, NORMAL, KEY_R, END);
+    assign(profile, SECTION_Y, NORMAL, KEY_T, END);
+    // DPad.
+    assign(profile, SECTION_DPAD_LEFT,  NORMAL, KEY_LEFT, END);
+    assign(profile, SECTION_DPAD_RIGHT, NORMAL, KEY_RIGHT, END);
+    assign(profile, SECTION_DPAD_UP,    NORMAL, KEY_UP, END);
+    assign(profile, SECTION_DPAD_DOWN,  NORMAL, KEY_DOWN, END);
+    // Select.
+    assign(profile, SECTION_SELECT_1, NORMAL, KEY_TAB, END);
+    assign(profile, SECTION_START_1,  NORMAL, KEY_ESCAPE, END);
+    assign(profile, SECTION_SELECT_2, NORMAL, KEY_M, END);
+    assign(profile, SECTION_START_2,  NORMAL, KEY_N, END);
+    // Triggers.
+    assign(profile, SECTION_L1, NORMAL, KEY_Q, END);
+    assign(profile, SECTION_R1, NORMAL, KEY_E, END);
+    assign(profile, SECTION_L2, NORMAL, MOUSE_2, END);
+    assign(profile, SECTION_R2, NORMAL, MOUSE_1, END);
+    assign(profile, SECTION_L4, NORMAL, KEY_SPACE, END);
+    assign(profile, SECTION_R4, HOLD_OVERLAP, ACTIONSX(KEY_LEFT_CONTROL), ACTIONSX(KEY_P), END);
+    // DHat.
+    assign(profile, SECTION_DHAT_LEFT,  NORMAL, KEY_1, END);
+    assign(profile, SECTION_DHAT_RIGHT, NORMAL, KEY_3, END);
+    assign(profile, SECTION_DHAT_UP,    NORMAL, KEY_4, END);
+    assign(profile, SECTION_DHAT_DOWN,  NORMAL, KEY_2, END);
+    assign(profile, SECTION_DHAT_UL,    NORMAL, KEY_8, END);
+    assign(profile, SECTION_DHAT_UR,    NORMAL, KEY_7, END);
+    assign(profile, SECTION_DHAT_DL,    NORMAL, KEY_5, END);
+    assign(profile, SECTION_DHAT_DR,    NORMAL, KEY_6, END);
+    assign(profile, SECTION_DHAT_PUSH,  NORMAL, KEY_0, END);
+    // Strings.
+    string(profile, SECTION_NAME, 0, "FPS Fusion");
+    string(profile, SECTION_A, BUTTON_HINT, "Use");
+    string(profile, SECTION_B, BUTTON_HINT, "Melee");
+    string(profile, SECTION_X, BUTTON_HINT, "Reload");
+    string(profile, SECTION_Y, BUTTON_HINT, "Swap");
+    string(profile, SECTION_L1, BUTTON_HINT, "Skill");
+    string(profile, SECTION_R1, BUTTON_HINT, "Skill");
+    string(profile, SECTION_L2, BUTTON_HINT, "Aim");
+    string(profile, SECTION_R2, BUTTON_HINT, "Shoot");
+    string(profile, SECTION_R4, BUTTON_HINT, "Crouch");
+    string(profile, SECTION_R4, BUTTON_HINT_SECONDARY, "Prone");
+    string(profile, SECTION_SELECT_1, BUTTON_HINT, "Inventory");
+    string(profile, SECTION_START_1, BUTTON_HINT, "Pause");
+    string(profile, SECTION_SELECT_2, BUTTON_HINT, "Map");
+    string(profile, SECTION_START_2, BUTTON_HINT, "Voice");
 }

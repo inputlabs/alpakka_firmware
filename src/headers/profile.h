@@ -7,6 +7,7 @@
 #include "dhat.h"
 #include "rotary.h"
 #include "gyro.h"
+#include "webusb.h"
 #include "helper.h"
 
 typedef enum ProfileIndex_enum {
@@ -75,6 +76,19 @@ Profile profile_init_console();
 Profile profile_init_console_legacy();
 Profile profile_init_desktop();
 Profile profile_init_racing();
+
+#define ACTIONSX_1(a)           a, 0, 0, 0
+#define ACTIONSX_2(a, b)        a, b, 0, 0
+#define ACTIONSX_3(a, b, c)     a, b, c, 0
+#define ACTIONSX_4(a, b, c, d)  a, b, c, d
+#define ACTIONSX_SELECT(_1, _2, _3, _4, N, ...)  ACTIONSX_##N
+#define ACTIONSX(...) ACTIONSX_SELECT(__VA_ARGS__, 4, 3, 2, 1)(__VA_ARGS__)
+#define END 255
+#define BUTTON_HINT 10
+#define BUTTON_HINT_SECONDARY 30
+
+void profile_assign(CtrlProfile profile, CtrlSectionType section, ...);
+void profile_string(CtrlProfile profile, CtrlSectionType section, u8 offset, char *str);
 
 extern bool profile_led_lock;
 extern bool profile_pending_reboot;

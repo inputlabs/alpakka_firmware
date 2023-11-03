@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "webusb.h"
 
-#define NVM_CONFIG_ADDR 0x001D0000
+#define NVM_CONFIG_ADDR 0x00100000
 #define NVM_CONFIG_HEADER 0b01010101
 #define NVM_STRUCT_VERSION 14
 
@@ -115,4 +115,5 @@ void config_set_touch_sens_values(uint8_t* values);
 void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
 
+void config_profile_default_home(CtrlProfile profile);
 void config_profile_default_fps_fusion(CtrlProfile profile);
