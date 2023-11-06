@@ -47,19 +47,19 @@ void imu_init() {
     info("INIT: IMU\n");
     imu_init_single(PIN_SPI_CS0, IMU_CTRL2_G_500);
     imu_init_single(PIN_SPI_CS1, IMU_CTRL2_G_125);
-    Config config = config_read();
-    offset_gyro_0_x = config.offset_gyro_0_x;
-    offset_gyro_0_y = config.offset_gyro_0_y;
-    offset_gyro_0_z = config.offset_gyro_0_z;
-    offset_gyro_1_x = config.offset_gyro_1_x;
-    offset_gyro_1_y = config.offset_gyro_1_y;
-    offset_gyro_1_z = config.offset_gyro_1_z;
-    offset_accel_0_x = config.offset_accel_0_x;
-    offset_accel_0_y = config.offset_accel_0_y;
-    offset_accel_0_z = config.offset_accel_0_z;
-    offset_accel_1_x = config.offset_accel_1_x;
-    offset_accel_1_y = config.offset_accel_1_y;
-    offset_accel_1_z = config.offset_accel_1_z;
+    Config *config = config_read();
+    offset_gyro_0_x = config->offset_gyro_0_x;
+    offset_gyro_0_y = config->offset_gyro_0_y;
+    offset_gyro_0_z = config->offset_gyro_0_z;
+    offset_gyro_1_x = config->offset_gyro_1_x;
+    offset_gyro_1_y = config->offset_gyro_1_y;
+    offset_gyro_1_z = config->offset_gyro_1_z;
+    offset_accel_0_x = config->offset_accel_0_x;
+    offset_accel_0_y = config->offset_accel_0_y;
+    offset_accel_0_z = config->offset_accel_0_z;
+    offset_accel_1_x = config->offset_accel_1_x;
+    offset_accel_1_y = config->offset_accel_1_y;
+    offset_accel_1_z = config->offset_accel_1_z;
 }
 
 Vector imu_read_gyro_bits(uint8_t cs) {

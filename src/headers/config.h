@@ -7,9 +7,9 @@
 #include <stdbool.h>
 #include "webusb.h"
 
-#define NVM_CONFIG_ADDR 0x00100000
+#define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
-#define NVM_STRUCT_VERSION 14
+#define NVM_STRUCT_VERSION 13
 
 #define PROTOCOL_XINPUT_WIN 0
 #define PROTOCOL_XINPUT_UNIX 1
@@ -73,13 +73,13 @@ typedef struct Config_struct {
     double offset_accel_1_x;
     double offset_accel_1_y;
     double offset_accel_1_z;
-    CtrlProfile profiles[13];
+    u8 padding[256]; // Guarantee block is at least 256 bytes or more.
 } Config;
 
 void config_init();
 void config_init_profiles();
 void config_sync();
-Config config_read();
+Config* config_read();
 void config_set_profile(uint8_t profile);
 uint8_t config_get_profile();
 void config_set_thumbstick_offset(float x, float y);
@@ -111,9 +111,12 @@ uint8_t config_get_touch_sens_value(uint8_t index);
 double config_get_mouse_sens_value(uint8_t index);
 float config_get_deadzone_value(uint8_t index);
 
-void config_set_touch_sens_values(uint8_t* values);
+void config_set_touch_sens_values(uint8_t* values, bool write);
 void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
 
-void config_profile_default_home(CtrlProfile profile);
-void config_profile_default_fps_fusion(CtrlProfile profile);
+
+// Profiles
+CtrlProfile* config_profile_read(u8 index);
+void config_profile_default_home(CtrlProfile *profile);
+void config_profile_default_fps_fusion(CtrlProfile *profile);

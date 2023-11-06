@@ -73,8 +73,30 @@ typedef struct Ctrl_struct {
     u8 payload[CTRL_MAX_PAYLOAD_SIZE];
 } Ctrl;
 
-typedef u8 CtrlSection[64];
-typedef CtrlSection CtrlProfile[64];
+typedef struct CtrlProfileName_struct {
+    // Must be packed (60 bytes).
+    char name[60];
+} CtrlProfileName;
+
+typedef struct CtrlButton_struct {
+    // Must be packed (60 bytes).
+    u8 mode;
+    u8 actions[4];
+    u8 actions_secondary[4];
+    u8 padding;
+    u8 hint[20];
+    u8 hint_secondary[20];
+    u8 padding_end[10];
+} CtrlButton;
+
+typedef union CtrlSection_union {
+    CtrlProfileName name;
+    CtrlButton button;
+} CtrlSection;
+
+typedef struct CtrlProfile_struct {
+    CtrlSection sections[64];
+} CtrlProfile;
 
 void webusb_read();
 void webusb_write(char *msg);

@@ -40,9 +40,9 @@ void thumbstick_update_deadzone() {
 }
 
 void thumbstick_update_offsets() {
-    Config config = config_read();
-    offset_x = config.offset_ts_x;
-    offset_y = config.offset_ts_y;
+    Config *config = config_read();
+    offset_x = config->offset_ts_x;
+    offset_y = config->offset_ts_y;
 }
 
 void thumbstick_calibrate() {

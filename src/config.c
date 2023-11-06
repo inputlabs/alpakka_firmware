@@ -20,21 +20,29 @@
 #include "logging.h"
 
 Config config_cache;
+CtrlProfile config_profile_cache[13];
 bool config_cache_synced = true;
+bool config_profile_cache_synced = true;
+
 uint8_t config_tune_mode = 0;
 uint8_t pcb_gen = 255;
 
-Config config_read() {
-    return config_cache;
+Config* config_read() {
+    return &config_cache;
+}
+
+CtrlProfile* config_profile_read(u8 index) {
+    return &(config_profile_cache[index]);
 }
 
 void config_write() {
-    nvm_write(NVM_CONFIG_ADDR, (u8*)&config_cache, 1024);
+    info("NVM: Config write\n");
+    nvm_write(NVM_CONFIG_ADDR, (u8*)&config_cache, 256);
     config_cache_synced = true;
 }
 
 void config_load() {
-    nvm_read(XIP_BASE + NVM_CONFIG_ADDR, (u8*)&config_cache, 1024);
+    nvm_read(XIP_BASE + NVM_CONFIG_ADDR, (u8*)&config_cache, 256);
 }
 
 void config_sync() {
@@ -78,7 +86,7 @@ void config_write_init() {
     config_cache.deadzone_values[2] = 0.15,
     // Touch sens values are initialized elsewhere after determining the PCB gen.
 
-    // config_init_profiles();
+    // config_init_profiles();   //////////////
     config_write();
 }
 
@@ -134,6 +142,8 @@ void config_print() {
 }
 
 void config_set_profile(uint8_t profile) {
+    printf("P= %i %i\n", profile, config_cache.profile);
+    if (profile == config_cache.profile) return;
     config_cache.profile = profile;
     config_cache_synced = false;
 }
@@ -269,10 +279,10 @@ void config_set_pcb_gen(uint8_t gen) {
     pcb_gen = gen;
     if (gen == 0) {
         uint8_t values[] = {0, 2, 3, 5, 8};
-        config_set_touch_sens_values(values);
+        config_set_touch_sens_values(values, false);
     } else {
         uint8_t values[] = {0, 10, 15, 25, 40};
-        config_set_touch_sens_values(values);
+        config_set_touch_sens_values(values, false);
     }
 }
 
@@ -342,12 +352,12 @@ float config_get_deadzone_value(uint8_t index) {
     return config_cache.deadzone_values[index];
 }
 
-void config_set_touch_sens_values(uint8_t* values) {
+void config_set_touch_sens_values(uint8_t* values, bool write) {
     config_cache.sens_touch_values[1] = values[1];
     config_cache.sens_touch_values[2] = values[2];
     config_cache.sens_touch_values[3] = values[3];
     config_cache.sens_touch_values[4] = values[4];
-    config_cache_synced = false;
+    if (write) config_cache_synced = false;
 }
 
 void config_set_mouse_sens_values(double* values) {
@@ -365,8 +375,8 @@ void config_set_deadzone_values(float* values) {
 }
 
 void config_init_profiles() {
-    config_profile_default_home(config_cache.profiles[0]);
-    config_profile_default_fps_fusion(config_cache.profiles[1]);
+    config_profile_default_home(&(config_profile_cache[0]));
+    config_profile_default_fps_fusion(&(config_profile_cache[1]));
 }
 
 void config_init() {

@@ -85,12 +85,17 @@ Ctrl webusb_ctrl_profile_share() {
     };
     u8 profile_index = webusb_pending_profile_share;
     u8 section_index = webusb_pending_section_share;
-    u8 *section = config_read().profiles[profile_index][section_index];
+    // Profile section struct cast into packed int array.
+    // Note that section structs must be guaranteed to be packed.
+    CtrlProfile *profile = config_profile_read(profile_index);
+    u8 *section = (u8*)&(profile->sections[section_index]);
+    // Write payload.
     ctrl.payload[0] = profile_index;
     ctrl.payload[1] = section_index;
     for(u8 i=2; i<60; i++) {
         ctrl.payload[i] = section[i-2];
     }
+    // Request fulfilled.
     webusb_pending_profile_share = 0;
     webusb_pending_section_share = 0;
     return ctrl;
@@ -187,7 +192,7 @@ void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[
     webusb_pending_config_share = key;
     if (key == PROTOCOL) config_set_protocol(preset);
     else if (key == SENS_TOUCH) {
-        config_set_touch_sens_values(values);
+        config_set_touch_sens_values(values, true);
         config_set_touch_sens_preset(preset, false);
     }
     else if (key == SENS_MOUSE) {
