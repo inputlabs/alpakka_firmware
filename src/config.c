@@ -16,7 +16,7 @@
 #include "touch.h"
 #include "profile.h"
 #include "webusb.h"
-#include "helper.h"
+#include "common.h"
 #include "logging.h"
 
 Config config_cache;

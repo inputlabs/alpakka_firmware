@@ -8,7 +8,7 @@
 #include "led.h"
 #include "pin.h"
 #include "config.h"
-#include "helper.h"
+#include "common.h"
 
 repeating_timer_t timer;
 uint8_t cycle_position;

@@ -6,7 +6,7 @@
 #include "hid.h"
 #include "profile.h"
 #include "xinput.h"
-#include "helper.h"
+#include "common.h"
 #include "webusb.h"
 #include "logging.h"
 #include "thanks.c"

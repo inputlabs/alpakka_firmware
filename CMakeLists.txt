@@ -46,10 +46,10 @@ target_include_directories(${PROJECT} PUBLIC
 target_sources(${PROJECT} PUBLIC
     src/bus.c
     src/button.c
+    src/common.c
     src/config.c
     src/dhat.c
     src/gyro.c
-    src/helper.c
     src/hid.c
     src/imu.c
     src/led.c

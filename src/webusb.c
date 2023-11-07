@@ -9,7 +9,7 @@
 #include "config.h"
 #include "hid.h"
 #include "tusb_config.h"
-#include "helper.h"
+#include "common.h"
 #include "logging.h"
 
 char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};

@@ -10,7 +10,7 @@
 #include "hid.h"
 #include "bus.h"
 #include "pin.h"
-#include "helper.h"
+#include "common.h"
 
 bool Button__is_pressed(Button *self) {
     if (self->pin == PIN_NONE) return false;

@@ -10,14 +10,13 @@
 #include <hardware/spi.h>
 #include "imu.h"
 #include "config.h"
-#include "helper.h"
+#include "common.h"
 #include "pin.h"
 #include "bus.h"
 #include "touch.h"
 #include "hid.h"
 #include "led.h"
 #include "vector.h"
-#include "helper.h"
 #include "logging.h"
 
 double offset_gyro_0_x;

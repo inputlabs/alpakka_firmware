@@ -7,7 +7,7 @@
 #include "button.h"
 #include "config.h"
 #include "gyro.h"
-#include "helper.h"
+#include "common.h"
 #include "hid.h"
 #include "imu.h"
 #include "led.h"

@@ -8,7 +8,7 @@
 #include "profile.h"
 #include "uart.h"
 #include "logging.h"
-#include "helper.h"
+#include "common.h"
 
 void self_test_button_press(const char *buttonName, Button* button) {
     info("Press button '%s': WAITING", buttonName);

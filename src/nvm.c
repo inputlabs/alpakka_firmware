@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <hardware/flash.h>
 #include <hardware/sync.h>
-#include "helper.h"
+#include "common.h"
 #include "config.h"
 #include "nvm.h"
 

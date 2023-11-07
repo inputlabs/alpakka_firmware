@@ -16,7 +16,7 @@
 #include "hid.h"
 #include "uart.h"
 #include "logging.h"
-#include "helper.h"
+#include "common.h"
 
 #if __has_include("version.h")
     #include "version.h"

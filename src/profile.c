@@ -14,7 +14,7 @@
 #include "led.h"
 #include "webusb.h"
 #include "logging.h"
-#include "helper.h"
+#include "common.h"
 
 Profile profiles[16];
 uint8_t profile_active_index = -1;

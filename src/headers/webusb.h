@@ -3,7 +3,7 @@
 
 #pragma once
 #include <stdint.h>
-#include <helper.h>
+#include "common.h"
 
 #define WEBUSB_BUFFER_SIZE 2048
 #define CTRL_VERSION 1

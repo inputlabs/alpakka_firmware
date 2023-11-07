@@ -10,7 +10,7 @@
 #include "pin.h"
 #include "button.h"
 #include "thumbstick.h"
-#include "helper.h"
+#include "common.h"
 #include "hid.h"
 #include "led.h"
 #include "profile.h"

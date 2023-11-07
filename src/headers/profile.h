@@ -8,7 +8,7 @@
 #include "rotary.h"
 #include "gyro.h"
 #include "webusb.h"
-#include "helper.h"
+#include "common.h"
 
 typedef enum ProfileIndex_enum {
     PROFILE_HOME,
