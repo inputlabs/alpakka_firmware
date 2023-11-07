@@ -106,15 +106,15 @@ void hid_release(uint8_t key) {
 
 void hid_press_multiple(uint8_t *keys) {
     if (keys[0] == PROC_MACRO) {
-        if (alarms > 0) return;  // Disallows parallel macros. TODO fix.
-        uint16_t time = 10;
-        for(uint8_t i=1; i<MACROS_LEN; i++) {
-            if (keys[i] == 0) break;
-            hid_press_later(keys[i], time);
-            time += 10;
-            hid_release_later(keys[i], time);
-            time += 10;
-        }
+        // if (alarms > 0) return;  // Disallows parallel macros. TODO fix.
+        // uint16_t time = 10;
+        // for(uint8_t i=1; i<MACROS_LEN; i++) {
+        //     if (keys[i] == 0) break;
+        //     hid_press_later(keys[i], time);
+        //     time += 10;
+        //     hid_release_later(keys[i], time);
+        //     time += 10;
+        // }
     } else {
         for(uint8_t i=0; i<ACTIONS_LEN; i++) {
             if (keys[i] == 0) return;

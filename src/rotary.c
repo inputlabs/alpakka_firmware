@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
+#include <string.h>
 #include <pico/time.h>
 #include <hardware/gpio.h>
 #include "config.h"
@@ -52,8 +52,8 @@ void Rotary__report(Rotary *self) {
         for(uint8_t rotated=0; rotated<abs(self->increment); rotated++) {
             uint8_t *actions = (
                 self->increment > 0 ?
-                self->actions[self->mode][0] :
-                self->actions[self->mode][1]
+                self->actions[self->mode][ROTARY_UP] :
+                self->actions[self->mode][ROTARY_DOWN]
             );
             hid_press_multiple(actions);
             hid_release_multiple_later(actions, 10);
@@ -70,23 +70,19 @@ void Rotary__reset(Rotary *self) {
     // self->mode = 0;
 }
 
-void Rotary__config_mode(Rotary *self, uint8_t mode, ...) {
-    va_list va;
-    va_start(va, 0);
-    for(uint8_t dir=0; dir<2; dir++) {
-        bool valid = true;
-        for(uint8_t action=0; action<4; action++) {
-            uint8_t value = valid ? va_arg(va, int) : KEY_NONE;
-            if (value == SENTINEL) valid = false;
-            self->actions[mode][dir][action] = value;
-        }
-    }
-    va_end(va);
+void Rotary__config_mode(
+    Rotary *self,
+    u8 mode,
+    Actions actions_up,
+    Actions actions_down
+) {
+    memcpy(self->actions[mode][ROTARY_UP], actions_up, ACTIONS_LEN);
+    memcpy(self->actions[mode][ROTARY_DOWN], actions_down, ACTIONS_LEN);
 }
 
 Rotary Rotary_ (
-    void *useless,
-    ...  // Actions
+    Actions actions_up,
+    Actions actions_down
 ) {
     Rotary rotary;
     rotary.report = Rotary__report;
@@ -96,16 +92,7 @@ Rotary Rotary_ (
     rotary.mode = 0;
     rotary.increment = 0;
     rotary.timestamp = 0;
-    va_list va;
-    va_start(va, 0);
-    for(uint8_t dir=0; dir<2; dir++) {
-        bool valid = true;
-        for(uint8_t action=0; action<4; action++) {
-            uint8_t value = valid ? va_arg(va, int) : KEY_NONE;
-            if (value == SENTINEL) valid = false;
-            rotary.actions[0][dir][action] = value;
-        }
-    }
-    va_end(va);
+    memcpy(rotary.actions[0][ROTARY_UP], actions_up, ACTIONS_LEN);
+    memcpy(rotary.actions[0][ROTARY_DOWN], actions_down, ACTIONS_LEN);
     return rotary;
 }

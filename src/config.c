@@ -142,7 +142,6 @@ void config_print() {
 }
 
 void config_set_profile(uint8_t profile) {
-    printf("P= %i %i\n", profile, config_cache.profile);
     if (profile == config_cache.profile) return;
     config_cache.profile = profile;
     config_cache_synced = false;

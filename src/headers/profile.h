@@ -26,6 +26,7 @@ typedef struct Profile_struct Profile;
 struct Profile_struct {
     void (*report) (Profile *self);
     void (*reset) (Profile *self);
+    void (*load_from_config) (Profile *self, CtrlProfile *profile);
     Button select_1;
     Button select_2;
     Button start_1;

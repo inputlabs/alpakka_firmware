@@ -65,9 +65,12 @@ uint8_t random8();
 typedef int8_t i8;
 typedef int16_t i16;
 typedef int32_t i32;
+typedef int64_t i64;
 typedef uint8_t u8;
 typedef uint16_t u16;
-typedef uint32_t u32;
+typedef uint64_t u64;
+typedef float f32;
+typedef double f64;
 
 // Anonymous tuples with known size, so they can be passed by value.
 typedef struct Tuple2_struct {u8 values[2];} Tuple2;

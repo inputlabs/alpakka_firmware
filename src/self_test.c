@@ -8,6 +8,7 @@
 #include "profile.h"
 #include "uart.h"
 #include "logging.h"
+#include "helper.h"
 
 void self_test_button_press(const char *buttonName, Button* button) {
     info("Press button '%s': WAITING", buttonName);
@@ -20,7 +21,8 @@ void self_test_button_press(const char *buttonName, Button* button) {
 }
 
 void self_test_buttons(Profile* profile) {
-    Button home = Button_(PIN_HOME, NORMAL, ACTIONS(KEY_NONE));
+    Actions none = {0,};
+    Button home = Button_(PIN_HOME, NORMAL, none, none);
     self_test_button_press("A", &profile->a);
     self_test_button_press("B", &profile->b);
     self_test_button_press("X", &profile->x);

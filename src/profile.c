@@ -7,6 +7,7 @@
 #include <string.h>
 #include "config.h"
 #include "profile.h"
+#include "button.h"
 #include "bus.h"
 #include "pin.h"
 #include "hid.h"
@@ -30,10 +31,6 @@ void Profile__report(Profile *self) {
     if (!enabled_all) return;
     bus_i2c_io_cache_update();
     home.report(&home);
-    self->select_1.report(&self->select_1);
-    self->select_2.report(&self->select_2);
-    self->start_2.report(&self->start_1);
-    self->start_1.report(&self->start_2);
     if (enabled_abxy) {
         self->a.report(&self->a);
         self->b.report(&self->b);
@@ -44,23 +41,23 @@ void Profile__report(Profile *self) {
     self->dpad_right.report(&self->dpad_right);
     self->dpad_up.report(&self->dpad_up);
     self->dpad_down.report(&self->dpad_down);
+    self->select_1.report(&self->select_1);
+    self->select_2.report(&self->select_2);
+    self->start_2.report(&self->start_1);
+    self->start_1.report(&self->start_2);
     self->l1.report(&self->l1);
     self->r1.report(&self->r1);
     self->l2.report(&self->l2);
     self->r2.report(&self->r2);
     self->l4.report(&self->l4);
     self->r4.report(&self->r4);
-    self->thumbstick.report(&self->thumbstick);
     self->dhat.report(&self->dhat);
     self->rotary.report(&self->rotary);
+    self->thumbstick.report(&self->thumbstick);
     self->gyro.report(&self->gyro);
 }
 
 void Profile__reset(Profile *self) {
-    self->select_1.reset(&self->select_1);
-    self->select_2.reset(&self->select_2);
-    self->start_2.reset(&self->start_1);
-    self->start_1.reset(&self->start_2);
     self->a.reset(&self->a);
     self->b.reset(&self->b);
     self->x.reset(&self->x);
@@ -69,21 +66,87 @@ void Profile__reset(Profile *self) {
     self->dpad_right.reset(&self->dpad_right);
     self->dpad_up.reset(&self->dpad_up);
     self->dpad_down.reset(&self->dpad_down);
+    self->select_1.reset(&self->select_1);
+    self->select_2.reset(&self->select_2);
+    self->start_2.reset(&self->start_1);
+    self->start_1.reset(&self->start_2);
     self->l1.reset(&self->l1);
     self->l2.reset(&self->l2);
     self->r1.reset(&self->r1);
     self->r2.reset(&self->r2);
-    self->thumbstick.reset(&self->thumbstick);
+    self->l4.reset(&self->l4);
+    self->r4.reset(&self->r4);
+    self->dhat.reset(&self->dhat);
     self->rotary.reset(&self->rotary);
+    self->thumbstick.reset(&self->thumbstick);
     self->gyro.reset(&self->gyro);
+}
+
+void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
+    self->a =          Button_from_ctrl(PIN_A,          profile->sections[SECTION_A]);
+    self->b =          Button_from_ctrl(PIN_B,          profile->sections[SECTION_B]);
+    self->x =          Button_from_ctrl(PIN_X,          profile->sections[SECTION_X]);
+    self->y =          Button_from_ctrl(PIN_Y,          profile->sections[SECTION_Y]);
+    self->dpad_left =  Button_from_ctrl(PIN_DPAD_LEFT,  profile->sections[SECTION_DPAD_LEFT]);
+    self->dpad_right = Button_from_ctrl(PIN_DPAD_RIGHT, profile->sections[SECTION_DPAD_RIGHT]);
+    self->dpad_up =    Button_from_ctrl(PIN_DPAD_UP,    profile->sections[SECTION_DPAD_UP]);
+    self->dpad_down =  Button_from_ctrl(PIN_DPAD_DOWN,  profile->sections[SECTION_DPAD_DOWN]);
+    self->select_1 =   Button_from_ctrl(PIN_SELECT_1,   profile->sections[SECTION_SELECT_1]);
+    self->select_2 =   Button_from_ctrl(PIN_SELECT_2,   profile->sections[SECTION_SELECT_2]);
+    self->start_2 =    Button_from_ctrl(PIN_START_2,    profile->sections[SECTION_START_2]);
+    self->start_1 =    Button_from_ctrl(PIN_START_1,    profile->sections[SECTION_START_1]);
+    self->l1 =         Button_from_ctrl(PIN_L1,         profile->sections[SECTION_L1]);
+    self->l2 =         Button_from_ctrl(PIN_L2,         profile->sections[SECTION_L2]);
+    self->r1 =         Button_from_ctrl(PIN_R1,         profile->sections[SECTION_R1]);
+    self->r2 =         Button_from_ctrl(PIN_R2,         profile->sections[SECTION_R2]);
+    self->l4 =         Button_from_ctrl(PIN_L4,         profile->sections[SECTION_L4]);
+    self->r4 =         Button_from_ctrl(PIN_R4,         profile->sections[SECTION_R4]);
+    self->dhat = Dhat_(
+        Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_LEFT]),
+        Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_RIGHT]),
+        Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_UP]),
+        Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_DOWN]),
+        Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_UL]),
+        Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_UR]),
+        Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_DL]),
+        Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_DR]),
+        Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_PUSH])
+    );
+    Actions none = {0,};
+    self->rotary = Rotary_(none, none);
+
+    self->thumbstick = Thumbstick_(
+        THUMBSTICK_MODE_4DIR,                      // Mode.
+        DEADZONE_FROM_CONFIG,                      // Deadzone.
+        0.5,                                       // Overlap.
+        Button_(PIN_VIRTUAL, NORMAL, none, none),  // Left.
+        Button_(PIN_VIRTUAL, NORMAL, none, none),  // Right.
+        Button_(PIN_VIRTUAL, NORMAL, none, none),  // Up.
+        Button_(PIN_VIRTUAL, NORMAL, none, none),  // Down.
+        Button_(PIN_L3,      NORMAL, none, none),  // Push.
+        Button_(PIN_VIRTUAL, NORMAL, none, none),  // Inner.
+        Button_(PIN_VIRTUAL, NORMAL, none, none)   // Outer.
+    );
+
+    self->gyro = Gyro_(
+        GYRO_MODE_ALWAYS_OFF,
+        PIN_NONE,
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),  // X rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),  // Y rotation.
+        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)   // Z rotation.
+    );
 }
 
 Profile Profile_ () {
     Profile profile;
     profile.report = Profile__report;
     profile.reset = Profile__reset;
+    profile.load_from_config = Profile__load_from_config;
     return profile;
 }
+
+// ============================================================================
+// Independent functions.
 
 void profile_reset_all() {
     config_tune_set_mode(0);
@@ -171,20 +234,14 @@ void profile_enable_abxy(bool value) {
 
 void profile_init() {
     info("INIT: Profiles\n");
-    home = Button_(
-        PIN_HOME,
-        HOLD_DOUBLE_PRESS,
-        ACTIONS(PROC_HOME),
-        ACTIONS(GAMEPAD_HOME, PROC_HOME_GAMEPAD)
-    );
-    profiles[PROFILE_HOME] =           profile_init_home();
-    profiles[PROFILE_FPS_FUSION] =     profile_init_fps_fusion();
-    profiles[PROFILE_FPS_WASD] =       profile_init_fps_wasd();
-    profiles[PROFILE_CONSOLE] =        profile_init_console();
-    profiles[PROFILE_CONSOLE_LEGACY] = profile_init_console_legacy();
-    profiles[PROFILE_DESKTOP] =        profile_init_desktop();
-    profiles[PROFILE_RACING] =         profile_init_racing();
-    profiles[PROFILE_FLIGHT] =         profile_init_none();  // TODO: Flight
-    profiles[PROFILE_RTS] =            profile_init_none();  // TODO: RTS.
+    // Home button setup.
+    Actions actions = {PROC_HOME};
+    Actions actions_secondary = {GAMEPAD_HOME, PROC_HOME_GAMEPAD};
+    home = Button_(PIN_HOME, HOLD_DOUBLE_PRESS, actions, actions_secondary);
+    // Profiles setup.
+    for(u8 i=0; i<=8; i++) {
+        profiles[i] = Profile_();
+        profiles[i].load_from_config(&(profiles[i]), config_profile_read(i));
+    }
     profile_set_active(config_get_profile());
 }

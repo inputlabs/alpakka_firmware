@@ -261,7 +261,8 @@ Gyro Gyro_ (
     gyro.mode = mode;
     gyro.pin = pin;
     if (pin != PIN_NONE && pin != PIN_TOUCH_IN) {
-        gyro.engage_button = Button_(pin, NORMAL, ACTIONS(KEY_NONE));
+        Actions none = {0,};
+        gyro.engage_button = Button_(pin, NORMAL, none, none);
     }
     for(uint8_t i=0; i<4; i++) {
         gyro.actions_x[i] = 0;

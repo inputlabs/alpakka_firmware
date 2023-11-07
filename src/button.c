@@ -2,7 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <stdio.h>
-#include <stdarg.h>
+#include <string.h>
 #include <pico/time.h>
 #include <hardware/gpio.h>
 #include "config.h"
@@ -183,10 +183,12 @@ void Button__reset(Button *self) {
     self->state = false;
 }
 
+// Init.
 Button Button_ (
-    uint8_t pin,
+    u8 pin,
     ButtonMode mode,
-    ...  // Actions.
+    Actions actions,
+    Actions actions_secondary
 ) {
     if (pin) {
         gpio_init(pin);
@@ -209,25 +211,17 @@ Button Button_ (
     button.state_secondary = false;
     button.press_timestamp = 0;
     button.hold_timestamp = 0;
-    for(uint8_t i=0; i<MACROS_LEN; i++) {
-        button.actions[i] = 0;
-        button.actions_secondary[i] = 0;
-    }
-    // Capture varible arguments.
-    va_list va;
-    va_start(va, 0);
-    for(uint8_t i=0; true; i++) {
-        uint8_t value = va_arg(va, int);
-        if (value == SENTINEL) break;
-        button.actions[i] = value;
-    }
-    if (button.mode != NORMAL) {
-        for(uint8_t i=0; true; i++) {
-            uint8_t value = va_arg(va, int);
-            if (value == SENTINEL) break;
-            button.actions_secondary[i] = value;
-        }
-    }
-    va_end(va);
+    memcpy(button.actions, actions, 4);
+    memcpy(button.actions_secondary, actions_secondary, 4);
     return button;
+}
+
+// Alternative init.
+Button Button_from_ctrl(u8 pin, CtrlSection section) {
+    return Button_(
+        pin,
+        section.button.mode,
+        section.button.actions,
+        section.button.actions_secondary
+    );
 }

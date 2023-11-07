@@ -56,6 +56,7 @@ void main_init() {
 }
 
 void main_loop() {
+    info("INIT: Main loop\n");
     int16_t i = 0;
     logging_set_onloop(true);
     while (true) {
