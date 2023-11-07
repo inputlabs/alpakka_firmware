@@ -136,4 +136,10 @@ void config_profile_default_home(CtrlProfile *profile){
         .mode=NORMAL,
         .actions={KEY_BACKQUOTE},
     };
+
+    // Rotary.
+    profile->sections[SECTION_ROTARY_0].rotary = (CtrlRotary){
+        .actions_up={PROC_TUNE_UP},
+        .actions_down={PROC_TUNE_DOWN},
+    };
 }

@@ -80,10 +80,7 @@ void Rotary__config_mode(
     memcpy(self->actions[mode][ROTARY_DOWN], actions_down, ACTIONS_LEN);
 }
 
-Rotary Rotary_ (
-    Actions actions_up,
-    Actions actions_down
-) {
+Rotary Rotary_ () {
     Rotary rotary;
     rotary.report = Rotary__report;
     rotary.reset = Rotary__reset;
@@ -92,7 +89,5 @@ Rotary Rotary_ (
     rotary.mode = 0;
     rotary.increment = 0;
     rotary.timestamp = 0;
-    memcpy(rotary.actions[0][ROTARY_UP], actions_up, ACTIONS_LEN);
-    memcpy(rotary.actions[0][ROTARY_DOWN], actions_down, ACTIONS_LEN);
     return rotary;
 }

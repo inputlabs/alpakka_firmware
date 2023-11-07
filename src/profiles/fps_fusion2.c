@@ -149,4 +149,10 @@ void config_profile_default_fps_fusion(CtrlProfile *profile){
         .actions={KEY_0},
         .hint="Weapons",
     };
+
+    // Rotary.
+    profile->sections[SECTION_ROTARY_0].rotary = (CtrlRotary){
+        .actions_up={MOUSE_SCROLL_UP},
+        .actions_down={MOUSE_SCROLL_DOWN},
+    };
 }

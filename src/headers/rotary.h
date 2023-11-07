@@ -22,10 +22,7 @@ struct Rotary_struct {
     uint8_t actions[5][2][4];
 };
 
-Rotary Rotary_ (
-    Actions actions_up,
-    Actions actions_down
-);
+Rotary Rotary_ ();
 
 void rotary_init();
 void rotary_set_mode(uint8_t value);

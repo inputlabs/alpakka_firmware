@@ -83,6 +83,7 @@ void Profile__reset(Profile *self) {
 }
 
 void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
+    // Buttons.
     self->a =          Button_from_ctrl(PIN_A,          profile->sections[SECTION_A]);
     self->b =          Button_from_ctrl(PIN_B,          profile->sections[SECTION_B]);
     self->x =          Button_from_ctrl(PIN_X,          profile->sections[SECTION_X]);
@@ -101,6 +102,7 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
     self->r2 =         Button_from_ctrl(PIN_R2,         profile->sections[SECTION_R2]);
     self->l4 =         Button_from_ctrl(PIN_L4,         profile->sections[SECTION_L4]);
     self->r4 =         Button_from_ctrl(PIN_R4,         profile->sections[SECTION_R4]);
+    // Dhat.
     self->dhat = Dhat_(
         Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_LEFT]),
         Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_RIGHT]),
@@ -112,9 +114,21 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
         Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_DR]),
         Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_PUSH])
     );
+    // Rotary.
+    CtrlRotary rotary0 = profile->sections[SECTION_ROTARY_0].rotary;
+    CtrlRotary rotary1 = profile->sections[SECTION_ROTARY_1].rotary;
+    CtrlRotary rotary2 = profile->sections[SECTION_ROTARY_2].rotary;
+    CtrlRotary rotary3 = profile->sections[SECTION_ROTARY_3].rotary;
+    CtrlRotary rotary4 = profile->sections[SECTION_ROTARY_4].rotary;
+    Rotary rotary = Rotary_();
+    rotary.config_mode(&rotary, 0, rotary0.actions_up, rotary0.actions_down);
+    rotary.config_mode(&rotary, 1, rotary1.actions_up, rotary1.actions_down);
+    rotary.config_mode(&rotary, 2, rotary2.actions_up, rotary2.actions_down);
+    rotary.config_mode(&rotary, 3, rotary3.actions_up, rotary3.actions_down);
+    rotary.config_mode(&rotary, 4, rotary4.actions_up, rotary4.actions_down);
+    self->rotary = rotary;
+    // Thumbstick.
     Actions none = {0,};
-    self->rotary = Rotary_(none, none);
-
     self->thumbstick = Thumbstick_(
         THUMBSTICK_MODE_4DIR,                      // Mode.
         DEADZONE_FROM_CONFIG,                      // Deadzone.
@@ -127,7 +141,7 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
         Button_(PIN_VIRTUAL, NORMAL, none, none),  // Inner.
         Button_(PIN_VIRTUAL, NORMAL, none, none)   // Outer.
     );
-
+    // Gyro.
     self->gyro = Gyro_(
         GYRO_MODE_ALWAYS_OFF,
         PIN_NONE,
