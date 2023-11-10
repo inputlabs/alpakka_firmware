@@ -151,8 +151,12 @@ void config_profile_default_fps_fusion(CtrlProfile *profile){
     };
 
     // Rotary.
-    profile->sections[SECTION_ROTARY_0].rotary = (CtrlRotary){
-        .actions_up={MOUSE_SCROLL_UP},
-        .actions_down={MOUSE_SCROLL_DOWN},
+    profile->sections[SECTION_ROTARY_UP].rotary = (CtrlRotary){
+        .actions_0={MOUSE_SCROLL_UP},
+        .hint_0="Prev / Zoom+",
+    };
+    profile->sections[SECTION_ROTARY_DOWN].rotary = (CtrlRotary){
+        .actions_0={MOUSE_SCROLL_DOWN},
+        .hint_0="Next / Zoom-",
     };
 }

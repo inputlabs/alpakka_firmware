@@ -138,8 +138,10 @@ void config_profile_default_home(CtrlProfile *profile){
     };
 
     // Rotary.
-    profile->sections[SECTION_ROTARY_0].rotary = (CtrlRotary){
-        .actions_up={PROC_TUNE_UP},
-        .actions_down={PROC_TUNE_DOWN},
+    profile->sections[SECTION_ROTARY_UP].rotary = (CtrlRotary){
+        .actions_0={PROC_TUNE_UP},
+    };
+    profile->sections[SECTION_ROTARY_DOWN].rotary = (CtrlRotary){
+        .actions_0={PROC_TUNE_DOWN},
     };
 }

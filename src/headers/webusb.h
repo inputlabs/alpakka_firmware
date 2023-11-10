@@ -63,11 +63,8 @@ typedef enum CtrlSectionType_enum {
     SECTION_DHAT_DL,
     SECTION_DHAT_DR,
     SECTION_DHAT_PUSH,
-    SECTION_ROTARY_0,
-    SECTION_ROTARY_1,
-    SECTION_ROTARY_2,
-    SECTION_ROTARY_3,
-    SECTION_ROTARY_4,
+    SECTION_ROTARY_UP,
+    SECTION_ROTARY_DOWN,
 } CtrlSectionType;
 
 typedef struct Ctrl_struct {
@@ -79,28 +76,35 @@ typedef struct Ctrl_struct {
 } Ctrl;
 
 typedef struct CtrlProfileName_struct {
-    // Must be packed (60 bytes).
-    char name[60];
+    // Must be packed (58 bytes).
+    char name[32];
+    char padding[26];
 } CtrlProfileName;
 
 typedef struct CtrlButton_struct {
-    // Must be packed (60 bytes).
+    // Must be packed (58 bytes).
     u8 mode;
     u8 actions[4];
     u8 actions_secondary[4];
-    u8 padding;
+    u8 chord[4];
     u8 hint[20];
     u8 hint_secondary[20];
-    u8 padding_end[10];
+    u8 padding[5];
 } CtrlButton;
 
 typedef struct CtrlRotary_struct {
-    // Must be packed (60 bytes).
-    u8 actions_up[4];
-    u8 actions_down[4];
-    u8 hint_up[20];
-    u8 hint_down[20];
-    u8 padding[12];
+    // Must be packed (58 bytes).
+    u8 actions_0[4];
+    u8 actions_1[4];
+    u8 actions_2[4];
+    u8 actions_3[4];
+    u8 actions_4[4];
+    u8 hint_0[20];
+    u8 hint_1[4];
+    u8 hint_2[4];
+    u8 hint_3[4];
+    u8 hint_4[4];
+    u8 padding[2];
 } CtrlRotary;
 
 typedef union CtrlSection_union {

@@ -115,17 +115,14 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
         Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_DHAT_PUSH])
     );
     // Rotary.
-    CtrlRotary rotary0 = profile->sections[SECTION_ROTARY_0].rotary;
-    CtrlRotary rotary1 = profile->sections[SECTION_ROTARY_1].rotary;
-    CtrlRotary rotary2 = profile->sections[SECTION_ROTARY_2].rotary;
-    CtrlRotary rotary3 = profile->sections[SECTION_ROTARY_3].rotary;
-    CtrlRotary rotary4 = profile->sections[SECTION_ROTARY_4].rotary;
+    CtrlRotary up = profile->sections[SECTION_ROTARY_UP].rotary;
+    CtrlRotary down = profile->sections[SECTION_ROTARY_DOWN].rotary;
     Rotary rotary = Rotary_();
-    rotary.config_mode(&rotary, 0, rotary0.actions_up, rotary0.actions_down);
-    rotary.config_mode(&rotary, 1, rotary1.actions_up, rotary1.actions_down);
-    rotary.config_mode(&rotary, 2, rotary2.actions_up, rotary2.actions_down);
-    rotary.config_mode(&rotary, 3, rotary3.actions_up, rotary3.actions_down);
-    rotary.config_mode(&rotary, 4, rotary4.actions_up, rotary4.actions_down);
+    rotary.config_mode(&rotary, 0, up.actions_0, down.actions_0);
+    rotary.config_mode(&rotary, 1, up.actions_1, down.actions_1);
+    rotary.config_mode(&rotary, 2, up.actions_2, down.actions_2);
+    rotary.config_mode(&rotary, 3, up.actions_3, down.actions_3);
+    rotary.config_mode(&rotary, 4, up.actions_4, down.actions_4);
     self->rotary = rotary;
     // Thumbstick.
     Actions none = {0,};
