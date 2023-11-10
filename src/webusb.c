@@ -7,6 +7,7 @@
 #include <device/usbd_pvt.h>
 #include "webusb.h"
 #include "config.h"
+#include "profile.h"
 #include "hid.h"
 #include "tusb_config.h"
 #include "common.h"
@@ -219,6 +220,15 @@ void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[
     }
 }
 
+void webusb_handle_profile_set(u8 profileIndex, u8 sectionIndex, u8 section[58]) {
+    // Update profile in config.
+    CtrlProfile *profile_cfg = config_profile_read(profileIndex);
+    profile_cfg->sections[sectionIndex] = *(CtrlSection*)section;
+    // Update profile runtime.
+    Profile *profile = profile_get(profileIndex);
+    profile->load_from_config(profile, profile_cfg);
+}
+
 void webusb_read() {
     // Parse data coming from the app.
     if (!tud_ready() || usbd_edpt_busy(0, ADDR_WEBUSB_OUT)) return;
@@ -229,19 +239,24 @@ void webusb_read() {
     usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)&ctrl, 64);
     usbd_edpt_release(0, ADDR_WEBUSB_OUT);
     // Handle incomming message.
-    switch(ctrl.message_type) {
-        break; case PROC:
-            webusb_handle_proc(ctrl.payload[0]);
-        break; case CONFIG_GET:
-            webusb_handle_config_get(ctrl.payload[0]);
-        break; case CONFIG_SET:
-            webusb_handle_config_set(
-                ctrl.payload[0],  // Config index.
-                ctrl.payload[1],  // Preset index.
-                &ctrl.payload[2]  // Preset values. (Reference to sub-array).
-            );
-        break; case PROFILE_GET:
-            webusb_handle_profile_get(ctrl.payload[0], ctrl.payload[1]);
+    if (ctrl.message_type == PROC) webusb_handle_proc(ctrl.payload[0]);
+    if (ctrl.message_type == CONFIG_GET) webusb_handle_config_get(ctrl.payload[0]);
+    if (ctrl.message_type == CONFIG_SET) {
+        webusb_handle_config_set(
+            ctrl.payload[0],  // Config index.
+            ctrl.payload[1],  // Preset index.
+            &ctrl.payload[2]  // Preset values. (Reference to sub-array).
+        );
+    }
+    if (ctrl.message_type == PROFILE_GET) {
+        webusb_handle_profile_get(ctrl.payload[0], ctrl.payload[1]);
+    }
+    if (ctrl.message_type == PROFILE_SET) {
+        webusb_handle_profile_set(
+            ctrl.payload[0],
+            ctrl.payload[1],
+            &ctrl.payload[2]
+        );
     }
 }
 
