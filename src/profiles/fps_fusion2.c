@@ -105,7 +105,7 @@ void config_profile_default_fps_fusion(CtrlProfile *profile){
     };
     profile->sections[SECTION_R4].button = (CtrlButton){
         .mode=HOLD_OVERLAP,
-        .actions={KEY_LEFT_CONTROL},
+        .actions={KEY_CONTROL_LEFT},
         .hint="Crouch",
         .actions_secondary={KEY_P},
         .hint_secondary="Prone",

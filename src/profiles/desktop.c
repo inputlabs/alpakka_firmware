@@ -11,10 +11,10 @@
 Profile profile_init_desktop() {
     Profile profile = Profile_();
 
-    profile.select_1 = Button_(PIN_SELECT_1, NORMAL, ACTIONS(KEY_LEFT_CONTROL, KEY_Z));
-    profile.select_2 = Button_(PIN_SELECT_2, NORMAL, ACTIONS(KEY_LEFT_CONTROL, KEY_C));
-    profile.start_1 =  Button_(PIN_START_1,  NORMAL, ACTIONS(KEY_LEFT_CONTROL, KEY_LEFT_SHIFT, KEY_Z));
-    profile.start_2 =  Button_(PIN_START_2,  NORMAL, ACTIONS(KEY_LEFT_CONTROL, KEY_V));
+    profile.select_1 = Button_(PIN_SELECT_1, NORMAL, ACTIONS(KEY_CONTROL_LEFT, KEY_Z));
+    profile.select_2 = Button_(PIN_SELECT_2, NORMAL, ACTIONS(KEY_CONTROL_LEFT, KEY_C));
+    profile.start_1 =  Button_(PIN_START_1,  NORMAL, ACTIONS(KEY_CONTROL_LEFT, KEY_LEFT_SHIFT, KEY_Z));
+    profile.start_2 =  Button_(PIN_START_2,  NORMAL, ACTIONS(KEY_CONTROL_LEFT, KEY_V));
 
     profile.dpad_left =  Button_(PIN_DPAD_LEFT,  NORMAL, ACTIONS(KEY_LEFT));
     profile.dpad_right = Button_(PIN_DPAD_RIGHT, NORMAL, ACTIONS(KEY_RIGHT));
@@ -27,10 +27,10 @@ Profile profile_init_desktop() {
     profile.y = Button_(PIN_Y, NORMAL, ACTIONS(KEY_SPACE));
 
     profile.l1 = Button_(PIN_L1, NORMAL, ACTIONS(MOUSE_3));
-    profile.r1 = Button_(PIN_R1, NORMAL, ACTIONS(KEY_LEFT_ALT));
+    profile.r1 = Button_(PIN_R1, NORMAL, ACTIONS(KEY_ALT_LEFT));
     profile.l2 = Button_(PIN_L2, NORMAL, ACTIONS(MOUSE_2));
     profile.r2 = Button_(PIN_R2, NORMAL, ACTIONS(MOUSE_1));
-    profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(KEY_LEFT_CONTROL));
+    profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(KEY_CONTROL_LEFT));
     profile.r4 = Button_(PIN_R4, NORMAL, ACTIONS(KEY_LEFT_SHIFT));
 
     profile.rotary = Rotary_(NULL, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));

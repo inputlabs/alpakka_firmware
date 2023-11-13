@@ -30,7 +30,7 @@ Profile profile_init_console() {
     profile.l2 = Button_(PIN_L2, NORMAL, ACTIONS(GAMEPAD_AXIS_LZ));
     profile.r2 = Button_(PIN_R2, NORMAL, ACTIONS(GAMEPAD_AXIS_RZ));
     profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(KEY_SPACE));
-    profile.r4 = Button_(PIN_R4, NORMAL, ACTIONS(KEY_LEFT_CONTROL));
+    profile.r4 = Button_(PIN_R4, NORMAL, ACTIONS(KEY_CONTROL_LEFT));
 
     profile.rotary = Rotary_(NULL, ACTIONS(MOUSE_SCROLL_UP), ACTIONS(MOUSE_SCROLL_DOWN));
 

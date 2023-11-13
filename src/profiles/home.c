@@ -25,7 +25,7 @@ Profile profile_init_home() {
         PIN_START_1,
         HOLD_EXCLUSIVE_LONG,
         ACTIONS(KEY_F10),
-        ACTIONS(KEY_LEFT_CONTROL, KEY_LEFT_ALT, KEY_DELETE)
+        ACTIONS(KEY_CONTROL_LEFT, KEY_ALT_LEFT, KEY_DELETE)
     );
     profile.start_2 = Button_(
         PIN_START_2,
@@ -47,10 +47,10 @@ Profile profile_init_home() {
     profile.l1 = Button_(
         PIN_L1,
         HOLD_EXCLUSIVE_LONG,
-        ACTIONS(KEY_LEFT_SUPER, KEY_D),
-        ACTIONS(KEY_LEFT_ALT, KEY_ENTER)
+        ACTIONS(KEY_SUPER_LEFT, KEY_D),
+        ACTIONS(KEY_ALT_LEFT, KEY_ENTER)
     );
-    profile.r1 = Button_(PIN_R1, STICKY, ACTIONS(KEY_LEFT_ALT), ACTIONS(KEY_TAB));
+    profile.r1 = Button_(PIN_R1, STICKY, ACTIONS(KEY_ALT_LEFT), ACTIONS(KEY_TAB));
     profile.l2 = Button_(PIN_L2, NORMAL, ACTIONS(MOUSE_2));
     profile.r2 = Button_(PIN_R2, NORMAL, ACTIONS(MOUSE_1));
     profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(KEY_NONE));
@@ -86,7 +86,7 @@ Profile profile_init_home() {
         Button_(
             PIN_L3,
             HOLD_EXCLUSIVE_LONG,
-            ACTIONS(KEY_LEFT_SUPER, KEY_LEFT_CONTROL, KEY_O),
+            ACTIONS(KEY_SUPER_LEFT, KEY_CONTROL_LEFT, KEY_O),
             ACTIONS(PROC_THANKS)
         ),
         // Inner.
