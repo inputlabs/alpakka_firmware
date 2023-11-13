@@ -20,36 +20,67 @@
 #include "logging.h"
 
 Config config_cache;
-CtrlProfile config_profile_cache[13];
 bool config_cache_synced = true;
-bool config_profile_cache_synced = true;
+
+CtrlProfile config_profile_cache[13];
+bool config_profile_cache_synced[13] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
 
 uint8_t config_tune_mode = 0;
 uint8_t pcb_gen = 255;
 
+void config_load() {
+    // Load main config from NVM into the cache.
+    nvm_read(NVM_CONFIG_ADDR, (u8*)&config_cache, 256);
+}
+
+void config_profile_load(u8 index) {
+    // Load a profile from NVM into the cache.
+    u32 addr = NVM_CONFIG_ADDR + (4096 * (index+1));
+    nvm_read(addr, (u8*)&config_profile_cache[index], 4096);
+}
+
 Config* config_read() {
+    // Access the raw config cache.
+    // (Specific setting get/set are prefered than using this).
     return &config_cache;
 }
 
 CtrlProfile* config_profile_read(u8 index) {
+    // Get a profile from cache.
     return &(config_profile_cache[index]);
 }
 
 void config_write() {
+    // Write main config from cache to NVM.
     info("NVM: Config write\n");
     nvm_write(NVM_CONFIG_ADDR, (u8*)&config_cache, 256);
     config_cache_synced = true;
 }
 
-void config_load() {
-    nvm_read(XIP_BASE + NVM_CONFIG_ADDR, (u8*)&config_cache, 256);
+void config_profile_write(u8 index) {
+    // Write a profile from cache to NVM.
+    info("NVM: Profile %i write\n", index);
+    u32 addr = NVM_CONFIG_ADDR + (4096 * (index+1));
+    nvm_write(addr, (u8*)&config_profile_cache[index], 4096);
+    config_profile_cache_synced[index] = true;
+}
+
+void config_profile_set_sync(u8 index, bool state) {
+    // Flag a profile as synced or unsynced.
+    config_profile_cache_synced[index] = state;
 }
 
 void config_sync() {
+    // Sync main config.
     if (!config_cache_synced) {
         config_write();
     }
-    config_cache_synced = true;
+    // Sync profiles.
+    for(u8 i=0; i<13; i++) {
+        if (!config_profile_cache_synced[i]) {
+            config_profile_write(i);
+        }
+    }
 }
 
 void config_write_init() {
@@ -85,8 +116,6 @@ void config_write_init() {
     config_cache.deadzone_values[1] = 0.10,
     config_cache.deadzone_values[2] = 0.15,
     // Touch sens values are initialized elsewhere after determining the PCB gen.
-
-    // config_init_profiles();   //////////////
     config_write();
 }
 
@@ -373,9 +402,19 @@ void config_set_deadzone_values(float* values) {
     config_cache_synced = false;
 }
 
-void config_init_profiles() {
+void config_init_profiles_from_defaults() {
+    warn("Loading profiles from defaults\n");
     config_profile_default_home(&(config_profile_cache[0]));
     config_profile_default_fps_fusion(&(config_profile_cache[1]));
+    config_profile_write(0);
+    config_profile_write(1);
+}
+
+void config_init_profiles_from_nvm() {
+    info("NVM: Loading profiles\n");
+    for(u8 i=0; i<2; i++) {  ///////////////// TODO all profiles
+        config_profile_load(i);
+    }
 }
 
 void config_init() {
@@ -390,8 +429,10 @@ void config_init() {
     ) {
         warn("NVM config not found or incompatible, writing default instead\n");
         config_write_init();
+        config_init_profiles_from_defaults();
+    } else {
+        config_init_profiles_from_nvm();
     }
-    config_init_profiles(); ///////
     config_print();
 }
 

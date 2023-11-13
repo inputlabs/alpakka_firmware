@@ -5,7 +5,6 @@
 #include <hardware/flash.h>
 #include <hardware/sync.h>
 #include "common.h"
-#include "config.h"
 #include "nvm.h"
 
 void nvm_write(uint32_t addr, uint8_t* buffer, uint32_t size) {
@@ -16,7 +15,7 @@ void nvm_write(uint32_t addr, uint8_t* buffer, uint32_t size) {
 }
 
 void nvm_read(uint32_t addr, uint8_t* buffer, uint32_t size) {
-    uint8_t* p = (uint8_t*)(addr);
+    uint8_t* p = (uint8_t*)(XIP_BASE + addr);
     for(uint32_t i=0; i<size; i++) {
         buffer[i] = *(p+i);
     }

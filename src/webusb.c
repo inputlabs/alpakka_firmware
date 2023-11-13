@@ -227,6 +227,7 @@ void webusb_handle_profile_set(u8 profileIndex, u8 sectionIndex, u8 section[58])
     // Update profile runtime.
     Profile *profile = profile_get(profileIndex);
     profile->load_from_config(profile, profile_cfg);
+    config_profile_set_sync(profileIndex, false);
 }
 
 void webusb_read() {

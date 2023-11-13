@@ -9,7 +9,7 @@
 
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
-#define NVM_STRUCT_VERSION 13
+#define NVM_STRUCT_VERSION 15
 
 #define PROTOCOL_XINPUT_WIN 0
 #define PROTOCOL_XINPUT_UNIX 1
@@ -77,7 +77,7 @@ typedef struct Config_struct {
 } Config;
 
 void config_init();
-void config_init_profiles();
+void config_init_profiles_from_defaults();
 void config_sync();
 Config* config_read();
 void config_set_profile(uint8_t profile);
@@ -115,8 +115,9 @@ void config_set_touch_sens_values(uint8_t* values, bool write);
 void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
 
-
 // Profiles
 CtrlProfile* config_profile_read(u8 index);
+void config_profile_write(u8 index);
+void config_profile_set_sync(u8 index, bool state);
 void config_profile_default_home(CtrlProfile *profile);
 void config_profile_default_fps_fusion(CtrlProfile *profile);
