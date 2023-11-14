@@ -84,12 +84,13 @@ typedef struct CtrlProfileName_struct {
 typedef struct CtrlButton_struct {
     // Must be packed (58 bytes).
     u8 mode;
+    u8 reserved;
     u8 actions[4];
     u8 actions_secondary[4];
-    u8 chord[4];
-    u8 hint[20];
-    u8 hint_secondary[20];
-    u8 padding[5];
+    u8 actions_reserved[16];
+    u8 chords[4];
+    u8 hint[14];
+    u8 hint_secondary[14];
 } CtrlButton;
 
 typedef struct CtrlRotary_struct {
