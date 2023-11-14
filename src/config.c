@@ -119,6 +119,14 @@ void config_write_init() {
     config_write();
 }
 
+void config_delete() {
+    config_cache = (Config){
+        .header = 0,
+        .config_version = 0,
+    };
+    config_write();
+}
+
 void config_print() {
     info("NVM: dump\n");
     info("  config_version=%i\n", config_cache.config_version);
@@ -273,8 +281,7 @@ void config_bootsel() {
 
 void config_factory() {
     info("NVM: Reset to factory defaults\n");
-    config_write_init();
-    config_print();
+    config_delete();
     config_reboot();
 }
 
