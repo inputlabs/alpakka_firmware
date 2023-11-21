@@ -194,10 +194,10 @@
 #define GAMEPAD_L1       GAMEPAD_INDEX + 8
 #define GAMEPAD_R1       GAMEPAD_INDEX + 9
 #define GAMEPAD_HOME     GAMEPAD_INDEX + 10
-#define GAMEPAD_A        GAMEPAD_INDEX + 12
-#define GAMEPAD_B        GAMEPAD_INDEX + 13
-#define GAMEPAD_X        GAMEPAD_INDEX + 14
-#define GAMEPAD_Y        GAMEPAD_INDEX + 15
+#define GAMEPAD_A        GAMEPAD_INDEX + 11
+#define GAMEPAD_B        GAMEPAD_INDEX + 12
+#define GAMEPAD_X        GAMEPAD_INDEX + 13
+#define GAMEPAD_Y        GAMEPAD_INDEX + 14
 
 #define GAMEPAD_AXIS_LX      GAMEPAD_AXIS_INDEX + 0
 #define GAMEPAD_AXIS_LY      GAMEPAD_AXIS_INDEX + 1
@@ -226,31 +226,30 @@
 #define PROC_PROFILE_11  PROC_INDEX + 11
 #define PROC_PROFILE_12  PROC_INDEX + 12
 
-#define PROC_TUNE_UP               PROC_INDEX + 13
-#define PROC_TUNE_DOWN             PROC_INDEX + 14
-#define PROC_TUNE_OS               PROC_INDEX + 15
-#define PROC_TUNE_SENSITIVITY      PROC_INDEX + 16
-#define PROC_TUNE_DEADZONE         PROC_INDEX + 17
-#define PROC_TUNE_TOUCH_THRESHOLD  PROC_INDEX + 18
-#define PROC_TUNE_VIBRATION        PROC_INDEX + 19
-#define PROC_CALIBRATE             PROC_INDEX + 20
-#define PROC_RESTART               PROC_INDEX + 21
-#define PROC_BOOTSEL               PROC_INDEX + 22
-#define PROC_FACTORY               PROC_INDEX + 23
-#define PROC_THANKS                PROC_INDEX + 24
-#define PROC_MACRO                 PROC_INDEX + 25
-#define PROC_HOME_GAMEPAD          PROC_INDEX + 26
+#define PROC_TUNE_UP          PROC_INDEX + 13
+#define PROC_TUNE_DOWN        PROC_INDEX + 14
+#define PROC_TUNE_OS          PROC_INDEX + 15
+#define PROC_TUNE_MOUSE_SENS  PROC_INDEX + 16
+#define PROC_TUNE_TOUCH_SENS  PROC_INDEX + 17
+#define PROC_TUNE_DEADZONE    PROC_INDEX + 18
+#define PROC_CALIBRATE        PROC_INDEX + 19
+#define PROC_RESTART          PROC_INDEX + 20
+#define PROC_BOOTSEL          PROC_INDEX + 21
+#define PROC_FACTORY          PROC_INDEX + 22
+#define PROC_THANKS           PROC_INDEX + 23
+#define PROC_MACRO            PROC_INDEX + 24
+#define PROC_HOME_GAMEPAD     PROC_INDEX + 25
 
-#define PROC_ROTARY_MODE_0  PROC_INDEX + 27
-#define PROC_ROTARY_MODE_1  PROC_INDEX + 28
-#define PROC_ROTARY_MODE_2  PROC_INDEX + 29
-#define PROC_ROTARY_MODE_3  PROC_INDEX + 30
-#define PROC_ROTARY_MODE_4  PROC_INDEX + 31
-#define PROC_ROTARY_MODE_5  PROC_INDEX + 32
+#define PROC_ROTARY_MODE_0  PROC_INDEX + 26
+#define PROC_ROTARY_MODE_1  PROC_INDEX + 27
+#define PROC_ROTARY_MODE_2  PROC_INDEX + 28
+#define PROC_ROTARY_MODE_3  PROC_INDEX + 29
+#define PROC_ROTARY_MODE_4  PROC_INDEX + 30
+#define PROC_ROTARY_MODE_5  PROC_INDEX + 31
 
 // Experimental anti-deadzone.
-#define PROC_ADZ    PROC_INDEX + 33
-#define PROC_ADZN   PROC_INDEX + 34
+#define PROC_ADZ    PROC_INDEX + 32
+#define PROC_ADZN   PROC_INDEX + 33
 
 void hid_thanks();
 void hid_matrix_reset();

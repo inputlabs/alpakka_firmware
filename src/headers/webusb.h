@@ -100,12 +100,11 @@ typedef struct CtrlRotary_struct {
     u8 actions_2[4];
     u8 actions_3[4];
     u8 actions_4[4];
-    u8 hint_0[20];
-    u8 hint_1[4];
-    u8 hint_2[4];
-    u8 hint_3[4];
-    u8 hint_4[4];
-    u8 padding[2];
+    u8 hint_0[14];
+    u8 hint_1[6];
+    u8 hint_2[6];
+    u8 hint_3[6];
+    u8 hint_4[6];
 } CtrlRotary;
 
 typedef union CtrlSection_union {

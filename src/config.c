@@ -222,7 +222,7 @@ void config_tune_update_leds() {
         if (config_cache.protocol == 1) led_blink_mask(LED_MASK_DOWN);
         if (config_cache.protocol == 2) led_blink_mask(LED_MASK_RIGHT);
     }
-    if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
+    if (config_tune_mode == PROC_TUNE_MOUSE_SENS) {
         led_shape_all_off();
         led_set(LED_DOWN, true);
         if (config_cache.sens_mouse == 0) led_blink_mask(LED_MASK_LEFT);
@@ -236,7 +236,7 @@ void config_tune_update_leds() {
         if (config_cache.deadzone == 1) led_blink_mask(LED_MASK_RIGHT);
         if (config_cache.deadzone == 2) led_blink_mask(LED_MASK_UP);
     }
-    if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
+    if (config_tune_mode == PROC_TUNE_TOUCH_SENS) {
         led_shape_all_off();
         led_set(LED_RIGHT, true);
         if (config_cache.sens_touch == 0) led_blink_mask(LED_MASK_DOWN);
@@ -258,13 +258,13 @@ void config_tune(bool direction) {
     if (config_tune_mode == PROC_TUNE_OS) {
         config_set_protocol(constrain(config_cache.protocol + value, 0, 2));
     }
-    else if (config_tune_mode == PROC_TUNE_SENSITIVITY) {
+    else if (config_tune_mode == PROC_TUNE_MOUSE_SENS) {
         config_set_mouse_sens_preset(constrain(config_cache.sens_mouse + value, 0, 2), true);
     }
     else if (config_tune_mode == PROC_TUNE_DEADZONE) {
         config_set_deadzone_preset(constrain(config_cache.deadzone + value, 0, 2), true);
     }
-    else if (config_tune_mode == PROC_TUNE_TOUCH_THRESHOLD) {
+    else if (config_tune_mode == PROC_TUNE_TOUCH_SENS) {
         config_set_touch_sens_preset(constrain(config_cache.sens_touch + value, 0, 4), true);
     }
     config_tune_update_leds();

@@ -55,10 +55,9 @@ void hid_procedure_press(uint8_t procedure){
     if (procedure == PROC_TUNE_UP) config_tune(1);
     if (procedure == PROC_TUNE_DOWN) config_tune(0);
     if (procedure == PROC_TUNE_OS) config_tune_set_mode(procedure);
-    if (procedure == PROC_TUNE_SENSITIVITY) config_tune_set_mode(procedure);
+    if (procedure == PROC_TUNE_MOUSE_SENS) config_tune_set_mode(procedure);
+    if (procedure == PROC_TUNE_TOUCH_SENS) config_tune_set_mode(procedure);
     if (procedure == PROC_TUNE_DEADZONE) config_tune_set_mode(procedure);
-    if (procedure == PROC_TUNE_TOUCH_THRESHOLD) config_tune_set_mode(procedure);
-    if (procedure == PROC_TUNE_VIBRATION) config_tune_set_mode(procedure);
     if (procedure == PROC_CALIBRATE) config_calibrate();
     if (procedure == PROC_RESTART) config_reboot();
     if (procedure == PROC_BOOTSEL) config_bootsel();
