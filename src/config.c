@@ -413,13 +413,21 @@ void config_init_profiles_from_defaults() {
     warn("Loading profiles from defaults\n");
     config_profile_default_home(&(config_profile_cache[0]));
     config_profile_default_fps_fusion(&(config_profile_cache[1]));
-    config_profile_write(0);
-    config_profile_write(1);
+    config_profile_default_racing(&(config_profile_cache[2]));
+    config_profile_default_console(&(config_profile_cache[3]));
+    config_profile_default_desktop(&(config_profile_cache[4]));
+    config_profile_default_fps_wasd(&(config_profile_cache[5]));
+    config_profile_default_flight(&(config_profile_cache[6]));
+    config_profile_default_console_legacy(&(config_profile_cache[7]));
+    config_profile_default_rts(&(config_profile_cache[8]));
+    for(u8 i=0; i<9; i++) {
+        config_profile_write(i);
+    }
 }
 
 void config_init_profiles_from_nvm() {
     info("NVM: Loading profiles\n");
-    for(u8 i=0; i<2; i++) {  ///////////////// TODO all profiles
+    for(u8 i=0; i<9; i++) {
         config_profile_load(i);
     }
 }
