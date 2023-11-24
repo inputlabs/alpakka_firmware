@@ -100,6 +100,28 @@ uint8_t thumbstick_get_direction(float angle, float overlap) {
     return mask;
 }
 
+// ============================================================================
+// Class.
+
+void Thumbstick__config_4dir(
+    Thumbstick *self,
+    Button left,
+    Button right,
+    Button up,
+    Button down,
+    Button push,
+    Button inner,
+    Button outer
+) {
+    self->left = left;
+    self->right = right;
+    self->up = up;
+    self->down = down;
+    self->push = push;
+    self->inner = inner;
+    self->outer = outer;
+}
+
 void Thumbstick__report_4dir(
     Thumbstick *self,
     ThumbstickPosition pos,
@@ -336,46 +358,40 @@ void Thumbstick__report(Thumbstick *self) {
 }
 
 void Thumbstick__reset(Thumbstick *self) {
-    self->left.reset(&self->left);
-    self->right.reset(&self->right);
-    self->up.reset(&self->up);
-    self->down.reset(&self->down);
-    self->push.reset(&self->push);
-    self->inner.reset(&self->inner);
-    self->outer.reset(&self->inner);
+    if (
+        self->mode == THUMBSTICK_MODE_4DIR ||
+        self->mode == THUMBSTICK_MODE_RADIAL
+    ) {
+        self->left.reset(&self->left);
+        self->right.reset(&self->right);
+        self->up.reset(&self->up);
+        self->down.reset(&self->down);
+        self->push.reset(&self->push);
+        self->inner.reset(&self->inner);
+        self->outer.reset(&self->outer);
+    }
 }
 
 Thumbstick Thumbstick_ (
     ThumbstickMode mode,
     float deadzone,
-    float overlap,
-    Button left,
-    Button right,
-    Button up,
-    Button down,
-    Button push,
-    Button inner,
-    Button outer
+    float overlap
 ) {
     Thumbstick thumbstick;
-    thumbstick.mode = mode;
+    // Methods.
     thumbstick.report = Thumbstick__report;
     thumbstick.report_4dir = Thumbstick__report_4dir;
     thumbstick.report_radial = Thumbstick__report_radial;
     thumbstick.report_alphanumeric = Thumbstick__report_alphanumeric;
     thumbstick.reset = Thumbstick__reset;
+    thumbstick.config_4dir = Thumbstick__config_4dir;
     thumbstick.config_glyphstick = Thumbstick__config_glyphstick;
     thumbstick.report_glyphstick = Thumbstick__report_glyphstick;
     thumbstick.config_daisywheel = Thumbstick__config_daisywheel;
     thumbstick.report_daisywheel = Thumbstick__report_daisywheel;
+    // Attributes.
+    thumbstick.mode = mode;
     thumbstick.deadzone = deadzone;
     thumbstick.overlap = overlap;
-    thumbstick.left = left;
-    thumbstick.right = right;
-    thumbstick.up = up;
-    thumbstick.down = down;
-    thumbstick.inner = inner;
-    thumbstick.outer = outer;
-    thumbstick.push = push;
     return thumbstick;
 }

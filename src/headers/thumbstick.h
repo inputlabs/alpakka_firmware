@@ -4,7 +4,7 @@
 #pragma once
 #include "button.h"
 
-#define DEADZONE_FROM_CONFIG -1
+#define DEADZONE_FROM_CONFIG 1.0
 #define GLYPH(...)  __VA_ARGS__, SENTINEL
 
 typedef enum ThumbstickMode_enum {
@@ -47,11 +47,12 @@ struct Thumbstick_struct {
     void (*report_4dir) (Thumbstick *self, ThumbstickPosition pos, float deadzone);
     void (*report_radial) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_alphanumeric) (Thumbstick *self, ThumbstickPosition pos);
-    void (*reset) (Thumbstick *self);
-    void (*config_glyphstick) (Thumbstick *self, ...);
     void (*report_glyphstick) (Thumbstick *self, uint8_t len, Dir4 *input);
-    void (*config_daisywheel) (Thumbstick *self, ...);
     void (*report_daisywheel) (Thumbstick *self, Dir8 dir);
+    void (*reset) (Thumbstick *self);
+    void (*config_4dir) (Thumbstick *self, Button left, Button right, Button up, Button down, Button push, Button inner, Button outer);
+    void (*config_glyphstick) (Thumbstick *self, ...);
+    void (*config_daisywheel) (Thumbstick *self, ...);
     ThumbstickMode mode;
     float deadzone;
     float overlap;
@@ -70,14 +71,7 @@ struct Thumbstick_struct {
 Thumbstick Thumbstick_ (
     ThumbstickMode mode,
     float deadzone,
-    float overlap,
-    Button left,
-    Button right,
-    Button up,
-    Button down,
-    Button push,
-    Button inner,
-    Button outer
+    float overlap
 );
 
 void thumbstick_init();

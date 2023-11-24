@@ -125,19 +125,24 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
     rotary.config_mode(&rotary, 4, up.actions_4, down.actions_4);
     self->rotary = rotary;
     // Thumbstick.
-    Actions none = {0,};
+    u8 ts_mode = profile->sections[SECTION_THUMBSTICK].thumbstick.mode;
     self->thumbstick = Thumbstick_(
-        THUMBSTICK_MODE_4DIR,                      // Mode.
-        DEADZONE_FROM_CONFIG,                      // Deadzone.
-        0.5,                                       // Overlap.
-        Button_(PIN_VIRTUAL, NORMAL, none, none),  // Left.
-        Button_(PIN_VIRTUAL, NORMAL, none, none),  // Right.
-        Button_(PIN_VIRTUAL, NORMAL, none, none),  // Up.
-        Button_(PIN_VIRTUAL, NORMAL, none, none),  // Down.
-        Button_(PIN_L3,      NORMAL, none, none),  // Push.
-        Button_(PIN_VIRTUAL, NORMAL, none, none),  // Inner.
-        Button_(PIN_VIRTUAL, NORMAL, none, none)   // Outer.
+        ts_mode,
+        (float)profile->sections[SECTION_THUMBSTICK].thumbstick.deadzone / BIT_8,
+        (float)profile->sections[SECTION_THUMBSTICK].thumbstick.overlap / BIT_7
     );
+    if (ts_mode == THUMBSTICK_MODE_4DIR || ts_mode == THUMBSTICK_MODE_RADIAL) {
+        self->thumbstick.config_4dir(
+            &(self->thumbstick),
+            Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_LEFT]),
+            Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_RIGHT]),
+            Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_UP]),
+            Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_DOWN]),
+            Button_from_ctrl(PIN_L3,      profile->sections[SECTION_THUMBSTICK_PUSH]),
+            Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_INNER]),
+            Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_OUTER])
+        );
+    }
     // Gyro.
     self->gyro = Gyro_(
         GYRO_MODE_ALWAYS_OFF,

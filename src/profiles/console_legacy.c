@@ -6,6 +6,7 @@
 #include "pin.h"
 #include "webusb.h"
 #include "button.h"
+#include "thumbstick.h"
 
 void config_profile_default_console_legacy(CtrlProfile *profile){
     // Profile name.
@@ -132,4 +133,33 @@ void config_profile_default_console_legacy(CtrlProfile *profile){
         .actions_0={MOUSE_SCROLL_DOWN},
         .hint_0="Next / Zoom-",
     };
+
+    // Thumbstick.
+    profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_4DIR,
+        .deadzone=(u8)(DEADZONE_FROM_CONFIG * BIT_8),
+        .overlap=(u8)(0.5 * BIT_7),
+    };
+    profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_LX_NEG},
+    };
+    profile->sections[SECTION_THUMBSTICK_RIGHT].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_LX},
+    };
+    profile->sections[SECTION_THUMBSTICK_UP].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_LY_NEG},
+    };
+    profile->sections[SECTION_THUMBSTICK_DOWN].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_LY},
+    };
+    profile->sections[SECTION_THUMBSTICK_PUSH].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_L3},
+    };
+    profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){};
+    profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){};
 }

@@ -6,6 +6,7 @@
 #include "pin.h"
 #include "webusb.h"
 #include "button.h"
+#include "thumbstick.h"
 
 void config_profile_default_desktop(CtrlProfile *profile){
     // Profile name.
@@ -140,5 +141,12 @@ void config_profile_default_desktop(CtrlProfile *profile){
     };
     profile->sections[SECTION_ROTARY_DOWN].rotary = (CtrlRotary){
         .actions_0={MOUSE_SCROLL_DOWN},
+    };
+
+    // Thumbstick.
+    profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_ALPHANUMERIC,
+        .deadzone=(u8)(DEADZONE_FROM_CONFIG * BIT_8),
+        .overlap=(u8)(0.5 * BIT_7),
     };
 }

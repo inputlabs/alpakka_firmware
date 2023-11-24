@@ -6,10 +6,11 @@
 #include "pin.h"
 #include "webusb.h"
 #include "button.h"
+#include "thumbstick.h"
 
 void config_profile_default_home(CtrlProfile *profile){
     // Profile name.
-    profile->sections[SECTION_NAME].name = (CtrlProfileName){.name="Home shortcuts"};
+    profile->sections[SECTION_NAME].name = (CtrlProfileName){.name="Home"};
 
     // ABXY.
     profile->sections[SECTION_A].button = (CtrlButton){
@@ -144,4 +145,34 @@ void config_profile_default_home(CtrlProfile *profile){
     profile->sections[SECTION_ROTARY_DOWN].rotary = (CtrlRotary){
         .actions_0={PROC_TUNE_DOWN},
     };
+
+    // Thumbstick.
+    profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_4DIR,
+        .deadzone=(u8)(0.25 * BIT_8),
+        .overlap=(u8)(0.5 * BIT_7),   /// TODO SIGNED/UNSIGNED
+    };
+    profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={0,},  // TODO macros.
+    };
+    profile->sections[SECTION_THUMBSTICK_RIGHT].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={0,},  // TODO macros.
+    };
+    profile->sections[SECTION_THUMBSTICK_UP].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={0,},  // TODO macros.
+    };
+    profile->sections[SECTION_THUMBSTICK_DOWN].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={0,},  // TODO macros.
+    };
+    profile->sections[SECTION_THUMBSTICK_PUSH].button = (CtrlButton){
+        .mode=HOLD_EXCLUSIVE_LONG,
+        .actions={KEY_SUPER_LEFT, KEY_CONTROL_LEFT, KEY_O},
+        .actions_secondary={PROC_THANKS},
+    };
+    profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){};
+    profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){};
 }
