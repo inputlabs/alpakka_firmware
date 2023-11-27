@@ -122,7 +122,7 @@ void Thumbstick__config_4dir(
     self->outer = outer;
 }
 
-void Thumbstick__report_4dir(
+void Thumbstick__report_axial(
     Thumbstick *self,
     ThumbstickPosition pos,
     float deadzone
@@ -150,11 +150,9 @@ void Thumbstick__report_4dir(
     //// Down.
     if (!hid_is_axis(self->down.actions[0])) self->down.report(&self->down);
     else thumbstick_report_axis(self->down.actions[0], constrain(pos.y, 0, 1));
-    // Report inner and outer (only if calibrated).
-    if (offset_x != 0 && offset_y != 0) {
-        self->inner.report(&self->inner);
-        self->outer.report(&self->outer);
-    }
+    // Report inner and outer.
+    self->inner.report(&self->inner);
+    self->outer.report(&self->outer);
     // Report push.
     self->push.report(&self->push);
 }
@@ -342,26 +340,32 @@ void Thumbstick__report(Thumbstick *self) {
     // Get values from ADC.
     float x = thumbstick_adc(1, offset_x);
     float y = thumbstick_adc(0, offset_y);
+    // Get correct deadzone.
+    float deadzone = self->deadzone;
+    if (deadzone == DEADZONE_FROM_CONFIG) deadzone = config_deadzone;
+    if (offset_x == 0 && offset_y == 0) deadzone = 0.8;  // If not calibrated.
     // Calculate trigonometry.
     float angle = atan2(x, -y) * (180 / M_PI);
     float radius = sqrt(powf(x, 2) + powf(y, 2));
-    float deadzone = self->deadzone == DEADZONE_FROM_CONFIG ? config_deadzone : self->deadzone;
     radius = constrain(radius, 0, 1);
     radius = ramp_low(radius, deadzone);
     x = sin(radians(angle)) * radius;
     y = -cos(radians(angle)) * radius;
     ThumbstickPosition pos = {x, y, angle, radius};
     // Report.
-    if (self->mode == THUMBSTICK_MODE_4DIR) self->report_4dir(self, pos, deadzone);
-    else if (self->mode == THUMBSTICK_MODE_RADIAL) self->report_radial(self, pos);
+    if (self->mode == THUMBSTICK_MODE_4DIR) {
+        if (self->distance_mode == THUMBSTICK_DISTANCE_MODE_AXIAL) {
+            self->report_axial(self, pos, deadzone);
+        }
+        if (self->distance_mode == THUMBSTICK_DISTANCE_MODE_RADIAL) {
+            self->report_radial(self, pos);
+        }
+    }
     else if (self->mode == THUMBSTICK_MODE_ALPHANUMERIC) self->report_alphanumeric(self, pos);
 }
 
 void Thumbstick__reset(Thumbstick *self) {
-    if (
-        self->mode == THUMBSTICK_MODE_4DIR ||
-        self->mode == THUMBSTICK_MODE_RADIAL
-    ) {
+    if (self->mode == THUMBSTICK_MODE_4DIR) {
         self->left.reset(&self->left);
         self->right.reset(&self->right);
         self->up.reset(&self->up);
@@ -374,13 +378,14 @@ void Thumbstick__reset(Thumbstick *self) {
 
 Thumbstick Thumbstick_ (
     ThumbstickMode mode,
+    ThumbstickDistanceMode distance_mode,
     float deadzone,
     float overlap
 ) {
     Thumbstick thumbstick;
     // Methods.
     thumbstick.report = Thumbstick__report;
-    thumbstick.report_4dir = Thumbstick__report_4dir;
+    thumbstick.report_axial = Thumbstick__report_axial;
     thumbstick.report_radial = Thumbstick__report_radial;
     thumbstick.report_alphanumeric = Thumbstick__report_alphanumeric;
     thumbstick.reset = Thumbstick__reset;
@@ -391,6 +396,7 @@ Thumbstick Thumbstick_ (
     thumbstick.report_daisywheel = Thumbstick__report_daisywheel;
     // Attributes.
     thumbstick.mode = mode;
+    thumbstick.distance_mode = distance_mode;
     thumbstick.deadzone = deadzone;
     thumbstick.overlap = overlap;
     return thumbstick;

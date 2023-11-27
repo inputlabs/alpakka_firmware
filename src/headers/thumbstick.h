@@ -11,8 +11,12 @@ typedef enum ThumbstickMode_enum {
     THUMBSTICK_MODE_OFF,
     THUMBSTICK_MODE_4DIR,
     THUMBSTICK_MODE_ALPHANUMERIC,
-    THUMBSTICK_MODE_RADIAL,
 } ThumbstickMode;
+
+typedef enum ThumbstickDistanceMode_enum {
+    THUMBSTICK_DISTANCE_MODE_AXIAL,
+    THUMBSTICK_DISTANCE_MODE_RADIAL,
+} ThumbstickDistanceMode;
 
 typedef struct ThumbstickPosition_struct {
     float x;
@@ -44,7 +48,7 @@ typedef enum Dir8_enum {
 typedef struct Thumbstick_struct Thumbstick;
 struct Thumbstick_struct {
     void (*report) (Thumbstick *self);
-    void (*report_4dir) (Thumbstick *self, ThumbstickPosition pos, float deadzone);
+    void (*report_axial) (Thumbstick *self, ThumbstickPosition pos, float deadzone);
     void (*report_radial) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_alphanumeric) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_glyphstick) (Thumbstick *self, uint8_t len, Dir4 *input);
@@ -54,6 +58,7 @@ struct Thumbstick_struct {
     void (*config_glyphstick) (Thumbstick *self, ...);
     void (*config_daisywheel) (Thumbstick *self, ...);
     ThumbstickMode mode;
+    ThumbstickDistanceMode distance_mode;
     float deadzone;
     float overlap;
     Button left;
@@ -70,6 +75,7 @@ struct Thumbstick_struct {
 
 Thumbstick Thumbstick_ (
     ThumbstickMode mode,
+    ThumbstickDistanceMode distance_mode,
     float deadzone,
     float overlap
 );

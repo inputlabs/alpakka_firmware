@@ -176,6 +176,10 @@ void config_print() {
         config_cache.offset_accel_1_y,
         config_cache.offset_accel_1_z
     );
+    if (config_cache.offset_ts_x == 0 && config_cache.offset_ts_y == 0) {
+        warn("The controller seems to be not calibrated\n");
+        warn("Please run calibration\n");
+    }
 }
 
 void config_set_profile(uint8_t profile) {

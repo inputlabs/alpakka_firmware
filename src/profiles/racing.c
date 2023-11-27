@@ -176,7 +176,8 @@ void config_profile_default_racing(CtrlProfile *profile){
 
     // Thumbstick.
     profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
-        .mode=THUMBSTICK_MODE_RADIAL,
+        .mode=THUMBSTICK_MODE_4DIR,
+        .distance_mode=THUMBSTICK_DISTANCE_MODE_RADIAL,
         .deadzone=(u8)(DEADZONE_FROM_CONFIG * BIT_8),
         .overlap=(u8)(0.8 * BIT_7),
     };

@@ -118,9 +118,10 @@ typedef struct CtrlRotary_struct {
 typedef struct CtrlThumbstick_struct {
     // Must be packed (58 bytes).
     u8 mode;
+    u8 distance_mode;
     u8 deadzone;
     u8 overlap;
-    u8 padding[55];
+    u8 padding[54];
 } CtrlThumbstick;
 
 typedef union CtrlSection_union {

@@ -126,12 +126,14 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
     self->rotary = rotary;
     // Thumbstick.
     u8 ts_mode = profile->sections[SECTION_THUMBSTICK].thumbstick.mode;
+    u8 dist_mode = profile->sections[SECTION_THUMBSTICK].thumbstick.distance_mode;
     self->thumbstick = Thumbstick_(
         ts_mode,
+        dist_mode,
         (float)profile->sections[SECTION_THUMBSTICK].thumbstick.deadzone / BIT_8,
         (float)profile->sections[SECTION_THUMBSTICK].thumbstick.overlap / BIT_7
     );
-    if (ts_mode == THUMBSTICK_MODE_4DIR || ts_mode == THUMBSTICK_MODE_RADIAL) {
+    if (ts_mode == THUMBSTICK_MODE_4DIR) {
         self->thumbstick.config_4dir(
             &(self->thumbstick),
             Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_LEFT]),
