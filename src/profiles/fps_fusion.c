@@ -169,30 +169,33 @@ void config_profile_default_fps_fusion(CtrlProfile *profile){
     };
     profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){
         .mode=NORMAL,
-        .actions={KEY_A},
+        .actions={GAMEPAD_AXIS_LX_NEG},
     };
     profile->sections[SECTION_THUMBSTICK_RIGHT].button = (CtrlButton){
         .mode=NORMAL,
-        .actions={KEY_D},
+        .actions={GAMEPAD_AXIS_LX},
     };
     profile->sections[SECTION_THUMBSTICK_UP].button = (CtrlButton){
         .mode=NORMAL,
-        .actions={KEY_W},
+        .actions={GAMEPAD_AXIS_LY_NEG},
     };
     profile->sections[SECTION_THUMBSTICK_DOWN].button = (CtrlButton){
         .mode=NORMAL,
-        .actions={KEY_S},
+        .actions={GAMEPAD_AXIS_LY},
     };
     profile->sections[SECTION_THUMBSTICK_PUSH].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_SHIFT_LEFT},
+        .hint="Sprint",
     };
     profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_BRACKET_LEFT},
+        .hint="Walk",
     };
     profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_BRACKET_RIGHT},
+        .hint="Run",
     };
 }

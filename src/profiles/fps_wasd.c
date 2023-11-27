@@ -186,13 +186,16 @@ void config_profile_default_fps_wasd(CtrlProfile *profile){
     profile->sections[SECTION_THUMBSTICK_PUSH].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_SHIFT_LEFT},
+        .hint="Sprint",
     };
     profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_BRACKET_LEFT},
+        .hint="Walk",
     };
     profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_BRACKET_RIGHT},
+        .hint="Run",
     };
 }
