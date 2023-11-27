@@ -40,12 +40,13 @@ void main_init() {
     stdio_init_all();
     logging_set_level(LOG_INFO);
     logging_init();
+    // Load config.
+    title();
+    config_init();
     // Init USB.
     tusb_init();
     wait_for_usb_init();
     // Init components.
-    title();
-    config_init();
     bus_init();
     hid_init();
     thumbstick_init();
