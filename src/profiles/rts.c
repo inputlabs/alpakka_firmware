@@ -55,8 +55,6 @@ void config_profile_default_rts(CtrlProfile *profile){
 
     // Thumbstick.
     profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
-        .mode=THUMBSTICK_MODE_4DIR,
-        .deadzone=(u8)(DEADZONE_FROM_CONFIG * BIT_8),
-        .overlap=(u8)(0.5 * BIT_7),
+        .mode=THUMBSTICK_MODE_OFF,
     };
 }

@@ -149,8 +149,8 @@ void config_profile_default_home(CtrlProfile *profile){
     // Thumbstick.
     profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
         .mode=THUMBSTICK_MODE_4DIR,
-        .deadzone=(u8)(0.25 * BIT_8),
-        .overlap=(u8)(0.5 * BIT_7),   /// TODO SIGNED/UNSIGNED
+        .deadzone=25,
+        .overlap=-50,
     };
     profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){
         .mode=NORMAL,

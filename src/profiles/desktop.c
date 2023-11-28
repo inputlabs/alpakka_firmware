@@ -146,7 +146,7 @@ void config_profile_default_desktop(CtrlProfile *profile){
     // Thumbstick.
     profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
         .mode=THUMBSTICK_MODE_ALPHANUMERIC,
-        .deadzone=(u8)(DEADZONE_FROM_CONFIG * BIT_8),
-        .overlap=(u8)(0.5 * BIT_7),
+        .deadzone=DEADZONE_FROM_CONFIG,
+        .overlap=50,
     };
 }

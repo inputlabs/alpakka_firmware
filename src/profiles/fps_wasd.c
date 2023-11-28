@@ -164,8 +164,8 @@ void config_profile_default_fps_wasd(CtrlProfile *profile){
     // Thumbstick.
     profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
         .mode=THUMBSTICK_MODE_4DIR,
-        .deadzone=(u8)(DEADZONE_FROM_CONFIG * BIT_8),
-        .overlap=(u8)(0.5 * BIT_7),
+        .deadzone=DEADZONE_FROM_CONFIG,
+        .overlap=50,
     };
     profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){
         .mode=NORMAL,

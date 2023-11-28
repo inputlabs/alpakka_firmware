@@ -130,8 +130,8 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
     self->thumbstick = Thumbstick_(
         ts_mode,
         dist_mode,
-        (float)profile->sections[SECTION_THUMBSTICK].thumbstick.deadzone / BIT_8,
-        (float)profile->sections[SECTION_THUMBSTICK].thumbstick.overlap / BIT_7
+        profile->sections[SECTION_THUMBSTICK].thumbstick.deadzone / 100.0,
+        (i8)profile->sections[SECTION_THUMBSTICK].thumbstick.overlap / 100.0
     );
     if (ts_mode == THUMBSTICK_MODE_4DIR) {
         self->thumbstick.config_4dir(

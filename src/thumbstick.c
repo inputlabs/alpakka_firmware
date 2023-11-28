@@ -354,10 +354,10 @@ void Thumbstick__report(Thumbstick *self) {
     ThumbstickPosition pos = {x, y, angle, radius};
     // Report.
     if (self->mode == THUMBSTICK_MODE_4DIR) {
-        if (self->distance_mode == THUMBSTICK_DISTANCE_MODE_AXIAL) {
+        if (self->distance_mode == THUMBSTICK_DISTANCE_AXIAL) {
             self->report_axial(self, pos, deadzone);
         }
-        if (self->distance_mode == THUMBSTICK_DISTANCE_MODE_RADIAL) {
+        if (self->distance_mode == THUMBSTICK_DISTANCE_RADIAL) {
             self->report_radial(self, pos);
         }
     }
@@ -378,7 +378,7 @@ void Thumbstick__reset(Thumbstick *self) {
 
 Thumbstick Thumbstick_ (
     ThumbstickMode mode,
-    ThumbstickDistanceMode distance_mode,
+    ThumbstickDistance distance_mode,
     float deadzone,
     float overlap
 ) {
