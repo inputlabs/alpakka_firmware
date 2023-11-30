@@ -2,8 +2,9 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #pragma once
-#include "button.h"
 #include "common.h"
+#include "button.h"
+#include "glyph.h"
 
 #define DEADZONE_FROM_CONFIG 0
 
@@ -51,8 +52,6 @@ typedef enum Dir8_enum {
     DIR8_DOWN_LEFT,
     DIR8_DOWN_RIGHT,
 } Dir8;
-
-typedef Dir4 Glyph[5];
 
 typedef struct Thumbstick_struct Thumbstick;
 struct Thumbstick_struct {

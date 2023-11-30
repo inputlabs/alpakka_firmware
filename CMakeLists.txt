@@ -50,6 +50,7 @@ target_sources(${PROJECT} PUBLIC
     src/config.c
     src/ctrl.c
     src/dhat.c
+    src/glyph.c
     src/gyro.c
     src/hid.c
     src/imu.c

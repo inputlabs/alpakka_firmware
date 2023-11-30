@@ -4,59 +4,73 @@
 #include <stdio.h>
 #include "ctrl.h"
 #include "thumbstick.h"
+#include "config.h"
 #include "common.h"
 
-// Encode a sequence of 5 directions into a single uint8.
-u8 ctrl_glyph_encode(Glyph glyph) {
-    u8 encoded = 0;
-    u8 len = 5;
-    // Determine length.
-    if      (glyph[1] == 0) len = 1;
-    else if (glyph[2] == 0) len = 2;
-    else if (glyph[3] == 0) len = 3;
-    else if (glyph[4] == 0) len = 4;
-    printf("ctrl_glyph_encode len=%i ", len);
-    // Initial direction.
-    encoded += glyph[0] - 1;  // -1 because DIR4_NONE.
-    // Termination bit.
-    encoded += 1 << 1+len;
-    // Remaining directions.
-    for(u8 i=1; i<len; i++) {
-        // Each subsequent direction is either clockwise or anticlockwise, so
-        // it is encoded in a single bit.
-        if (glyph[i-1] == DIR4_UP    && glyph[i] == DIR4_RIGHT) encoded += (1 << 1+i);
-        if (glyph[i-1] == DIR4_RIGHT && glyph[i] == DIR4_DOWN)  encoded += (1 << 1+i);
-        if (glyph[i-1] == DIR4_DOWN  && glyph[i] == DIR4_LEFT)  encoded += (1 << 1+i);
-        if (glyph[i-1] == DIR4_LEFT  && glyph[i] == DIR4_UP)    encoded += (1 << 1+i);
+Ctrl ctrl_log(u8* offset_ptr, u8 len) {
+    Ctrl ctrl = {
+        .protocol_version = CTRL_VERSION,
+        .device_id = ALPAKKA,
+        .message_type = LOG,
+        .len=len
+    };
+    for (uint8_t i=0; i<len; i++) {
+        ctrl.payload[i] = offset_ptr[i];
     }
-    return encoded;
+    return ctrl;
 }
 
-// Decode a sequence of 5 directions from a single uint8.
-void ctrl_glyph_decode(Glyph glyph, u8 encoded) {
-    u8 len;
-    // Determine length.
-    if (encoded >> 2 == 1) len = 1;
-    if (encoded >> 3 == 1) len = 2;
-    if (encoded >> 4 == 1) len = 3;
-    if (encoded >> 5 == 1) len = 4;
-    if (encoded >> 6 == 1) len = 5;
-    // Initial direction.
-    glyph[0] = (encoded & 0b00000011) + 1;  // +1 because DIR4_NONE.
-    // Remaining directions.
-    for(u8 i=1; i<len; i++) {
-        if (encoded & (1<<i+1)) {
-            // Clockwise.
-            if (glyph[i-1] == DIR4_UP)    glyph[i] = DIR4_RIGHT;
-            if (glyph[i-1] == DIR4_RIGHT) glyph[i] = DIR4_DOWN;
-            if (glyph[i-1] == DIR4_DOWN)  glyph[i] = DIR4_LEFT;
-            if (glyph[i-1] == DIR4_LEFT)  glyph[i] = DIR4_UP;
-        } else {
-            // Anti-clockwise.
-            if (glyph[i-1] == DIR4_UP)    glyph[i] = DIR4_LEFT;
-            if (glyph[i-1] == DIR4_RIGHT) glyph[i] = DIR4_UP;
-            if (glyph[i-1] == DIR4_DOWN)  glyph[i] = DIR4_RIGHT;
-            if (glyph[i-1] == DIR4_LEFT)  glyph[i] = DIR4_DOWN;
-        }
+Ctrl ctrl_config_share(u8 index) {
+    Ctrl ctrl = {
+        .protocol_version = CTRL_VERSION,
+        .device_id = ALPAKKA,
+        .message_type = CONFIG_SHARE,
+        .len = 7
+    };
+    ctrl.payload[0] = index;
+    if (index == PROTOCOL) {
+        ctrl.payload[1] = config_get_protocol();
+        // All values are sent as zero / ignored.
     }
+    else if (index == SENS_TOUCH) {
+        ctrl.payload[1] = config_get_touch_sens_preset();
+        ctrl.payload[2] = 0;  // Auto.
+        ctrl.payload[3] = config_get_touch_sens_value(1);
+        ctrl.payload[4] = config_get_touch_sens_value(2);
+        ctrl.payload[5] = config_get_touch_sens_value(3);
+        ctrl.payload[6] = config_get_touch_sens_value(4);
+    }
+    else if (index == SENS_MOUSE) {
+        ctrl.payload[1] = config_get_mouse_sens_preset();
+        ctrl.payload[2] = config_get_mouse_sens_value(0) * 10;
+        ctrl.payload[3] = config_get_mouse_sens_value(1) * 10;
+        ctrl.payload[4] = config_get_mouse_sens_value(2) * 10;
+    }
+    else if (index == DEADZONE) {
+        ctrl.payload[1] = config_get_deadzone_preset();
+        ctrl.payload[2] = config_get_deadzone_value(0) * 100;
+        ctrl.payload[3] = config_get_deadzone_value(1) * 100;
+        ctrl.payload[4] = config_get_deadzone_value(2) * 100;
+    }
+    return ctrl;
+}
+
+Ctrl ctrl_profile_share(u8 profile_index, u8 section_index) {
+    Ctrl ctrl = {
+        .protocol_version = CTRL_VERSION,
+        .device_id = ALPAKKA,
+        .message_type = PROFILE_SHARE,
+        .len = 60
+    };
+    // Profile section struct cast into packed int array.
+    // Note that section structs must be guaranteed to be packed.
+    CtrlProfile *profile = config_profile_read(profile_index);
+    u8 *section = (u8*)&(profile->sections[section_index]);
+    // Write payload.
+    ctrl.payload[0] = profile_index;
+    ctrl.payload[1] = section_index;
+    for(u8 i=2; i<60; i++) {
+        ctrl.payload[i] = section[i-2];
+    }
+    return ctrl;
 }

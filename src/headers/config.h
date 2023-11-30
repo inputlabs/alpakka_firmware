@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-#include "webusb.h"
+#include "ctrl.h"
 
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101

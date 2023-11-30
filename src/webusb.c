@@ -6,6 +6,7 @@
 #include <tusb.h>
 #include <device/usbd_pvt.h>
 #include "webusb.h"
+#include "ctrl.h"
 #include "config.h"
 #include "profile.h"
 #include "hid.h"
@@ -17,90 +18,10 @@ char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
-Ctrl_cfg_type webusb_pending_config_share = 0;
-uint8_t webusb_pending_profile_share = 0;
-uint8_t webusb_pending_section_share = 0;
 
-Ctrl webusb_ctrl_log() {
-    Ctrl ctrl = {
-        .protocol_version = CTRL_VERSION,
-        .device_id = ALPAKKA,
-        .message_type = LOG
-    };
-    ctrl.len = constrain(webusb_ptr_in-webusb_ptr_out, 0, CTRL_MAX_PAYLOAD_SIZE);
-    uint8_t* offset_ptr = webusb_buffer + webusb_ptr_out;
-    for (uint8_t i=0; i<ctrl.len; i++) {
-        ctrl.payload[i] = offset_ptr[i];
-    }
-    webusb_ptr_out += ctrl.len;
-    if (webusb_ptr_out >= webusb_ptr_in) {
-        webusb_ptr_in = 0;
-        webusb_ptr_out = 0;
-    }
-    return ctrl;
-}
-
-Ctrl webusb_ctrl_config_share() {
-    Ctrl ctrl = {
-        .protocol_version = CTRL_VERSION,
-        .device_id = ALPAKKA,
-        .message_type = CONFIG_SHARE,
-        .len = 7
-    };
-    ctrl.payload[0] = webusb_pending_config_share;
-    uint8_t index = webusb_pending_config_share;
-    if (index == PROTOCOL) {
-        ctrl.payload[1] = config_get_protocol();
-        // All values are sent as zero / ignored.
-    }
-    else if (index == SENS_TOUCH) {
-        ctrl.payload[1] = config_get_touch_sens_preset();
-        ctrl.payload[2] = 0;  // Auto.
-        ctrl.payload[3] = config_get_touch_sens_value(1);
-        ctrl.payload[4] = config_get_touch_sens_value(2);
-        ctrl.payload[5] = config_get_touch_sens_value(3);
-        ctrl.payload[6] = config_get_touch_sens_value(4);
-    }
-    else if (index == SENS_MOUSE) {
-        ctrl.payload[1] = config_get_mouse_sens_preset();
-        ctrl.payload[2] = config_get_mouse_sens_value(0) * 10;
-        ctrl.payload[3] = config_get_mouse_sens_value(1) * 10;
-        ctrl.payload[4] = config_get_mouse_sens_value(2) * 10;
-    }
-    else if (index == DEADZONE) {
-        ctrl.payload[1] = config_get_deadzone_preset();
-        ctrl.payload[2] = config_get_deadzone_value(0) * 100;
-        ctrl.payload[3] = config_get_deadzone_value(1) * 100;
-        ctrl.payload[4] = config_get_deadzone_value(2) * 100;
-    }
-    webusb_pending_config_share = 0;
-    return ctrl;
-}
-
-Ctrl webusb_ctrl_profile_share() {
-    Ctrl ctrl = {
-        .protocol_version = CTRL_VERSION,
-        .device_id = ALPAKKA,
-        .message_type = PROFILE_SHARE,
-        .len = 60
-    };
-    u8 profile_index = webusb_pending_profile_share;
-    u8 section_index = webusb_pending_section_share;
-    // Profile section struct cast into packed int array.
-    // Note that section structs must be guaranteed to be packed.
-    CtrlProfile *profile = config_profile_read(profile_index);
-    u8 *section = (u8*)&(profile->sections[section_index]);
-    // Write payload.
-    ctrl.payload[0] = profile_index;
-    ctrl.payload[1] = section_index;
-    for(u8 i=2; i<60; i++) {
-        ctrl.payload[i] = section[i-2];
-    }
-    // Request fulfilled.
-    webusb_pending_profile_share = 0;
-    webusb_pending_section_share = 0;
-    return ctrl;
-}
+u8 webusb_pending_config_share = 0;
+u8 webusb_pending_profile_share = 0;
+u8 webusb_pending_section_share = 0;
 
 void webusb_flush_force() {
     uint16_t i = 0;
@@ -142,11 +63,21 @@ bool webusb_flush() {
     static Ctrl ctrl;
     // Generate message.
     if (webusb_pending_config_share) {
-        ctrl = webusb_ctrl_config_share();
+        ctrl = ctrl_config_share(webusb_pending_config_share);
+        webusb_pending_config_share = 0;
     } else if (webusb_pending_profile_share || webusb_pending_section_share) {
-        ctrl = webusb_ctrl_profile_share();
+        ctrl = ctrl_profile_share(webusb_pending_profile_share, webusb_pending_section_share);
+        webusb_pending_profile_share = 0;
+        webusb_pending_section_share = 0;
     } else {
-        ctrl = webusb_ctrl_log();
+        u8 len = constrain(webusb_ptr_in-webusb_ptr_out, 0, CTRL_MAX_PAYLOAD_SIZE);
+        u8 *offset_ptr = webusb_buffer + webusb_ptr_out;
+        ctrl = ctrl_log(offset_ptr, len);
+        webusb_ptr_out += len;
+        if (webusb_ptr_out >= webusb_ptr_in) {
+            webusb_ptr_in = 0;
+            webusb_ptr_out = 0;
+        }
     }
     // Transfer message.
     usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (unsigned char *)&ctrl, ctrl.len+4);
