@@ -151,61 +151,51 @@ void config_profile_default_desktop(CtrlProfile *profile){
     };
 
     // Glyph-stick.
-    profile->sections[SECTION_GLYPHS_0].glyphs = (CtrlGlyphs){
-        .glyphs={
-            // Max 11 glyphs.
-            {.actions={KEY_A}, .glyph=glyph_encode((Glyph){DIR4_LEFT})},
-            {.actions={KEY_E}, .glyph=glyph_encode((Glyph){DIR4_RIGHT})},
-            {.actions={KEY_I}, .glyph=glyph_encode((Glyph){DIR4_DOWN})},
-            {.actions={KEY_O}, .glyph=glyph_encode((Glyph){DIR4_UP})},
-            {.actions={KEY_U}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT})},
-            {.actions={KEY_A}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT, DIR8_UP})},
-            {.actions={KEY_B}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT, DIR4_UP})},
-            {.actions={KEY_C}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_LEFT, DIR4_DOWN})},
-            {.actions={KEY_D}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_RIGHT, DIR4_DOWN})},
-            {.actions={KEY_E}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_UP, DIR4_LEFT, DIR4_DOWN})},
-            {.actions={KEY_F}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT})},
-        }
+    CtrlGlyph glyphs[44] = {
+        {.actions={KEY_A}, .glyph=glyph_encode((Glyph){DIR4_LEFT})},
+        {.actions={KEY_E}, .glyph=glyph_encode((Glyph){DIR4_RIGHT})},
+        {.actions={KEY_I}, .glyph=glyph_encode((Glyph){DIR4_DOWN})},
+        {.actions={KEY_O}, .glyph=glyph_encode((Glyph){DIR4_UP})},
+        {.actions={KEY_U}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT})},
+        {.actions={KEY_A}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT, DIR8_UP})},
+        {.actions={KEY_B}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT, DIR4_UP})},
+        {.actions={KEY_C}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_LEFT, DIR4_DOWN})},
+        {.actions={KEY_D}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_RIGHT, DIR4_DOWN})},
+        {.actions={KEY_E}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_UP, DIR4_LEFT, DIR4_DOWN})},
+        {.actions={KEY_F}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT})},
+        {.actions={KEY_G}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_LEFT, DIR4_UP})},
+        {.actions={KEY_H}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT, DIR4_DOWN})},
+        {.actions={KEY_J}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_LEFT})},
+        {.actions={KEY_K}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_RIGHT, DIR4_UP})},
+        {.actions={KEY_L}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT})},
+        {.actions={KEY_M}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_UP, DIR4_RIGHT})},
+        {.actions={KEY_N}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_RIGHT})},
+        {.actions={KEY_O}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT, DIR4_UP})},
+        {.actions={KEY_O}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT, DIR4_UP})},
+        {.actions={KEY_P}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_UP, DIR4_LEFT})},
+        {.actions={KEY_Q}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT})},
+        {.actions={KEY_R}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_UP})},
+        {.actions={KEY_S}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_DOWN})},
+        {.actions={KEY_T}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_LEFT})},
+        {.actions={KEY_V}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_DOWN})},
+        {.actions={KEY_W}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_DOWN, DIR4_LEFT})},
+        {.actions={KEY_X}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_DOWN, DIR4_RIGHT})},
+        {.actions={KEY_Y}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT})},
+        {.actions={KEY_Z}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT})},
+        {.actions={KEY_COMMA}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_UP})},
+        {.actions={KEY_PERIOD}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_UP, DIR4_LEFT})},
+        {.actions={KEY_SHIFT_LEFT, KEY_2}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT, DIR4_UP, DIR4_LEFT, DIR4_DOWN})},  // @
+        {.actions={KEY_SHIFT_LEFT, KEY_SLASH}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT, DIR4_UP, DIR4_LEFT})},  // ?
+        // More glyphs can be added here.
     };
-    profile->sections[SECTION_GLYPHS_1].glyphs = (CtrlGlyphs){
-        .glyphs={
-            // Max 11 glyphs.
-            {.actions={KEY_G}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_LEFT, DIR4_UP})},
-            {.actions={KEY_H}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT, DIR4_DOWN})},
-            {.actions={KEY_J}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_LEFT})},
-            {.actions={KEY_K}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_RIGHT, DIR4_UP})},
-            {.actions={KEY_L}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT})},
-            {.actions={KEY_M}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_UP, DIR4_RIGHT})},
-            {.actions={KEY_N}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_RIGHT})},
-            {.actions={KEY_O}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT, DIR4_UP})},
-            {.actions={KEY_O}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT, DIR4_UP})},
-            {.actions={KEY_P}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_UP, DIR4_LEFT})},
-            {.actions={KEY_Q}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT})},
+    for(u8 s=0; s<4; s++) {
+        u8 section = SECTION_GLYPHS_0 + s;
+        profile->sections[section].glyphs = (CtrlGlyphs){.glyphs={}};
+        for(u8 i=0; i<11; i++) {
+            u8 glyph_index = (s * 11) + i;
+            profile->sections[section].glyphs.glyphs[i] = glyphs[glyph_index];
         }
-    };
-    profile->sections[SECTION_GLYPHS_2].glyphs = (CtrlGlyphs){
-        .glyphs={
-            // Max 11 glyphs.
-            {.actions={KEY_R}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_UP})},
-            {.actions={KEY_S}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_DOWN})},
-            {.actions={KEY_T}, .glyph=glyph_encode((Glyph){DIR4_UP, DIR4_LEFT})},
-            {.actions={KEY_V}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_DOWN})},
-            {.actions={KEY_W}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_DOWN, DIR4_LEFT})},
-            {.actions={KEY_X}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_DOWN, DIR4_RIGHT})},
-            {.actions={KEY_Y}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT})},
-            {.actions={KEY_Z}, .glyph=glyph_encode((Glyph){DIR4_RIGHT, DIR4_DOWN, DIR4_LEFT, DIR4_DOWN, DIR4_RIGHT})},
-            {.actions={KEY_COMMA}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_UP})},
-            {.actions={KEY_PERIOD}, .glyph=glyph_encode((Glyph){DIR4_LEFT, DIR4_UP, DIR4_LEFT})},
-            {.actions={KEY_SHIFT_LEFT, KEY_2}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT, DIR4_UP, DIR4_LEFT, DIR4_DOWN})},  // @
-        }
-    };
-    profile->sections[SECTION_GLYPHS_3].glyphs = (CtrlGlyphs){
-        .glyphs={
-            // Max 11 glyphs.
-            {.actions={KEY_SHIFT_LEFT, KEY_SLASH}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT, DIR4_UP, DIR4_LEFT})},  // ?
-            // More glyphs can be added here.
-        }
-    };
+    }
 
     // Daisywheel.
     CtrlDaisyGroup up =         {.actions_a={KEY_A}, .actions_b={KEY_B}, .actions_x={KEY_C}, .actions_y={KEY_D}};
