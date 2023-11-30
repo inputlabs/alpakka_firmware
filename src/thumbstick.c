@@ -303,13 +303,14 @@ void Thumbstick__report_alphanumeric(Thumbstick *self, ThumbstickPosition pos) {
 }
 
 void Thumbstick__report(Thumbstick *self) {
+    // Do not report if not calibrated.
+    if (offset_x == 0 && offset_y == 0) return;
     // Get values from ADC.
     float x = thumbstick_adc(1, offset_x);
     float y = thumbstick_adc(0, offset_y);
     // Get correct deadzone.
     float deadzone = self->deadzone;
     if (deadzone == DEADZONE_FROM_CONFIG) deadzone = config_deadzone;
-    if (offset_x == 0 && offset_y == 0) deadzone = 0.8;  // If not calibrated.
     // Calculate trigonometry.
     float angle = atan2(x, -y) * (180 / M_PI);
     float radius = sqrt(powf(x, 2) + powf(y, 2));
