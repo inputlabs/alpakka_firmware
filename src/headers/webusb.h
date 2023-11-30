@@ -73,6 +73,10 @@ typedef enum CtrlSectionType_enum {
     SECTION_THUMBSTICK_PUSH,
     SECTION_THUMBSTICK_INNER,
     SECTION_THUMBSTICK_OUTER,
+    SECTION_GLYPHS_0,
+    SECTION_GLYPHS_1,
+    SECTION_GLYPHS_2,
+    SECTION_GLYPHS_3,
 } CtrlSectionType;
 
 typedef struct Ctrl_struct {
@@ -124,11 +128,23 @@ typedef struct CtrlThumbstick_struct {
     u8 padding[54];
 } CtrlThumbstick;
 
+typedef struct CtrlGlyph_struct {
+    u8 actions[4];
+    u8 glyph;
+} CtrlGlyph;
+
+typedef struct CtrlGlyphs_struct {
+    // Must be packed (58 bytes).
+    CtrlGlyph glyphs[11];
+    u8 padding[3];
+} CtrlGlyphs;
+
 typedef union CtrlSection_union {
     CtrlProfileName name;
     CtrlButton button;
     CtrlRotary rotary;
     CtrlThumbstick thumbstick;
+    CtrlGlyphs glyphs;
 } CtrlSection;
 
 typedef struct CtrlProfile_struct {

@@ -48,6 +48,7 @@ target_sources(${PROJECT} PUBLIC
     src/button.c
     src/common.c
     src/config.c
+    src/ctrl.c
     src/dhat.c
     src/gyro.c
     src/hid.c

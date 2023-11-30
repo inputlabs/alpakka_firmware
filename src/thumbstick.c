@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include <pico/stdlib.h>
 #include <stdarg.h>
 #include <hardware/adc.h>
@@ -15,6 +16,7 @@
 #include "led.h"
 #include "profile.h"
 #include "logging.h"
+#include "webusb.h"
 
 float offset_x = 0;
 float offset_y = 0;
@@ -93,10 +95,10 @@ uint8_t thumbstick_get_direction(float angle, float overlap) {
     float a = 45 * (1 - overlap);
     float b = 180 - a;
     uint8_t mask = 0;
-    if (is_between(angle, -b, -a)) mask += DIR4_LEFT;
-    if (is_between(angle, a, b)) mask += DIR4_RIGHT;
-    if (fabs(angle) <= (90 - a)) mask += DIR4_UP;
-    if (fabs(angle) >= (90 + a)) mask += DIR4_DOWN;
+    if (is_between(angle, -b, -a)) mask += DIR4M_LEFT;
+    if (is_between(angle, a, b)) mask += DIR4M_RIGHT;
+    if (fabs(angle) <= (90 - a)) mask += DIR4M_UP;
+    if (fabs(angle) >= (90 + a)) mask += DIR4M_DOWN;
     return mask;
 }
 
@@ -132,10 +134,10 @@ void Thumbstick__report_axial(
         if (pos.radius < CFG_THUMBSTICK_INNER_RADIUS) self->inner.virtual_press = true;
         else self->outer.virtual_press = true;
         uint8_t direction = thumbstick_get_direction(pos.angle, self->overlap);
-        if (direction & DIR4_LEFT)  self->left.virtual_press = true;
-        if (direction & DIR4_RIGHT) self->right.virtual_press = true;
-        if (direction & DIR4_UP)    self->up.virtual_press = true;
-        if (direction & DIR4_DOWN)  self->down.virtual_press = true;
+        if (direction & DIR4M_LEFT)  self->left.virtual_press = true;
+        if (direction & DIR4M_RIGHT) self->right.virtual_press = true;
+        if (direction & DIR4M_UP)    self->up.virtual_press = true;
+        if (direction & DIR4M_DOWN)  self->down.virtual_press = true;
     }
     // Report directional virtual buttons or axis.
     //// Left.
@@ -159,77 +161,39 @@ void Thumbstick__report_axial(
 
 void Thumbstick__report_radial(Thumbstick *self, ThumbstickPosition pos) {
     uint8_t direction = thumbstick_get_direction(pos.angle, self->overlap);
-    thumbstick_report_axis(self->left.actions[0],  (direction & DIR4_LEFT)  ? pos.radius : 0);
-    thumbstick_report_axis(self->right.actions[0], (direction & DIR4_RIGHT) ? pos.radius : 0);
-    thumbstick_report_axis(self->up.actions[0],    (direction & DIR4_UP)    ? pos.radius : 0);
-    thumbstick_report_axis(self->down.actions[0],  (direction & DIR4_DOWN)  ? pos.radius : 0);
+    thumbstick_report_axis(self->left.actions[0],  (direction & DIR4M_LEFT)  ? pos.radius : 0);
+    thumbstick_report_axis(self->right.actions[0], (direction & DIR4M_RIGHT) ? pos.radius : 0);
+    thumbstick_report_axis(self->up.actions[0],    (direction & DIR4M_UP)    ? pos.radius : 0);
+    thumbstick_report_axis(self->down.actions[0],  (direction & DIR4M_DOWN)  ? pos.radius : 0);
     self->push.report(&self->push);
 }
 
-void Thumbstick__config_glyphstick(Thumbstick *self, ...) {
-    va_list va;
-    va_start(va, 0);
-    uint8_t glyph_index = 0;
-    uint8_t sub_index = 0;
-    uint8_t arg_prev = 0;
-    bool action_phase = true;
-    // Iterate over provided glyph+actions definition pairs.
-    for(uint8_t i=0; true; i++) {
-        uint8_t arg = va_arg(va, int);
-        if (arg == SENTINEL && arg_prev == SENTINEL) break;
-        if (action_phase) {
-            // Actions.
-            if (arg != SENTINEL) {
-                // Store action definition.
-                self->glyphstick_actions[glyph_index][sub_index] = arg;
-                sub_index += 1;
-            } else {
-                for(uint8_t j=sub_index; j<4; j++) {
-                    // Init all remaining slots to avoid undefined behavior.
-                    self->glyphstick_actions[glyph_index][j] = 0;
-                }
-                sub_index = 0;
-                action_phase = false;
-            }
-        } else {
-            // Glyphs.
-            if (arg != SENTINEL) {
-                // Store glyph definition.
-                self->glyphstick_glyphs[glyph_index][sub_index] = arg;
-                sub_index += 1;
-            } else {
-                self->glyphstick_glyphs[glyph_index][sub_index] = SENTINEL;
-                for(uint8_t j=sub_index+1; j<8; j++) {
-                    // Init all remaining slots to avoid undefined behavior.
-                    self->glyphstick_glyphs[glyph_index][j] = 0;
-                }
-                sub_index = 0;
-                glyph_index += 1;
-                action_phase = true;
-            }
-        }
-        arg_prev = arg;
-    }
-    va_end(va);
+void Thumbstick__config_glyphstick(Thumbstick *self, Actions actions, Glyph glyph) {
+    u8 index = self->glyphstick_index;
+    memcpy(self->glyphstick_actions[index], actions, 4);
+    memcpy(self->glyphstick_glyphs[index], glyph, 5);
+    self->glyphstick_index += 1;
 }
 
-void Thumbstick__report_glyphstick(Thumbstick *self, uint8_t len, Dir4 *input) {
+void Thumbstick__report_glyphstick(Thumbstick *self, Glyph input) {
     bool matched = false;
     // Iterate over all defined glyphs.
-    for(uint8_t glyph=0; glyph<64; glyph++) {
-        // Exit if there is no more glyphs.
-        if (self->glyphstick_actions[glyph][0] == 0) break;
+    u8 nglyphs = self->glyphstick_index;
+    for(uint8_t i=0; i<nglyphs; i++) {
         // Pattern match user input against glyph.
-        for(uint8_t i=0; i<len; i++) {
-            if (input[i] != self->glyphstick_glyphs[glyph][i]) break;
-            if (i+1==len && self->glyphstick_glyphs[glyph][i+1] == SENTINEL) {
-                hid_press_multiple(self->glyphstick_actions[glyph]);
-                hid_release_multiple_later(self->glyphstick_actions[glyph], 100);
-                matched = true;
+        bool match = true;
+        for(uint8_t j=0; j<5; j++) {
+            if (input[j] != self->glyphstick_glyphs[i][j]) {
+                match = false;
                 break;
             }
         }
-        if (matched) break;
+        // Trigger actions if matches.
+        if (match) {
+            hid_press_multiple(self->glyphstick_actions[i]);
+            hid_release_multiple_later(self->glyphstick_actions[i], 100);
+            break;
+        }
     }
 }
 
@@ -292,7 +256,7 @@ void Thumbstick__report_daisywheel(Thumbstick *self, Dir8 dir) {
 }
 
 void Thumbstick__report_alphanumeric(Thumbstick *self, ThumbstickPosition pos) {
-    static Dir4 input[8] = {0,};
+    static Glyph input = {0};
     static uint8_t input_index = 0;
     static float CUT4 = 45;
     static float CUT4X = 135;  // 180-45
@@ -326,8 +290,10 @@ void Thumbstick__report_alphanumeric(Thumbstick *self, ThumbstickPosition pos) {
         if (input_index > 0) {
             // Glyph-stick match.
             if (!daisywheel_used) {
-                self->report_glyphstick(self, input_index, input);
+                self->report_glyphstick(self, input);
             }
+            // Glyph-stick reset.
+            memset(input, 0, 5);
             input_index = 0;
             // Daisywheel reset.
             daisywheel_used = false;
@@ -399,5 +365,6 @@ Thumbstick Thumbstick_ (
     thumbstick.distance_mode = distance_mode;
     thumbstick.deadzone = deadzone;
     thumbstick.overlap = overlap;
+    thumbstick.glyphstick_index = 0;
     return thumbstick;
 }

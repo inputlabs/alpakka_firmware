@@ -9,6 +9,7 @@
 #include "profile.h"
 #include "button.h"
 #include "bus.h"
+#include "ctrl.h"
 #include "pin.h"
 #include "hid.h"
 #include "led.h"
@@ -144,6 +145,20 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
             Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_INNER]),
             Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_OUTER])
         );
+    }
+    if (ts_mode == THUMBSTICK_MODE_ALPHANUMERIC) {
+        for(u8 i=0; i<4; i++) {
+            for(u8 j=0; j<11; j++) {
+                CtrlGlyph ctrl_glyph = profile->sections[SECTION_GLYPHS_0+i].glyphs.glyphs[j];
+                Glyph glyph = {0};
+                ctrl_glyph_decode(glyph, ctrl_glyph.glyph);
+                self->thumbstick.config_glyphstick(
+                    &(self->thumbstick),
+                    ctrl_glyph.actions,
+                    glyph
+                );
+            }
+        }
     }
     // Gyro.
     self->gyro = Gyro_(

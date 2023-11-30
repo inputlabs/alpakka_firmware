@@ -3,9 +3,9 @@
 
 #pragma once
 #include "button.h"
+#include "common.h"
 
 #define DEADZONE_FROM_CONFIG 0
-#define GLYPH(...)  __VA_ARGS__, SENTINEL
 
 typedef enum ThumbstickMode_enum {
     THUMBSTICK_MODE_OFF,
@@ -25,12 +25,19 @@ typedef struct ThumbstickPosition_struct {
     float radius;
 } ThumbstickPosition;
 
+typedef enum Dir4Mask_enum {
+    DIR4M_LEFT = 1,
+    DIR4M_RIGHT = 2,
+    DIR4M_UP = 4,
+    DIR4M_DOWN = 8,
+} Dir4Mask;
+
 typedef enum Dir4_enum {
-    DIR4_CENTER = 0,
-    DIR4_LEFT = 1,
-    DIR4_RIGHT = 2,
-    DIR4_UP = 4,
-    DIR4_DOWN = 8,
+    DIR4_NONE,
+    DIR4_LEFT,
+    DIR4_RIGHT,
+    DIR4_UP,
+    DIR4_DOWN,
 } Dir4;
 
 typedef enum Dir8_enum {
@@ -45,17 +52,19 @@ typedef enum Dir8_enum {
     DIR8_DOWN_RIGHT,
 } Dir8;
 
+typedef Dir4 Glyph[5];
+
 typedef struct Thumbstick_struct Thumbstick;
 struct Thumbstick_struct {
     void (*report) (Thumbstick *self);
     void (*report_axial) (Thumbstick *self, ThumbstickPosition pos, float deadzone);
     void (*report_radial) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_alphanumeric) (Thumbstick *self, ThumbstickPosition pos);
-    void (*report_glyphstick) (Thumbstick *self, uint8_t len, Dir4 *input);
+    void (*report_glyphstick) (Thumbstick *self, Glyph input);
     void (*report_daisywheel) (Thumbstick *self, Dir8 dir);
     void (*reset) (Thumbstick *self);
     void (*config_4dir) (Thumbstick *self, Button left, Button right, Button up, Button down, Button push, Button inner, Button outer);
-    void (*config_glyphstick) (Thumbstick *self, ...);
+    void (*config_glyphstick) (Thumbstick *self, Actions actions, Glyph glyph);
     void (*config_daisywheel) (Thumbstick *self, ...);
     ThumbstickMode mode;
     ThumbstickDistance distance_mode;
@@ -68,9 +77,10 @@ struct Thumbstick_struct {
     Button push;
     Button inner;
     Button outer;
-    uint8_t glyphstick_glyphs[64][8];
-    uint8_t glyphstick_actions[64][4];
-    uint8_t daisywheel[8][4][4];
+    Glyph glyphstick_glyphs[44];
+    Actions glyphstick_actions[44];
+    u8 glyphstick_index;
+    u8 daisywheel[8][4][4];
 };
 
 Thumbstick Thumbstick_ (
