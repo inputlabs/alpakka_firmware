@@ -149,6 +149,8 @@ void config_profile_default_desktop(CtrlProfile *profile){
         .deadzone=DEADZONE_FROM_CONFIG,
         .overlap=50,
     };
+
+    // Glyph-stick.
     profile->sections[SECTION_GLYPHS_0].glyphs = (CtrlGlyphs){
         .glyphs={
             // Max 11 glyphs.
@@ -201,6 +203,26 @@ void config_profile_default_desktop(CtrlProfile *profile){
         .glyphs={
             // Max 11 glyphs.
             {.actions={KEY_SHIFT_LEFT, KEY_SLASH}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT, DIR4_UP, DIR4_LEFT})},  // ?
+            // More glyphs can be added here.
         }
     };
+
+    // Daisywheel.
+    CtrlDaisyGroup up =         {.actions_a={KEY_A}, .actions_b={KEY_B}, .actions_x={KEY_C}, .actions_y={KEY_D}};
+    CtrlDaisyGroup up_right =   {.actions_a={KEY_E}, .actions_b={KEY_F}, .actions_x={KEY_G}, .actions_y={KEY_H}};
+    CtrlDaisyGroup left =       {.actions_a={KEY_I}, .actions_b={KEY_J}, .actions_x={KEY_K}, .actions_y={KEY_L}};
+    CtrlDaisyGroup right =      {.actions_a={KEY_O}, .actions_b={KEY_M}, .actions_x={KEY_N}, .actions_y={KEY_NONE}};
+    CtrlDaisyGroup down_left =  {.actions_a={KEY_P}, .actions_b={KEY_Q}, .actions_x={KEY_R}, .actions_y={KEY_S}};
+    CtrlDaisyGroup down =       {.actions_a={KEY_U}, .actions_b={KEY_T}, .actions_x={KEY_V}, .actions_y={KEY_NONE}};
+    CtrlDaisyGroup down_right = {.actions_a={KEY_W}, .actions_b={KEY_Z}, .actions_x={KEY_X}, .actions_y={KEY_Y}};
+    CtrlDaisyGroup up_left =    {
+        .actions_a={KEY_COMMA},
+        .actions_b={KEY_PERIOD},
+        .actions_x={KEY_SHIFT_LEFT, KEY_2},      // @
+        .actions_y={KEY_SHIFT_LEFT, KEY_SLASH},  // ?
+    };
+    profile->sections[SECTION_DAISY_0].daisy = (CtrlDaisy){.groups={left, right}};
+    profile->sections[SECTION_DAISY_1].daisy = (CtrlDaisy){.groups={up, down}};
+    profile->sections[SECTION_DAISY_2].daisy = (CtrlDaisy){.groups={up_left, up_right}};
+    profile->sections[SECTION_DAISY_3].daisy = (CtrlDaisy){.groups={down_left, down_right}};
 }

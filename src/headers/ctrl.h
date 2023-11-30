@@ -75,6 +75,10 @@ typedef enum CtrlSectionType_enum {
     SECTION_GLYPHS_1,
     SECTION_GLYPHS_2,
     SECTION_GLYPHS_3,
+    SECTION_DAISY_0,
+    SECTION_DAISY_1,
+    SECTION_DAISY_2,
+    SECTION_DAISY_3,
 } CtrlSectionType;
 
 typedef struct Ctrl_struct {
@@ -137,12 +141,26 @@ typedef struct CtrlGlyphs_struct {
     u8 padding[3];
 } CtrlGlyphs;
 
+typedef struct CtrlDaisyGroup_struct {
+    u8 actions_a[4];
+    u8 actions_b[4];
+    u8 actions_x[4];
+    u8 actions_y[4];
+} CtrlDaisyGroup;
+
+typedef struct CtrlDaisy_struct {
+    // Must be packed (58 bytes).
+    CtrlDaisyGroup groups[2];
+    u8 padding[26];
+} CtrlDaisy;
+
 typedef union CtrlSection_union {
     CtrlProfileName name;
     CtrlButton button;
     CtrlRotary rotary;
     CtrlThumbstick thumbstick;
     CtrlGlyphs glyphs;
+    CtrlDaisy daisy;
 } CtrlSection;
 
 typedef struct CtrlProfile_struct {

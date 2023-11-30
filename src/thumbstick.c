@@ -197,38 +197,8 @@ void Thumbstick__report_glyphstick(Thumbstick *self, Glyph input) {
     }
 }
 
-void Thumbstick__config_daisywheel(Thumbstick *self, ...) {
-    va_list va;
-    va_start(va, 0);
-    uint8_t dir_index = 0;
-    uint8_t button_index = 0;
-    uint8_t action_index = 0;
-    // Iterate over the 8 thumbstick directions.
-    for(uint8_t i=0; true; i++) {
-        if (action_index >= 4) {
-            action_index = 0;
-            button_index += 1;
-        }
-        if (button_index >= 4) {
-            button_index = 0;
-            dir_index += 1;
-        }
-        if (dir_index >= 8) break;
-        uint8_t arg = va_arg(va, int);
-        if (arg != SENTINEL) {
-            // Store actions based on sequencial indexes.
-            self->daisywheel[dir_index][button_index][action_index] = arg;
-            action_index += 1;
-        } else {
-            for(uint8_t j=action_index; j<4; j++) {
-                // Init all remaining slots to avoid undefined behavior.
-                self->daisywheel[dir_index][button_index][j] = 0;
-            }
-            action_index = 0;
-            button_index += 1;
-        }
-    }
-    va_end(va);
+void Thumbstick__config_daisywheel(Thumbstick *self, u8 dir, u8 button, Actions actions) {
+    memcpy(self->daisywheel[dir][button], actions, 4);
 }
 
 void Thumbstick__report_daisywheel(Thumbstick *self, Dir8 dir) {

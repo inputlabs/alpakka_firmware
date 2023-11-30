@@ -159,6 +159,17 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
                 );
             }
         }
+        u8 dir = 0;
+        for(u8 s=0; s<4; s++) {
+            for(u8 g=0; g<2; g++) {
+                CtrlDaisyGroup group = profile->sections[SECTION_DAISY_0+s].daisy.groups[g];
+                self->thumbstick.config_daisywheel(&(self->thumbstick), dir, 0, group.actions_a);
+                self->thumbstick.config_daisywheel(&(self->thumbstick), dir, 1, group.actions_b);
+                self->thumbstick.config_daisywheel(&(self->thumbstick), dir, 2, group.actions_x);
+                self->thumbstick.config_daisywheel(&(self->thumbstick), dir, 3, group.actions_y);
+                dir += 1;
+            }
+        }
     }
     // Gyro.
     self->gyro = Gyro_(
