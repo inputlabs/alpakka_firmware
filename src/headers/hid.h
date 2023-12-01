@@ -183,6 +183,7 @@
 #define MOUSE_X_NEG        MOUSE_INDEX + 9
 #define MOUSE_Y_NEG        MOUSE_INDEX + 10
 
+// Gamepad buttons sorted as in XInput.
 #define GAMEPAD_UP       GAMEPAD_INDEX + 0
 #define GAMEPAD_DOWN     GAMEPAD_INDEX + 1
 #define GAMEPAD_LEFT     GAMEPAD_INDEX + 2
@@ -194,10 +195,10 @@
 #define GAMEPAD_L1       GAMEPAD_INDEX + 8
 #define GAMEPAD_R1       GAMEPAD_INDEX + 9
 #define GAMEPAD_HOME     GAMEPAD_INDEX + 10
-#define GAMEPAD_A        GAMEPAD_INDEX + 11
-#define GAMEPAD_B        GAMEPAD_INDEX + 12
-#define GAMEPAD_X        GAMEPAD_INDEX + 13
-#define GAMEPAD_Y        GAMEPAD_INDEX + 14
+#define GAMEPAD_A        GAMEPAD_INDEX + 12  // Index 11 is padding.
+#define GAMEPAD_B        GAMEPAD_INDEX + 13
+#define GAMEPAD_X        GAMEPAD_INDEX + 14
+#define GAMEPAD_Y        GAMEPAD_INDEX + 15
 
 #define GAMEPAD_AXIS_LX      GAMEPAD_AXIS_INDEX + 0
 #define GAMEPAD_AXIS_LY      GAMEPAD_AXIS_INDEX + 1
