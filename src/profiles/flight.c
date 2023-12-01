@@ -7,6 +7,7 @@
 #include "webusb.h"
 #include "button.h"
 #include "thumbstick.h"
+#include "gyro.h"
 
 void config_profile_default_flight(CtrlProfile *profile){
     // Profile name.
@@ -56,5 +57,10 @@ void config_profile_default_flight(CtrlProfile *profile){
     // Thumbstick.
     profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
         .mode=THUMBSTICK_MODE_OFF,
+    };
+
+    // Gyro.
+    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+        .mode=GYRO_MODE_OFF,
     };
 }

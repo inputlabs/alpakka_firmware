@@ -7,6 +7,7 @@
 #include "webusb.h"
 #include "button.h"
 #include "thumbstick.h"
+#include "gyro.h"
 
 void config_profile_default_racing(CtrlProfile *profile){
     // Profile name.
@@ -197,4 +198,15 @@ void config_profile_default_racing(CtrlProfile *profile){
     profile->sections[SECTION_THUMBSTICK_RIGHT].button = (CtrlButton){};
     profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){};
     profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){};
+
+    // Gyro.
+    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+        .mode=GYRO_MODE_AXIS_ABSOLUTE,
+    };
+    profile->sections[SECTION_GYRO_X].gyro_axis = (CtrlGyroAxis){
+        .actions_neg={GAMEPAD_AXIS_LX_NEG},
+        .actions_pos={GAMEPAD_AXIS_LX},
+        .angle_min=-90,
+        .angle_max=90,
+    };
 }

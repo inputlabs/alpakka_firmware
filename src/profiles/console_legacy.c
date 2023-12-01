@@ -7,6 +7,7 @@
 #include "webusb.h"
 #include "button.h"
 #include "thumbstick.h"
+#include "gyro.h"
 
 void config_profile_default_console_legacy(CtrlProfile *profile){
     // Profile name.
@@ -162,4 +163,9 @@ void config_profile_default_console_legacy(CtrlProfile *profile){
     };
     profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){};
     profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){};
+
+    // Gyro.
+    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+        .mode=GYRO_MODE_OFF,
+    };
 }

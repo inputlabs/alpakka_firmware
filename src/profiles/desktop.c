@@ -7,6 +7,7 @@
 #include "pin.h"
 #include "thumbstick.h"
 #include "glyph.h"
+#include "gyro.h"
 
 void config_profile_default_desktop(CtrlProfile *profile){
     // Profile name.
@@ -215,4 +216,18 @@ void config_profile_default_desktop(CtrlProfile *profile){
     profile->sections[SECTION_DAISY_1].daisy = (CtrlDaisy){.groups={up, down}};
     profile->sections[SECTION_DAISY_2].daisy = (CtrlDaisy){.groups={up_left, up_right}};
     profile->sections[SECTION_DAISY_3].daisy = (CtrlDaisy){.groups={down_left, down_right}};
+
+    // Gyro.
+    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+        .mode=GYRO_MODE_TOUCH_ON,
+        .engage=PIN_TOUCH_IN,
+    };
+    profile->sections[SECTION_GYRO_X].gyro_axis = (CtrlGyroAxis){
+        .actions_neg={MOUSE_X_NEG},
+        .actions_pos={MOUSE_X},
+    };
+    profile->sections[SECTION_GYRO_Y].gyro_axis = (CtrlGyroAxis){
+        .actions_neg={MOUSE_Y_NEG},
+        .actions_pos={MOUSE_Y},
+    };
 }

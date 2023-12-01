@@ -7,6 +7,7 @@
 #include "webusb.h"
 #include "button.h"
 #include "thumbstick.h"
+#include "gyro.h"
 
 void config_profile_default_fps_fusion(CtrlProfile *profile){
     // Profile name.
@@ -197,5 +198,19 @@ void config_profile_default_fps_fusion(CtrlProfile *profile){
         .mode=NORMAL,
         .actions={KEY_BRACKET_RIGHT},
         .hint="Run",
+    };
+
+    // Gyro.
+    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+        .mode=GYRO_MODE_TOUCH_ON,
+        .engage=PIN_TOUCH_IN,
+    };
+    profile->sections[SECTION_GYRO_X].gyro_axis = (CtrlGyroAxis){
+        .actions_neg={MOUSE_X_NEG},
+        .actions_pos={MOUSE_X},
+    };
+    profile->sections[SECTION_GYRO_Y].gyro_axis = (CtrlGyroAxis){
+        .actions_neg={MOUSE_Y_NEG},
+        .actions_pos={MOUSE_Y},
     };
 }

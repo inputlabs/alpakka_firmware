@@ -176,11 +176,29 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
     }
     // Gyro.
     self->gyro = Gyro_(
-        GYRO_MODE_ALWAYS_OFF,
-        PIN_NONE,
-        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),  // X rotation.
-        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),  // Y rotation.
-        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)   // Z rotation.
+        profile->sections[SECTION_GYRO].gyro.mode,
+        profile->sections[SECTION_GYRO].gyro.engage
+    );
+    self->gyro.config_x(
+        &(self->gyro),
+        (i8)profile->sections[SECTION_GYRO_X].gyro_axis.angle_min,
+        (i8)profile->sections[SECTION_GYRO_X].gyro_axis.angle_max,
+        profile->sections[SECTION_GYRO_X].gyro_axis.actions_neg,
+        profile->sections[SECTION_GYRO_X].gyro_axis.actions_pos
+    );
+    self->gyro.config_y(
+        &(self->gyro),
+        (i8)profile->sections[SECTION_GYRO_Y].gyro_axis.angle_min,
+        (i8)profile->sections[SECTION_GYRO_Y].gyro_axis.angle_max,
+        profile->sections[SECTION_GYRO_Y].gyro_axis.actions_neg,
+        profile->sections[SECTION_GYRO_Y].gyro_axis.actions_pos
+    );
+    self->gyro.config_z(
+        &(self->gyro),
+        (i8)profile->sections[SECTION_GYRO_Z].gyro_axis.angle_min,
+        (i8)profile->sections[SECTION_GYRO_Z].gyro_axis.angle_max,
+        profile->sections[SECTION_GYRO_Z].gyro_axis.actions_neg,
+        profile->sections[SECTION_GYRO_Z].gyro_axis.actions_pos
     );
 }
 

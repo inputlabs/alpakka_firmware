@@ -2,8 +2,8 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <math.h>
+#include <string.h>
 #include "button.h"
 #include "config.h"
 #include "gyro.h"
@@ -164,9 +164,9 @@ void Gyro__report_absolute(Gyro *self) {
     x = ramp(x, self->absolute_x_min/90, self->absolute_x_max/90); // Adjust range.
     y = ramp(y, self->absolute_y_min/90, self->absolute_y_max/90); // Adjust range.
     // Output mapping.
-    if (x >= 0) gyro_absolute_output( x, self->actions_x,     &(self->pressed_x));
+    if (x >= 0) gyro_absolute_output( x, self->actions_x_pos, &(self->pressed_x_pos));
     else        gyro_absolute_output(-x, self->actions_x_neg, &(self->pressed_x_neg));
-    if (y >= 0) gyro_absolute_output( y, self->actions_y,     &(self->pressed_y));
+    if (y >= 0) gyro_absolute_output( y, self->actions_y_pos, &(self->pressed_y_pos));
     else        gyro_absolute_output(-y, self->actions_y_neg, &(self->pressed_y_neg));
     // printf("\r%6.1f %6.1f %6.1f", x*100, y*100, z*100);
 }
@@ -198,17 +198,17 @@ void Gyro__report_incremental(Gyro *self) {
     sub_y = modf(y, &y);
     sub_z = modf(z, &z);
     // Report.
-    if (x >= 0) gyro_incremental_output( x, self->actions_x);
+    if (x >= 0) gyro_incremental_output( x, self->actions_x_pos);
     else        gyro_incremental_output(-x, self->actions_x_neg);
-    if (y >= 0) gyro_incremental_output( y, self->actions_y);
+    if (y >= 0) gyro_incremental_output( y, self->actions_y_pos);
     else        gyro_incremental_output(-y, self->actions_y_neg);
-    if (z >= 0) gyro_incremental_output( z, self->actions_z);
+    if (z >= 0) gyro_incremental_output( z, self->actions_z_pos);
     else        gyro_incremental_output(-z, self->actions_z_neg);
 }
 
 bool Gyro__is_engaged(Gyro *self) {
-    if (self->pin == PIN_NONE) return false;
-    if (self->pin == PIN_TOUCH_IN) return touch_status();
+    if (self->engage == PIN_NONE) return false;
+    if (self->engage == PIN_TOUCH_IN) return touch_status();
     return self->engage_button.is_pressed(&(self->engage_button));
 }
 
@@ -222,33 +222,45 @@ void Gyro__report(Gyro *self) {
     else if (self->mode == GYRO_MODE_AXIS_ABSOLUTE) {
         self->report_absolute(self);
     }
-    else if (self->mode == GYRO_MODE_ALWAYS_OFF) {
+    else if (self->mode == GYRO_MODE_OFF) {
         return;
     }
 }
 
 void Gyro__reset(Gyro *self) {
     world_init = 0;
-    self->pressed_x = false;
-    self->pressed_y = false;
+    self->pressed_x_pos = false;
+    self->pressed_y_pos = false;
+    self->pressed_z_pos = false;
     self->pressed_x_neg = false;
     self->pressed_y_neg = false;
+    self->pressed_z_neg = false;
 }
 
-void Gyro__config_absolute_x_range(Gyro *self, double min, double max) {
+void Gyro__config_x(Gyro *self, double min, double max, Actions neg, Actions pos) {
     self->absolute_x_min = min;
     self->absolute_x_max = max;
+    memcpy(self->actions_x_neg, neg, ACTIONS_LEN);
+    memcpy(self->actions_x_pos, pos, ACTIONS_LEN);
 }
 
-void Gyro__config_absolute_y_range(Gyro *self, double min, double max) {
+void Gyro__config_y(Gyro *self, double min, double max, Actions neg, Actions pos) {
     self->absolute_y_min = min;
     self->absolute_y_max = max;
+    memcpy(self->actions_y_neg, neg, ACTIONS_LEN);
+    memcpy(self->actions_y_pos, pos, ACTIONS_LEN);
+}
+
+void Gyro__config_z(Gyro *self, double min, double max, Actions neg, Actions pos) {
+    self->absolute_z_min = min;
+    self->absolute_z_max = max;
+    memcpy(self->actions_z_neg, neg, ACTIONS_LEN);
+    memcpy(self->actions_z_pos, pos, ACTIONS_LEN);
 }
 
 Gyro Gyro_ (
     GyroMode mode,
-    uint8_t pin,
-    ...  // Actions
+    u8 engage
 ) {
     Gyro gyro;
     gyro.is_engaged = Gyro__is_engaged;
@@ -256,55 +268,21 @@ Gyro Gyro_ (
     gyro.report_incremental = Gyro__report_incremental;
     gyro.report_absolute = Gyro__report_absolute;
     gyro.reset = Gyro__reset;
-    gyro.config_absolute_x_range = Gyro__config_absolute_x_range;
-    gyro.config_absolute_y_range = Gyro__config_absolute_y_range;
+    gyro.config_x = Gyro__config_x;
+    gyro.config_y = Gyro__config_y;
+    gyro.config_z = Gyro__config_z;
     gyro.mode = mode;
-    gyro.pin = pin;
-    if (pin != PIN_NONE && pin != PIN_TOUCH_IN) {
+    gyro.engage = engage;
+    if (engage != PIN_NONE && engage != PIN_TOUCH_IN) {
         Actions none = {0,};
-        gyro.engage_button = Button_(pin, NORMAL, none, none);
+        gyro.engage_button = Button_(engage, NORMAL, none, none);
     }
-    for(uint8_t i=0; i<4; i++) {
-        gyro.actions_x[i] = 0;
-        gyro.actions_y[i] = 0;
-        gyro.actions_z[i] = 0;
-        gyro.actions_x_neg[i] = 0;
-        gyro.actions_y_neg[i] = 0;
-        gyro.actions_z_neg[i] = 0;
-    }
-    va_list va;
-    va_start(va, 0);
-    for(uint8_t i=0; true; i++) {
-        uint8_t value = va_arg(va, int);
-        if (value == SENTINEL) break;
-        gyro.actions_x_neg[i] = value;
-    }
-    for(uint8_t i=0; true; i++) {
-        uint8_t value = va_arg(va, int);
-        if (value == SENTINEL) break;
-        gyro.actions_x[i] = value;
-    }
-    for(uint8_t i=0; true; i++) {
-        uint8_t value = va_arg(va, int);
-        if (value == SENTINEL) break;
-        gyro.actions_y_neg[i] = value;
-    }
-    for(uint8_t i=0; true; i++) {
-        uint8_t value = va_arg(va, int);
-        if (value == SENTINEL) break;
-        gyro.actions_y[i] = value;
-    }
-    for(uint8_t i=0; true; i++) {
-        uint8_t value = va_arg(va, int);
-        if (value == SENTINEL) break;
-        gyro.actions_z_neg[i] = value;
-    }
-    for(uint8_t i=0; true; i++) {
-        uint8_t value = va_arg(va, int);
-        if (value == SENTINEL) break;
-        gyro.actions_z[i] = value;
-    }
-    va_end(va);
+    memset(gyro.actions_x_pos, 0, ACTIONS_LEN);
+    memset(gyro.actions_y_pos, 0, ACTIONS_LEN);
+    memset(gyro.actions_z_pos, 0, ACTIONS_LEN);
+    memset(gyro.actions_x_neg, 0, ACTIONS_LEN);
+    memset(gyro.actions_y_neg, 0, ACTIONS_LEN);
+    memset(gyro.actions_z_neg, 0, ACTIONS_LEN);
     gyro_update_sensitivity();
     gyro.reset(&gyro);
     return gyro;
