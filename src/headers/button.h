@@ -7,6 +7,12 @@
 #include "ctrl.h"
 #include "common.h"
 
+#define ACTIONS_LEN 4
+#define SENTINEL 255   ///////////////////////// TODO DELETE
+#define ACTIONS(...)  __VA_ARGS__, SENTINEL  ///////////////////////// TODO DELETE
+
+typedef u8 Actions[ACTIONS_LEN];
+
 // https://inputlabs.io/alpakka/manual/dev_profiles#button_mode
 typedef enum ButtonMode_enum {
     NORMAL,
@@ -17,12 +23,6 @@ typedef enum ButtonMode_enum {
     HOLD_OVERLAP_LONG,
     HOLD_DOUBLE_PRESS,
 } ButtonMode;
-
-typedef u8 Actions[4];
-
-#define ACTIONS_LEN 4
-#define SENTINEL 255   ///////////////////////// TODO DELETE
-#define ACTIONS(...)  __VA_ARGS__, SENTINEL  ///////////////////////// TODO DELETE
 
 typedef struct Button_struct Button;
 struct Button_struct {

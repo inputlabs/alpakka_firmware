@@ -5,7 +5,6 @@
 #include <math.h>
 #include <string.h>
 #include <pico/stdlib.h>
-#include <stdarg.h>
 #include <hardware/adc.h>
 #include "config.h"
 #include "pin.h"

@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <pico/time.h>
-#include <stdarg.h>
 #include <string.h>
 #include "config.h"
 #include "profile.h"
@@ -147,9 +146,11 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
         );
     }
     if (ts_mode == THUMBSTICK_MODE_ALPHANUMERIC) {
-        for(u8 i=0; i<4; i++) {
-            for(u8 j=0; j<11; j++) {
-                CtrlGlyph ctrl_glyph = profile->sections[SECTION_GLYPHS_0+i].glyphs.glyphs[j];
+        // Iterate sections.
+        for(u8 s=0; s<4; s++) {
+            // Iterate groups.
+            for(u8 g=0; g<11; g++) {
+                CtrlGlyph ctrl_glyph = profile->sections[SECTION_GLYPHS_0+s].glyphs.glyphs[g];
                 Glyph glyph = {0};
                 glyph_decode(glyph, ctrl_glyph.glyph);
                 self->thumbstick.config_glyphstick(
@@ -160,7 +161,9 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
             }
         }
         u8 dir = 0;
+        // Iterate sections.
         for(u8 s=0; s<4; s++) {
+            // Iterate groups.
             for(u8 g=0; g<2; g++) {
                 CtrlDaisyGroup group = profile->sections[SECTION_DAISY_0+s].daisy.groups[g];
                 self->thumbstick.config_daisywheel(&(self->thumbstick), dir, 0, group.actions_a);

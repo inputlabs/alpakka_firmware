@@ -79,12 +79,5 @@ Profile profile_init_console_legacy();
 Profile profile_init_desktop();
 Profile profile_init_racing();
 
-// #define ACTIONSX_1(a)           a, 0, 0, 0
-// #define ACTIONSX_2(a, b)        a, b, 0, 0
-// #define ACTIONSX_3(a, b, c)     a, b, c, 0
-// #define ACTIONSX_4(a, b, c, d)  a, b, c, d
-// #define ACTIONSX_SELECT(_1, _2, _3, _4, N, ...)  ACTIONSX_##N
-// #define ACTIONSX(...) ACTIONSX_SELECT(__VA_ARGS__, 4, 3, 2, 1)(__VA_ARGS__)
-
 extern bool profile_led_lock;
 extern bool profile_pending_reboot;
