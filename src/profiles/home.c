@@ -154,24 +154,29 @@ void config_profile_default_home(CtrlProfile *profile){
         .overlap=-50,
     };
     profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={0,},  // TODO macros.
+        .mode=HOLD_EXCLUSIVE,
+        .actions={PROC_MACRO_1},
+        .actions_secondary={PROC_MACRO_5},
     };
     profile->sections[SECTION_THUMBSTICK_RIGHT].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={0,},  // TODO macros.
+        .mode=HOLD_EXCLUSIVE,
+        .actions={PROC_MACRO_2},
+        .actions_secondary={PROC_MACRO_6},
     };
     profile->sections[SECTION_THUMBSTICK_UP].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={0,},  // TODO macros.
+        .mode=HOLD_EXCLUSIVE,
+        .actions={PROC_MACRO_3},
+        .actions_secondary={PROC_MACRO_7},
     };
     profile->sections[SECTION_THUMBSTICK_DOWN].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={0,},  // TODO macros.
+        .mode=HOLD_EXCLUSIVE,
+        .actions={PROC_MACRO_4},
+        .actions_secondary={PROC_MACRO_8},
     };
     profile->sections[SECTION_THUMBSTICK_PUSH].button = (CtrlButton){
         .mode=HOLD_EXCLUSIVE_LONG,
         .actions={KEY_SUPER_LEFT, KEY_CONTROL_LEFT, KEY_O},
+        .hint="On-screen KB",
         .actions_secondary={PROC_THANKS},
     };
     profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){};
@@ -189,5 +194,31 @@ void config_profile_default_home(CtrlProfile *profile){
     profile->sections[SECTION_GYRO_Y].gyro_axis = (CtrlGyroAxis){
         .actions_neg={MOUSE_Y_NEG},
         .actions_pos={MOUSE_Y},
+    };
+
+    // Macros.
+    profile->sections[SECTION_MACRO_1].macro = (CtrlMacro){
+        .macro={
+            {KEY_S, KEY_O, KEY_R, KEY_R, KEY_Y, KEY_SPACE},  // Sorry.
+            {KEY_O, KEY_K, KEY_SPACE},                       // Ok.
+        }
+    };
+    profile->sections[SECTION_MACRO_2].macro = (CtrlMacro){
+        .macro={
+            {KEY_H, KEY_E, KEY_L, KEY_L, KEY_O, KEY_SPACE},  // Hello.
+            {KEY_N, KEY_I, KEY_C, KEY_E, KEY_SPACE},         // Nice.
+        }
+    };
+    profile->sections[SECTION_MACRO_3].macro = (CtrlMacro){
+        .macro={
+            {KEY_N, KEY_O, KEY_SPACE},         // No.
+            {KEY_Y, KEY_E, KEY_S, KEY_SPACE},  // Yes.
+        }
+    };
+    profile->sections[SECTION_MACRO_4].macro = (CtrlMacro){
+        .macro={
+            {KEY_G, KEY_G, KEY_SPACE},                              // gg.
+            {KEY_T, KEY_H, KEY_A, KEY_N, KEY_K, KEY_S, KEY_SPACE},  // Thanks.
+        }
     };
 }

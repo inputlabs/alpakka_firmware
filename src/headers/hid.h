@@ -3,6 +3,7 @@
 
 #pragma once
 #include <pico/time.h>
+#include "common.h"
 
 #define MODIFIER_INDEX 154
 #define MOUSE_INDEX 162
@@ -238,19 +239,27 @@
 #define PROC_BOOTSEL          PROC_INDEX + 21
 #define PROC_FACTORY          PROC_INDEX + 22
 #define PROC_THANKS           PROC_INDEX + 23
-#define PROC_MACRO            PROC_INDEX + 24
-#define PROC_HOME_GAMEPAD     PROC_INDEX + 25
+#define PROC_HOME_GAMEPAD     PROC_INDEX + 24
 
-#define PROC_ROTARY_MODE_0  PROC_INDEX + 26
-#define PROC_ROTARY_MODE_1  PROC_INDEX + 27
-#define PROC_ROTARY_MODE_2  PROC_INDEX + 28
-#define PROC_ROTARY_MODE_3  PROC_INDEX + 29
-#define PROC_ROTARY_MODE_4  PROC_INDEX + 30
-#define PROC_ROTARY_MODE_5  PROC_INDEX + 31
+#define PROC_MACRO_1          PROC_INDEX + 25
+#define PROC_MACRO_2          PROC_INDEX + 26
+#define PROC_MACRO_3          PROC_INDEX + 27
+#define PROC_MACRO_4          PROC_INDEX + 28
+#define PROC_MACRO_5          PROC_INDEX + 29
+#define PROC_MACRO_6          PROC_INDEX + 30
+#define PROC_MACRO_7          PROC_INDEX + 31
+#define PROC_MACRO_8          PROC_INDEX + 32
+
+#define PROC_ROTARY_MODE_0  PROC_INDEX + 33
+#define PROC_ROTARY_MODE_1  PROC_INDEX + 34
+#define PROC_ROTARY_MODE_2  PROC_INDEX + 35
+#define PROC_ROTARY_MODE_3  PROC_INDEX + 36
+#define PROC_ROTARY_MODE_4  PROC_INDEX + 37
+#define PROC_ROTARY_MODE_5  PROC_INDEX + 38
 
 // Experimental anti-deadzone.
-#define PROC_ADZ    PROC_INDEX + 32
-#define PROC_ADZN   PROC_INDEX + 33
+#define PROC_ADZ    PROC_INDEX + 39
+#define PROC_ADZN   PROC_INDEX + 40
 
 void hid_thanks();
 void hid_matrix_reset();
@@ -266,6 +275,7 @@ void hid_press_later_callback(alarm_id_t alarm, uint8_t key);
 void hid_release_later_callback(alarm_id_t alarm, uint8_t key);
 void hid_press_multiple_later_callback(alarm_id_t alarm, uint8_t *keys);
 void hid_release_multiple_later_callback(alarm_id_t alarm, uint8_t *keys);
+void hid_macro(u8 index);
 bool hid_is_axis(uint8_t key);
 void hid_mouse_move(int16_t x, int16_t y);
 void hid_mouse_wheel(int8_t z);

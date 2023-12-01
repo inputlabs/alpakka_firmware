@@ -284,13 +284,23 @@ Profile* profile_get_active(bool strict) {
         return &profiles[profile_active_index];
     } else {
         if (home_is_active) return &profiles[PROFILE_HOME];
-        else if (home_gamepad_is_active) return &profiles[PROFILE_CONSOLE_LEGACY];
+        else if (home_gamepad_is_active) return &profiles[PROFILE_CONSOLE_LEGACY];  // TODO FIX.
         else return &profiles[profile_active_index];
     }
 }
 
 Profile* profile_get(u8 index) {
     return &profiles[index];
+}
+
+u8 profile_get_active_index(bool strict) {
+    if (strict) {
+        return profile_active_index;
+    } else {
+        if (home_is_active) return 0;
+        // else if (home_gamepad_is_active) ...;  // TODO
+        else return profile_active_index;
+    }
 }
 
 void profile_enable_all(bool value) {

@@ -83,6 +83,10 @@ typedef enum CtrlSectionType_enum {
     SECTION_GYRO_X,
     SECTION_GYRO_Y,
     SECTION_GYRO_Z,
+    SECTION_MACRO_1,
+    SECTION_MACRO_2,
+    SECTION_MACRO_3,
+    SECTION_MACRO_4,
 } CtrlSectionType;
 
 typedef struct Ctrl_struct {
@@ -174,6 +178,12 @@ typedef struct CtrlGyroAxis_struct {
     u8 padding[48];
 } CtrlGyroAxis;
 
+typedef struct CtrlMacro_struct {
+    // Must be packed (58 bytes).
+    u8 macro[2][28];
+    u8 padding[2];
+} CtrlMacro;
+
 typedef union CtrlSection_union {
     CtrlProfileName name;
     CtrlButton button;
@@ -183,6 +193,7 @@ typedef union CtrlSection_union {
     CtrlDaisy daisy;
     CtrlGyro gyro;
     CtrlGyroAxis gyro_axis;
+    CtrlMacro macro;
 } CtrlSection;
 
 typedef struct CtrlProfile_struct {
