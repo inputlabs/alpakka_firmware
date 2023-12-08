@@ -56,7 +56,7 @@ typedef enum Dir8_enum {
 typedef struct Thumbstick_struct Thumbstick;
 struct Thumbstick_struct {
     void (*report) (Thumbstick *self);
-    void (*report_axial) (Thumbstick *self, ThumbstickPosition pos, float deadzone);
+    void (*report_axial) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_radial) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_alphanumeric) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_glyphstick) (Thumbstick *self, Glyph input);

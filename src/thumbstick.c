@@ -125,11 +125,10 @@ void Thumbstick__config_4dir(
 
 void Thumbstick__report_axial(
     Thumbstick *self,
-    ThumbstickPosition pos,
-    float deadzone
+    ThumbstickPosition pos
 ) {
     // Evaluate virtual buttons.
-    if (pos.radius > deadzone) {
+    if (pos.radius > 0) {
         if (pos.radius < CFG_THUMBSTICK_INNER_RADIUS) self->inner.virtual_press = true;
         else self->outer.virtual_press = true;
         uint8_t direction = thumbstick_get_direction(pos.angle, self->overlap);
@@ -291,7 +290,7 @@ void Thumbstick__report(Thumbstick *self) {
     // Report.
     if (self->mode == THUMBSTICK_MODE_4DIR) {
         if (self->distance_mode == THUMBSTICK_DISTANCE_AXIAL) {
-            self->report_axial(self, pos, deadzone);
+            self->report_axial(self, pos);
         }
         if (self->distance_mode == THUMBSTICK_DISTANCE_RADIAL) {
             self->report_radial(self, pos);
