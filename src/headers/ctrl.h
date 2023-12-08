@@ -175,7 +175,9 @@ typedef struct CtrlGyroAxis_struct {
     u8 actions_pos[4];
     u8 angle_min;
     u8 angle_max;
-    u8 padding[48];
+    u8 hint_neg[14];
+    u8 hint_pos[14];
+    u8 padding[20];
 } CtrlGyroAxis;
 
 typedef struct CtrlMacro_struct {

@@ -22,7 +22,7 @@ void config_profile_default_racing(CtrlProfile *profile){
     profile->sections[SECTION_B].button = (CtrlButton){
         .mode=NORMAL,
         .actions={GAMEPAD_B},
-        .hint="Horn / Flasher",
+        .hint="Horn",
     };
     profile->sections[SECTION_X].button = (CtrlButton){
         .mode=NORMAL,
@@ -208,5 +208,6 @@ void config_profile_default_racing(CtrlProfile *profile){
         .actions_pos={GAMEPAD_AXIS_LX},
         .angle_min=-90,
         .angle_max=90,
+        .hint_pos="Steering",
     };
 }

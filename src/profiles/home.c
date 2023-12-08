@@ -17,10 +17,12 @@ void config_profile_default_home(CtrlProfile *profile){
     profile->sections[SECTION_A].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_ENTER},
+        .hint="Accept",
     };
     profile->sections[SECTION_B].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_ESCAPE},
+        .hint="Cancel",
     };
     profile->sections[SECTION_X].button = (CtrlButton){
         .mode=NORMAL,
@@ -84,15 +86,17 @@ void config_profile_default_home(CtrlProfile *profile){
         .mode=STICKY,
         .actions={KEY_ALT_LEFT},
         .actions_secondary={KEY_TAB},
-        .hint="Switch app",
+        .hint_secondary="Switch app",
     };
     profile->sections[SECTION_L2].button = (CtrlButton){
         .mode=NORMAL,
         .actions={MOUSE_2},
+        .hint="Click",
     };
     profile->sections[SECTION_R2].button = (CtrlButton){
         .mode=NORMAL,
         .actions={MOUSE_1},
+        .hint="Click",
     };
     profile->sections[SECTION_L4].button = (CtrlButton){};
     profile->sections[SECTION_R4].button = (CtrlButton){};
@@ -190,10 +194,12 @@ void config_profile_default_home(CtrlProfile *profile){
     profile->sections[SECTION_GYRO_X].gyro_axis = (CtrlGyroAxis){
         .actions_neg={MOUSE_X_NEG},
         .actions_pos={MOUSE_X},
+        .hint_pos="Mouse",
     };
     profile->sections[SECTION_GYRO_Y].gyro_axis = (CtrlGyroAxis){
         .actions_neg={MOUSE_Y_NEG},
         .actions_pos={MOUSE_Y},
+        .hint_pos="Mouse",
     };
 
     // Macros.

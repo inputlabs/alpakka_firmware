@@ -225,9 +225,11 @@ void config_profile_default_desktop(CtrlProfile *profile){
     profile->sections[SECTION_GYRO_X].gyro_axis = (CtrlGyroAxis){
         .actions_neg={MOUSE_X_NEG},
         .actions_pos={MOUSE_X},
+        .hint_pos="Mouse",
     };
     profile->sections[SECTION_GYRO_Y].gyro_axis = (CtrlGyroAxis){
         .actions_neg={MOUSE_Y_NEG},
         .actions_pos={MOUSE_Y},
+        .hint_pos="Mouse",
     };
 }
