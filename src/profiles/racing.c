@@ -192,7 +192,7 @@ void config_profile_default_racing(CtrlProfile *profile){
     };
     profile->sections[SECTION_THUMBSTICK_PUSH].button = (CtrlButton){
         .mode=NORMAL,
-        .actions={GAMEPAD_L3},
+        .actions={KEY_L},
     };
     profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){};
     profile->sections[SECTION_THUMBSTICK_RIGHT].button = (CtrlButton){};
