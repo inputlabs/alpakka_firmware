@@ -128,7 +128,7 @@ void Thumbstick__report_axial(
     ThumbstickPosition pos
 ) {
     // Evaluate virtual buttons.
-    if (pos.radius > 0) {
+    if (pos.radius > CFG_THUMBSTICK_ADDITIONAL_DEADZONE_FOR_BUTTONS) {
         if (pos.radius < CFG_THUMBSTICK_INNER_RADIUS) self->inner.virtual_press = true;
         else self->outer.virtual_press = true;
         uint8_t direction = thumbstick_get_direction(pos.angle, self->overlap);

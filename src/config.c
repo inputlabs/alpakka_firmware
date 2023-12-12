@@ -112,8 +112,8 @@ void config_write_init() {
     config_cache.sens_mouse_values[0] = 1.0,
     config_cache.sens_mouse_values[1] = 1.5,
     config_cache.sens_mouse_values[2] = 2.0,
-    config_cache.deadzone_values[0] = 0.12,
-    config_cache.deadzone_values[1] = 0.15,
+    config_cache.deadzone_values[0] = 0.08,
+    config_cache.deadzone_values[1] = 0.12,
     config_cache.deadzone_values[2] = 0.20,
     // Touch sens values are initialized elsewhere after determining the PCB gen.
     config_write();
