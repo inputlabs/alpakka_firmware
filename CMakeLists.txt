@@ -23,7 +23,6 @@ add_executable(${PROJECT}
 
 target_link_libraries(${PROJECT}
     pico_stdlib
-    pico_multicore
     pico_time
     pico_unique_id
     pico_bootrom
@@ -36,6 +35,10 @@ target_link_libraries(${PROJECT}
     hardware_sync
     hardware_timer
     tinyusb_device
+    pico_cyw43_arch_none
+    pico_btstack_cyw43
+    pico_btstack_classic
+    pico_btstack_ble  
 )
 
 target_include_directories(${PROJECT} PUBLIC
@@ -69,6 +72,7 @@ target_sources(${PROJECT} PUBLIC
     src/thumbstick.c
     src/touch.c
     src/tusb_config.c
+    src/bt_config.c
     src/uart.c
     src/vector.c
     src/webusb.c

@@ -3,11 +3,11 @@
 
 #include <stdio.h>
 #include <pico/stdlib.h>
-#include <pico/multicore.h>
 #include <pico/time.h>
 #include <tusb.h>
 #include "config.h"
 #include "tusb_config.h"
+#include "bt_config.h"
 #include "led.h"
 #include "bus.h"
 #include "profile.h"
@@ -43,6 +43,8 @@ void main_init() {
     // Init USB.
     tusb_init();
     wait_for_usb_init();
+    // Setup BT HID device
+    hid_device_setup();
     // Init components.
     title();
     config_init();
