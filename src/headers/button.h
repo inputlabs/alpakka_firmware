@@ -8,8 +8,6 @@
 #include "common.h"
 
 #define ACTIONS_LEN 4
-#define SENTINEL 255   ///////////////////////// TODO DELETE
-#define ACTIONS(...)  __VA_ARGS__, SENTINEL  ///////////////////////// TODO DELETE
 
 typedef u8 Actions[ACTIONS_LEN];
 
