@@ -27,10 +27,10 @@ typedef struct ThumbstickPosition_struct {
 } ThumbstickPosition;
 
 typedef enum Dir4Mask_enum {
-    DIR4M_LEFT = 1,
-    DIR4M_RIGHT = 2,
-    DIR4M_UP = 4,
-    DIR4M_DOWN = 8,
+    DIR4_MASK_LEFT = 1,
+    DIR4_MASK_RIGHT = 2,
+    DIR4_MASK_UP = 4,
+    DIR4_MASK_DOWN = 8,
 } Dir4Mask;
 
 typedef enum Dir4_enum {
