@@ -58,14 +58,14 @@ target_sources(${PROJECT} PUBLIC
     src/logging.c
     src/nvm.c
     src/profile.c
-    src/profiles/home.c
+    src/profiles/console_legacy.c
+    src/profiles/console.c
+    src/profiles/desktop.c
+    src/profiles/flight.c
     src/profiles/fps_fusion.c
     src/profiles/fps_wasd.c
+    src/profiles/home.c
     src/profiles/racing.c
-    src/profiles/flight.c
-    src/profiles/console.c
-    src/profiles/console_legacy.c
-    src/profiles/desktop.c
     src/profiles/rts.c
     src/self_test.c
     src/rotary.c
