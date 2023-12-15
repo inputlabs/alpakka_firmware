@@ -21,6 +21,10 @@ add_executable(${PROJECT}
     src/main.c
 )
 
+target_compile_definitions(${PROJECT} INTERFACE
+        WANT_HCI_DUMP=1 # enable btstack debugging
+)
+
 target_link_libraries(${PROJECT}
     pico_stdlib
     pico_time
@@ -80,4 +84,6 @@ target_sources(${PROJECT} PUBLIC
 )
 
 pico_enable_stdio_uart(${PROJECT} 1)
+pico_enable_stdio_usb(${PROJECT} 0)
+
 pico_add_extra_outputs(${PROJECT})
