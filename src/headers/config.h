@@ -112,7 +112,7 @@ uint8_t config_get_touch_sens_value(uint8_t index);
 double config_get_mouse_sens_value(uint8_t index);
 float config_get_deadzone_value(uint8_t index);
 
-void config_set_touch_sens_values(uint8_t* values, bool write);
+void config_set_touch_sens_values(uint8_t* values);
 void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
 

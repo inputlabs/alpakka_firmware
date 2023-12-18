@@ -316,12 +316,15 @@ void config_calibrate() {
 
 void config_set_pcb_gen(uint8_t gen) {
     pcb_gen = gen;
-    if (gen == 0) {
-        uint8_t values[] = {0, 2, 3, 5, 8};
-        config_set_touch_sens_values(values, false);
-    } else {
-        uint8_t values[] = {0, 10, 15, 25, 40};
-        config_set_touch_sens_values(values, false);
+    // If touch sens presets were never initialized before.
+    if (config_get_touch_sens_value(1) == 0) {
+        if (gen == 0) {
+            uint8_t values[] = {0, 8, 5, 3, 2};
+            config_set_touch_sens_values(values);
+        } else {
+            uint8_t values[] = {0, 40, 25, 15, 10};
+            config_set_touch_sens_values(values);
+        }
     }
 }
 
@@ -391,12 +394,12 @@ float config_get_deadzone_value(uint8_t index) {
     return config_cache.deadzone_values[index];
 }
 
-void config_set_touch_sens_values(uint8_t* values, bool write) {
+void config_set_touch_sens_values(uint8_t* values) {
     config_cache.sens_touch_values[1] = values[1];
     config_cache.sens_touch_values[2] = values[2];
     config_cache.sens_touch_values[3] = values[3];
     config_cache.sens_touch_values[4] = values[4];
-    if (write) config_cache_synced = false;
+    config_cache_synced = false;
 }
 
 void config_set_mouse_sens_values(double* values) {
