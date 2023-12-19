@@ -64,7 +64,7 @@ struct Thumbstick_struct {
     void (*reset) (Thumbstick *self);
     void (*config_4dir) (Thumbstick *self, Button left, Button right, Button up, Button down, Button push, Button inner, Button outer);
     void (*config_glyphstick) (Thumbstick *self, Actions actions, Glyph glyph);
-    void (*config_daisywheel) (Thumbstick *self, u8 dir, u8 button, Actions actions);
+    void (*config_daisywheel) (Thumbstick *self, uint8_t dir, uint8_t button, Actions actions);
     ThumbstickMode mode;
     ThumbstickDistance distance_mode;
     float deadzone;
@@ -78,7 +78,7 @@ struct Thumbstick_struct {
     Button outer;
     Glyph glyphstick_glyphs[44];
     Actions glyphstick_actions[44];
-    u8 glyphstick_index;
+    uint8_t glyphstick_index;
     Actions daisywheel[8][4];
 };
 

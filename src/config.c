@@ -30,13 +30,13 @@ uint8_t pcb_gen = 255;
 
 void config_load() {
     // Load main config from NVM into the cache.
-    nvm_read(NVM_CONFIG_ADDR, (u8*)&config_cache, 256);
+    nvm_read(NVM_CONFIG_ADDR, (uint8_t*)&config_cache, NVM_CONFIG_SIZE);
 }
 
-void config_profile_load(u8 index) {
+void config_profile_load(uint8_t index) {
     // Load a profile from NVM into the cache.
-    u32 addr = NVM_CONFIG_ADDR + (4096 * (index+1));
-    nvm_read(addr, (u8*)&config_profile_cache[index], 4096);
+    uint32_t addr = NVM_CONFIG_ADDR + (NVM_PROFILE_SIZE * (index+1));
+    nvm_read(addr, (uint8_t*)&config_profile_cache[index], NVM_PROFILE_SIZE);
 }
 
 Config* config_read() {
@@ -45,7 +45,7 @@ Config* config_read() {
     return &config_cache;
 }
 
-CtrlProfile* config_profile_read(u8 index) {
+CtrlProfile* config_profile_read(uint8_t index) {
     // Get a profile from cache.
     return &(config_profile_cache[index]);
 }
@@ -53,19 +53,19 @@ CtrlProfile* config_profile_read(u8 index) {
 void config_write() {
     // Write main config from cache to NVM.
     info("NVM: Config write\n");
-    nvm_write(NVM_CONFIG_ADDR, (u8*)&config_cache, 256);
+    nvm_write(NVM_CONFIG_ADDR, (uint8_t*)&config_cache, NVM_CONFIG_SIZE);
     config_cache_synced = true;
 }
 
-void config_profile_write(u8 index) {
+void config_profile_write(uint8_t index) {
     // Write a profile from cache to NVM.
     info("NVM: Profile %i write\n", index);
-    u32 addr = NVM_CONFIG_ADDR + (4096 * (index+1));
-    nvm_write(addr, (u8*)&config_profile_cache[index], 4096);
+    uint32_t addr = NVM_CONFIG_ADDR + (NVM_PROFILE_SIZE * (index+1));
+    nvm_write(addr, (uint8_t*)&config_profile_cache[index], NVM_PROFILE_SIZE);
     config_profile_cache_synced[index] = true;
 }
 
-void config_profile_set_sync(u8 index, bool state) {
+void config_profile_set_sync(uint8_t index, bool state) {
     // Flag a profile as synced or unsynced.
     config_profile_cache_synced[index] = state;
 }
@@ -76,7 +76,7 @@ void config_sync() {
         config_write();
     }
     // Sync profiles.
-    for(u8 i=0; i<13; i++) {
+    for(uint8_t i=0; i<13; i++) {
         if (!config_profile_cache_synced[i]) {
             config_profile_write(i);
         }
@@ -424,14 +424,14 @@ void config_init_profiles_from_defaults() {
     config_profile_default_flight(&(config_profile_cache[6]));
     config_profile_default_console_legacy(&(config_profile_cache[7]));
     config_profile_default_rts(&(config_profile_cache[8]));
-    for(u8 i=0; i<9; i++) {
+    for(uint8_t i=0; i<9; i++) {
         config_profile_write(i);
     }
 }
 
 void config_init_profiles_from_nvm() {
     info("NVM: Loading profiles\n");
-    for(u8 i=0; i<9; i++) {
+    for(uint8_t i=0; i<9; i++) {
         config_profile_load(i);
     }
 }

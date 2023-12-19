@@ -185,7 +185,7 @@ void Button__reset(Button *self) {
 
 // Init.
 Button Button_ (
-    u8 pin,
+    uint8_t pin,
     ButtonMode mode,
     Actions actions,
     Actions actions_secondary
@@ -217,7 +217,7 @@ Button Button_ (
 }
 
 // Alternative init.
-Button Button_from_ctrl(u8 pin, CtrlSection section) {
+Button Button_from_ctrl(uint8_t pin, CtrlSection section) {
     return Button_(
         pin,
         section.button.mode,

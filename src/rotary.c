@@ -72,7 +72,7 @@ void Rotary__reset(Rotary *self) {
 
 void Rotary__config_mode(
     Rotary *self,
-    u8 mode,
+    uint8_t mode,
     Actions actions_up,
     Actions actions_down
 ) {

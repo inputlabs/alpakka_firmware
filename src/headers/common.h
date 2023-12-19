@@ -60,15 +60,3 @@ uint8_t random8();
 // Input MIN: Lower part of the range, that will result in -1.
 // Input MAX: Upper part of the range, that will result in +1.
 #define ramp(x, min, max)  constrain( 2 * ((x-min) / (max-min)) - 1, -1, 1)
-
-// Int type aliases.
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef float f32;
-typedef double f64;

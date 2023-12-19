@@ -260,7 +260,7 @@ void Gyro__config_z(Gyro *self, double min, double max, Actions neg, Actions pos
 
 Gyro Gyro_ (
     GyroMode mode,
-    u8 engage
+    uint8_t engage
 ) {
     Gyro gyro;
     gyro.is_engaged = Gyro__is_engaged;

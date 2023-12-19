@@ -3,7 +3,7 @@
 
 #pragma once
 
-typedef u8 Glyph[5];
+typedef uint8_t Glyph[5];
 
-u8 glyph_encode(Glyph glyph);
-void glyph_decode(Glyph glyph, u8 encoded);
+uint8_t glyph_encode(Glyph glyph);
+void glyph_decode(Glyph glyph, uint8_t encoded);

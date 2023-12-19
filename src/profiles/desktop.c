@@ -189,11 +189,11 @@ void config_profile_default_desktop(CtrlProfile *profile){
         {.actions={KEY_SHIFT_LEFT, KEY_SLASH}, .glyph=glyph_encode((Glyph){DIR4_DOWN, DIR4_RIGHT, DIR4_UP, DIR4_LEFT})},  // ?
         // More glyphs can be added here.
     };
-    for(u8 s=0; s<4; s++) {
-        u8 section = SECTION_GLYPHS_0 + s;
+    for(uint8_t s=0; s<4; s++) {
+        uint8_t section = SECTION_GLYPHS_0 + s;
         profile->sections[section].glyphs = (CtrlGlyphs){.glyphs={}};
-        for(u8 i=0; i<11; i++) {
-            u8 glyph_index = (s * 11) + i;
+        for(uint8_t i=0; i<11; i++) {
+            uint8_t glyph_index = (s * 11) + i;
             profile->sections[section].glyphs.glyphs[i] = glyphs[glyph_index];
         }
     }

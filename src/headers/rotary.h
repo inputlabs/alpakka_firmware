@@ -12,7 +12,7 @@ typedef struct Rotary_struct Rotary;
 struct Rotary_struct {
     void (*report) (Rotary *self);
     void (*reset) (Rotary *self);
-    void (*config_mode) (Rotary *self, u8 mode, Actions actions_up, Actions actions_down);
+    void (*config_mode) (Rotary *self, uint8_t mode, Actions actions_up, Actions actions_down);
     bool pending;
     int8_t increment;
     int8_t mode;

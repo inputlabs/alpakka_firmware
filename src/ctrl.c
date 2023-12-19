@@ -7,9 +7,9 @@
 #include "config.h"
 #include "common.h"
 
-Ctrl ctrl_log(u8* offset_ptr, u8 len) {
+Ctrl ctrl_log(uint8_t* offset_ptr, uint8_t len) {
     Ctrl ctrl = {
-        .protocol_version = CTRL_VERSION,
+        .protocol_version = CTRL_PROTOCOL_VERSION,
         .device_id = ALPAKKA,
         .message_type = LOG,
         .len=len
@@ -20,9 +20,9 @@ Ctrl ctrl_log(u8* offset_ptr, u8 len) {
     return ctrl;
 }
 
-Ctrl ctrl_config_share(u8 index) {
+Ctrl ctrl_config_share(uint8_t index) {
     Ctrl ctrl = {
-        .protocol_version = CTRL_VERSION,
+        .protocol_version = CTRL_PROTOCOL_VERSION,
         .device_id = ALPAKKA,
         .message_type = CONFIG_SHARE,
         .len = 7
@@ -55,9 +55,9 @@ Ctrl ctrl_config_share(u8 index) {
     return ctrl;
 }
 
-Ctrl ctrl_profile_share(u8 profile_index, u8 section_index) {
+Ctrl ctrl_profile_share(uint8_t profile_index, uint8_t section_index) {
     Ctrl ctrl = {
-        .protocol_version = CTRL_VERSION,
+        .protocol_version = CTRL_PROTOCOL_VERSION,
         .device_id = ALPAKKA,
         .message_type = PROFILE_SHARE,
         .len = 60
@@ -65,11 +65,11 @@ Ctrl ctrl_profile_share(u8 profile_index, u8 section_index) {
     // Profile section struct cast into packed int array.
     // Note that section structs must be guaranteed to be packed.
     CtrlProfile *profile = config_profile_read(profile_index);
-    u8 *section = (u8*)&(profile->sections[section_index]);
+    uint8_t *section = (uint8_t*)&(profile->sections[section_index]);
     // Write payload.
     ctrl.payload[0] = profile_index;
     ctrl.payload[1] = section_index;
-    for(u8 i=2; i<60; i++) {
+    for(uint8_t i=2; i<60; i++) {
         ctrl.payload[i] = section[i-2];
     }
     return ctrl;

@@ -167,7 +167,7 @@ void Thumbstick__report_radial(Thumbstick *self, ThumbstickPosition pos) {
 }
 
 void Thumbstick__config_glyphstick(Thumbstick *self, Actions actions, Glyph glyph) {
-    u8 index = self->glyphstick_index;
+    uint8_t index = self->glyphstick_index;
     memcpy(self->glyphstick_actions[index], actions, 4);
     memcpy(self->glyphstick_glyphs[index], glyph, 5);
     self->glyphstick_index += 1;
@@ -176,7 +176,7 @@ void Thumbstick__config_glyphstick(Thumbstick *self, Actions actions, Glyph glyp
 void Thumbstick__report_glyphstick(Thumbstick *self, Glyph input) {
     bool matched = false;
     // Iterate over all defined glyphs.
-    u8 nglyphs = self->glyphstick_index;
+    uint8_t nglyphs = self->glyphstick_index;
     for(uint8_t i=0; i<nglyphs; i++) {
         // Pattern match user input against glyph.
         bool match = true;
@@ -195,7 +195,7 @@ void Thumbstick__report_glyphstick(Thumbstick *self, Glyph input) {
     }
 }
 
-void Thumbstick__config_daisywheel(Thumbstick *self, u8 dir, u8 button, Actions actions) {
+void Thumbstick__config_daisywheel(Thumbstick *self, uint8_t dir, uint8_t button, Actions actions) {
     memcpy(self->daisywheel[dir][button], actions, 4);
 }
 

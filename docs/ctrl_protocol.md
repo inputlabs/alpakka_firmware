@@ -204,7 +204,7 @@ sequenceDiagram
     participant A as App
     participant C as Controller
     Note over A: App must display current mouse sens
-    A->>C: App request the current mouse sens value <br>[CONFIG_GET]
+    A->>C: App request the current mouse sensitivity value <br>[CONFIG_GET]
     C->>A: Controller share the current value <br>[CONFIG_SHARE]
     Note over A: App display the current mouse sensitivity
     Note over A: ...

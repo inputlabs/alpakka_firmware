@@ -4,7 +4,7 @@
 #pragma once
 #include "common.h"
 
-#define CTRL_VERSION 1
+#define CTRL_PROTOCOL_VERSION 1
 #define CTRL_MSG_SIZE 64
 #define CTRL_NON_PAYLOAD_SIZE 4
 #define CTRL_MAX_PAYLOAD_SIZE (CTRL_MSG_SIZE - CTRL_NON_PAYLOAD_SIZE)
@@ -90,11 +90,11 @@ typedef enum CtrlSectionType_enum {
 } CtrlSectionType;
 
 typedef struct Ctrl_struct {
-    u8 protocol_version;
-    u8 device_id;
+    uint8_t protocol_version;
+    uint8_t device_id;
     Ctrl_msg_type message_type;
-    u8 len;
-    u8 payload[CTRL_MAX_PAYLOAD_SIZE];
+    uint8_t len;
+    uint8_t payload[CTRL_MAX_PAYLOAD_SIZE];
 } Ctrl;
 
 typedef struct CtrlProfileName_struct {
@@ -105,85 +105,85 @@ typedef struct CtrlProfileName_struct {
 
 typedef struct CtrlButton_struct {
     // Must be packed (58 bytes).
-    u8 mode;
-    u8 reserved;
-    u8 actions[4];
-    u8 actions_secondary[4];
-    u8 actions_reserved[16];
-    u8 chords[4];
-    u8 hint[14];
-    u8 hint_secondary[14];
+    uint8_t mode;
+    uint8_t reserved;
+    uint8_t actions[4];
+    uint8_t actions_secondary[4];
+    uint8_t actions_reserved[16];
+    uint8_t chords[4];
+    uint8_t hint[14];
+    uint8_t hint_secondary[14];
 } CtrlButton;
 
 typedef struct CtrlRotary_struct {
     // Must be packed (58 bytes).
-    u8 actions_0[4];
-    u8 actions_1[4];
-    u8 actions_2[4];
-    u8 actions_3[4];
-    u8 actions_4[4];
-    u8 hint_0[14];
-    u8 hint_1[6];
-    u8 hint_2[6];
-    u8 hint_3[6];
-    u8 hint_4[6];
+    uint8_t actions_0[4];
+    uint8_t actions_1[4];
+    uint8_t actions_2[4];
+    uint8_t actions_3[4];
+    uint8_t actions_4[4];
+    uint8_t hint_0[14];
+    uint8_t hint_1[6];
+    uint8_t hint_2[6];
+    uint8_t hint_3[6];
+    uint8_t hint_4[6];
 } CtrlRotary;
 
 typedef struct CtrlThumbstick_struct {
     // Must be packed (58 bytes).
-    u8 mode;
-    u8 distance_mode;
-    u8 deadzone;
-    u8 overlap;
-    u8 padding[54];
+    uint8_t mode;
+    uint8_t distance_mode;
+    uint8_t deadzone;
+    uint8_t overlap;
+    uint8_t padding[54];
 } CtrlThumbstick;
 
 typedef struct CtrlGlyph_struct {
-    u8 actions[4];
-    u8 glyph;
+    uint8_t actions[4];
+    uint8_t glyph;
 } CtrlGlyph;
 
 typedef struct CtrlGlyphs_struct {
     // Must be packed (58 bytes).
     CtrlGlyph glyphs[11];
-    u8 padding[3];
+    uint8_t padding[3];
 } CtrlGlyphs;
 
 typedef struct CtrlDaisyGroup_struct {
-    u8 actions_a[4];
-    u8 actions_b[4];
-    u8 actions_x[4];
-    u8 actions_y[4];
+    uint8_t actions_a[4];
+    uint8_t actions_b[4];
+    uint8_t actions_x[4];
+    uint8_t actions_y[4];
 } CtrlDaisyGroup;
 
 typedef struct CtrlDaisy_struct {
     // Must be packed (58 bytes).
     CtrlDaisyGroup groups[2];
-    u8 padding[26];
+    uint8_t padding[26];
 } CtrlDaisy;
 
 typedef struct CtrlGyro_struct {
     // Must be packed (58 bytes).
-    u8 mode;
-    u8 engage;
-    u8 padding[56];
+    uint8_t mode;
+    uint8_t engage;
+    uint8_t padding[56];
 } CtrlGyro;
 
 typedef struct CtrlGyroAxis_struct {
     // Must be packed (58 bytes).
-    u8 actions_neg[4];
-    u8 actions_pos[4];
-    u8 angle_min;
-    u8 angle_max;
-    u8 hint_neg[14];
-    u8 hint_pos[14];
-    u8 padding[20];
+    uint8_t actions_neg[4];
+    uint8_t actions_pos[4];
+    uint8_t angle_min;
+    uint8_t angle_max;
+    uint8_t hint_neg[14];
+    uint8_t hint_pos[14];
+    uint8_t padding[20];
 } CtrlGyroAxis;
 
 typedef struct CtrlMacro_struct {
     // Must be packed (58 bytes).
-    u8 macro[2][28];
-    u8 padding[2];
+    uint8_t macro[2][28];
+    uint8_t padding[2];
 } CtrlMacro;
 
 typedef union CtrlSection_union {
@@ -202,6 +202,6 @@ typedef struct CtrlProfile_struct {
     CtrlSection sections[64];
 } CtrlProfile;
 
-Ctrl ctrl_log(u8* offset_ptr, u8 len);
-Ctrl ctrl_config_share(u8 index);
-Ctrl ctrl_profile_share(u8 profile_index, u8 section_index);
+Ctrl ctrl_log(uint8_t* offset_ptr, uint8_t len);
+Ctrl ctrl_config_share(uint8_t index);
+Ctrl ctrl_profile_share(uint8_t profile_index, uint8_t section_index);

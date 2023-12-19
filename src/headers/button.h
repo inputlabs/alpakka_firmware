@@ -9,7 +9,7 @@
 
 #define ACTIONS_LEN 4
 
-typedef u8 Actions[ACTIONS_LEN];
+typedef uint8_t Actions[ACTIONS_LEN];
 
 // https://inputlabs.io/alpakka/manual/dev_profiles#button_mode
 typedef enum ButtonMode_enum {
@@ -32,7 +32,7 @@ struct Button_struct {
     void (*handle_hold_exclusive) (Button *self, uint16_t time);
     void (*handle_hold_overlap) (Button *self,  uint16_t time);
     void (*handle_hold_double_press) (Button *self);
-    u8 pin;
+    uint8_t pin;
     ButtonMode mode;
     Actions actions;
     Actions actions_secondary;
@@ -44,13 +44,13 @@ struct Button_struct {
 };
 
 Button Button_ (
-    u8 pin,
+    uint8_t pin,
     ButtonMode mode,
     Actions actions,
     Actions actions_secondary
 );
 
 Button Button_from_ctrl(
-    u8 pin,
+    uint8_t pin,
     CtrlSection section
 );

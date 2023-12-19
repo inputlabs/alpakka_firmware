@@ -275,7 +275,7 @@ void hid_press_later_callback(alarm_id_t alarm, uint8_t key);
 void hid_release_later_callback(alarm_id_t alarm, uint8_t key);
 void hid_press_multiple_later_callback(alarm_id_t alarm, uint8_t *keys);
 void hid_release_multiple_later_callback(alarm_id_t alarm, uint8_t *keys);
-void hid_macro(u8 index);
+void hid_macro(uint8_t index);
 bool hid_is_axis(uint8_t key);
 void hid_mouse_move(int16_t x, int16_t y);
 void hid_mouse_wheel(int8_t z);

@@ -10,6 +10,8 @@
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
 #define NVM_STRUCT_VERSION 15
+#define NVM_CONFIG_SIZE 256
+#define NVM_PROFILE_SIZE 4096
 
 #define PROTOCOL_XINPUT_WIN 0
 #define PROTOCOL_XINPUT_UNIX 1
@@ -74,7 +76,7 @@ typedef struct Config_struct {
     double offset_accel_1_x;
     double offset_accel_1_y;
     double offset_accel_1_z;
-    u8 padding[256]; // Guarantee block is at least 256 bytes or more.
+    uint8_t padding[256]; // Guarantee block is at least 256 bytes or more.
 } Config;
 
 void config_init();
@@ -117,9 +119,9 @@ void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
 
 // Profiles
-CtrlProfile* config_profile_read(u8 index);
-void config_profile_write(u8 index);
-void config_profile_set_sync(u8 index, bool state);
+CtrlProfile* config_profile_read(uint8_t index);
+void config_profile_write(uint8_t index);
+void config_profile_set_sync(uint8_t index, bool state);
 void config_profile_default_home(CtrlProfile *profile);
 void config_profile_default_fps_fusion(CtrlProfile *profile);
 void config_profile_default_fps_wasd(CtrlProfile *profile);

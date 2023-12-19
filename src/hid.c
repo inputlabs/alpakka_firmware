@@ -195,11 +195,11 @@ void hid_release_multiple_later_callback(alarm_id_t alarm, uint8_t *keys) {
     alarms--;
 }
 
-void hid_macro(u8 index) {
-    u8 section = SECTION_MACRO_1 + ((index - 1) / 2);
-    u8 subindex = (index - 1) % 2;
+void hid_macro(uint8_t index) {
+    uint8_t section = SECTION_MACRO_1 + ((index - 1) / 2);
+    uint8_t subindex = (index - 1) % 2;
     CtrlProfile *profile = config_profile_read(profile_get_active_index(false));
-    u8 *macro = profile->sections[section].macro.macro[subindex];
+    uint8_t *macro = profile->sections[section].macro.macro[subindex];
     if (alarms > 0) return;  // Disallows parallel macros. TODO fix.
     uint16_t time = 10;
     for(uint8_t i=0; i<28; i++) {

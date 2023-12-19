@@ -19,9 +19,9 @@ uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
 
-u8 webusb_pending_config_share = 0;
-u8 webusb_pending_profile_share = 0;
-u8 webusb_pending_section_share = 0;
+uint8_t webusb_pending_config_share = 0;
+uint8_t webusb_pending_profile_share = 0;
+uint8_t webusb_pending_section_share = 0;
 
 void webusb_flush_force() {
     uint16_t i = 0;
@@ -70,8 +70,8 @@ bool webusb_flush() {
         webusb_pending_profile_share = 0;
         webusb_pending_section_share = 0;
     } else {
-        u8 len = constrain(webusb_ptr_in-webusb_ptr_out, 0, CTRL_MAX_PAYLOAD_SIZE);
-        u8 *offset_ptr = webusb_buffer + webusb_ptr_out;
+        uint8_t len = constrain(webusb_ptr_in-webusb_ptr_out, 0, CTRL_MAX_PAYLOAD_SIZE);
+        uint8_t *offset_ptr = webusb_buffer + webusb_ptr_out;
         ctrl = ctrl_log(offset_ptr, len);
         webusb_ptr_out += len;
         if (webusb_ptr_out >= webusb_ptr_in) {
@@ -114,7 +114,7 @@ void webusb_handle_config_get(Ctrl_cfg_type key) {
     webusb_pending_config_share = key;
 }
 
-void webusb_handle_profile_get(u8 profile, u8 section) {
+void webusb_handle_profile_get(uint8_t profile, uint8_t section) {
     webusb_pending_profile_share = profile;
     webusb_pending_section_share = section;
 }
@@ -151,7 +151,7 @@ void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[
     }
 }
 
-void webusb_handle_profile_set(u8 profileIndex, u8 sectionIndex, u8 section[58]) {
+void webusb_handle_profile_set(uint8_t profileIndex, uint8_t sectionIndex, uint8_t section[58]) {
     // Update profile in config.
     CtrlProfile *profile_cfg = config_profile_read(profileIndex);
     profile_cfg->sections[sectionIndex] = *(CtrlSection*)section;

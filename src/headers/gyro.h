@@ -22,7 +22,7 @@ struct Gyro_struct {
     void (*config_y) (Gyro *self, double min, double max, Actions neg, Actions pos);
     void (*config_z) (Gyro *self, double min, double max, Actions neg, Actions pos);
     GyroMode mode;
-    u8 engage;
+    uint8_t engage;
     Button engage_button;
     double absolute_x_min;
     double absolute_y_min;

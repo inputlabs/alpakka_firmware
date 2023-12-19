@@ -125,13 +125,13 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
     rotary.config_mode(&rotary, 4, up.actions_4, down.actions_4);
     self->rotary = rotary;
     // Thumbstick.
-    u8 ts_mode = profile->sections[SECTION_THUMBSTICK].thumbstick.mode;
-    u8 dist_mode = profile->sections[SECTION_THUMBSTICK].thumbstick.distance_mode;
+    uint8_t ts_mode = profile->sections[SECTION_THUMBSTICK].thumbstick.mode;
+    uint8_t dist_mode = profile->sections[SECTION_THUMBSTICK].thumbstick.distance_mode;
     self->thumbstick = Thumbstick_(
         ts_mode,
         dist_mode,
         profile->sections[SECTION_THUMBSTICK].thumbstick.deadzone / 100.0,
-        (i8)profile->sections[SECTION_THUMBSTICK].thumbstick.overlap / 100.0
+        (int8_t)profile->sections[SECTION_THUMBSTICK].thumbstick.overlap / 100.0
     );
     if (ts_mode == THUMBSTICK_MODE_4DIR) {
         self->thumbstick.config_4dir(
@@ -147,9 +147,9 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
     }
     if (ts_mode == THUMBSTICK_MODE_ALPHANUMERIC) {
         // Iterate sections.
-        for(u8 s=0; s<4; s++) {
+        for(uint8_t s=0; s<4; s++) {
             // Iterate groups.
-            for(u8 g=0; g<11; g++) {
+            for(uint8_t g=0; g<11; g++) {
                 CtrlGlyph ctrl_glyph = profile->sections[SECTION_GLYPHS_0+s].glyphs.glyphs[g];
                 Glyph glyph = {0};
                 glyph_decode(glyph, ctrl_glyph.glyph);
@@ -160,11 +160,11 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
                 );
             }
         }
-        u8 dir = 0;
+        uint8_t dir = 0;
         // Iterate sections.
-        for(u8 s=0; s<4; s++) {
+        for(uint8_t s=0; s<4; s++) {
             // Iterate groups.
-            for(u8 g=0; g<2; g++) {
+            for(uint8_t g=0; g<2; g++) {
                 CtrlDaisyGroup group = profile->sections[SECTION_DAISY_0+s].daisy.groups[g];
                 self->thumbstick.config_daisywheel(&(self->thumbstick), dir, 0, group.actions_a);
                 self->thumbstick.config_daisywheel(&(self->thumbstick), dir, 1, group.actions_b);
@@ -181,22 +181,22 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
     );
     self->gyro.config_x(
         &(self->gyro),
-        (i8)profile->sections[SECTION_GYRO_X].gyro_axis.angle_min,
-        (i8)profile->sections[SECTION_GYRO_X].gyro_axis.angle_max,
+        (int8_t)profile->sections[SECTION_GYRO_X].gyro_axis.angle_min,
+        (int8_t)profile->sections[SECTION_GYRO_X].gyro_axis.angle_max,
         profile->sections[SECTION_GYRO_X].gyro_axis.actions_neg,
         profile->sections[SECTION_GYRO_X].gyro_axis.actions_pos
     );
     self->gyro.config_y(
         &(self->gyro),
-        (i8)profile->sections[SECTION_GYRO_Y].gyro_axis.angle_min,
-        (i8)profile->sections[SECTION_GYRO_Y].gyro_axis.angle_max,
+        (int8_t)profile->sections[SECTION_GYRO_Y].gyro_axis.angle_min,
+        (int8_t)profile->sections[SECTION_GYRO_Y].gyro_axis.angle_max,
         profile->sections[SECTION_GYRO_Y].gyro_axis.actions_neg,
         profile->sections[SECTION_GYRO_Y].gyro_axis.actions_pos
     );
     self->gyro.config_z(
         &(self->gyro),
-        (i8)profile->sections[SECTION_GYRO_Z].gyro_axis.angle_min,
-        (i8)profile->sections[SECTION_GYRO_Z].gyro_axis.angle_max,
+        (int8_t)profile->sections[SECTION_GYRO_Z].gyro_axis.angle_min,
+        (int8_t)profile->sections[SECTION_GYRO_Z].gyro_axis.angle_max,
         profile->sections[SECTION_GYRO_Z].gyro_axis.actions_neg,
         profile->sections[SECTION_GYRO_Z].gyro_axis.actions_pos
     );
@@ -289,11 +289,11 @@ Profile* profile_get_active(bool strict) {
     }
 }
 
-Profile* profile_get(u8 index) {
+Profile* profile_get(uint8_t index) {
     return &profiles[index];
 }
 
-u8 profile_get_active_index(bool strict) {
+uint8_t profile_get_active_index(bool strict) {
     if (strict) {
         return profile_active_index;
     } else {
@@ -318,7 +318,7 @@ void profile_init() {
     Actions actions_secondary = {GAMEPAD_HOME, PROC_HOME_GAMEPAD};
     home = Button_(PIN_HOME, HOLD_DOUBLE_PRESS, actions, actions_secondary);
     // Profiles setup.
-    for(u8 i=0; i<=8; i++) {
+    for(uint8_t i=0; i<=8; i++) {
         profiles[i] = Profile_();
         profiles[i].load_from_config(&(profiles[i]), config_profile_read(i));
     }
