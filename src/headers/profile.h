@@ -7,6 +7,8 @@
 #include "dhat.h"
 #include "rotary.h"
 #include "gyro.h"
+#include "webusb.h"
+#include "common.h"
 
 typedef enum ProfileIndex_enum {
     PROFILE_HOME,
@@ -24,7 +26,7 @@ typedef struct Profile_struct Profile;
 struct Profile_struct {
     void (*report) (Profile *self);
     void (*reset) (Profile *self);
-    bool (*was_used) (Profile *self);
+    void (*load_from_config) (Profile *self, CtrlProfile *profile);
     Button select_1;
     Button select_2;
     Button start_1;
@@ -54,7 +56,6 @@ struct Profile_struct {
     Rotary rotary;
     Gyro gyro;
 };
-
 Profile Profile_ ();
 
 void profile_init();
@@ -66,7 +67,9 @@ void profile_set_lock_leds(bool lock);
 void profile_update_leds();
 void profile_enable_all(bool value);
 void profile_enable_abxy(bool value);
+Profile* profile_get(uint8_t index);
 Profile* profile_get_active(bool strict);
+uint8_t profile_get_active_index(bool strict);
 
 Profile profile_init_none();
 Profile profile_init_home();

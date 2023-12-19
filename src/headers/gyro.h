@@ -4,7 +4,7 @@
 #pragma once
 
 typedef enum GyroMode_enum {
-    GYRO_MODE_ALWAYS_OFF,
+    GYRO_MODE_OFF,
     GYRO_MODE_ALWAYS_ON,
     GYRO_MODE_TOUCH_OFF,
     GYRO_MODE_TOUCH_ON,
@@ -18,31 +18,35 @@ struct Gyro_struct {
     void (*report_incremental) (Gyro *self);
     void (*report_absolute) (Gyro *self);
     void (*reset) (Gyro *self);
-    void (*config_absolute_x_range) (Gyro *self, double min, double max);
-    void (*config_absolute_y_range) (Gyro *self, double min, double max);
-    uint8_t mode;
-    uint8_t pin;
+    void (*config_x) (Gyro *self, double min, double max, Actions neg, Actions pos);
+    void (*config_y) (Gyro *self, double min, double max, Actions neg, Actions pos);
+    void (*config_z) (Gyro *self, double min, double max, Actions neg, Actions pos);
+    GyroMode mode;
+    uint8_t engage;
     Button engage_button;
     double absolute_x_min;
-    double absolute_x_max;
     double absolute_y_min;
+    double absolute_z_min;
+    double absolute_x_max;
     double absolute_y_max;
-    bool pressed_x;
-    bool pressed_y;
+    double absolute_z_max;
+    bool pressed_x_pos;
+    bool pressed_y_pos;
+    bool pressed_z_pos;
     bool pressed_x_neg;
     bool pressed_y_neg;
-    uint8_t actions_x[4];
-    uint8_t actions_y[4];
-    uint8_t actions_z[4];
-    uint8_t actions_x_neg[4];
-    uint8_t actions_y_neg[4];
-    uint8_t actions_z_neg[4];
+    bool pressed_z_neg;
+    Actions actions_x_pos;
+    Actions actions_y_pos;
+    Actions actions_z_pos;
+    Actions actions_x_neg;
+    Actions actions_y_neg;
+    Actions actions_z_neg;
 };
 
 Gyro Gyro_ (
     GyroMode mode,
-    uint8_t pin,
-    ...  // Actions.
+    uint8_t engage
 );
 
 void gyro_update_sensitivity();

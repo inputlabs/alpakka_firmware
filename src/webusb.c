@@ -6,73 +6,22 @@
 #include <tusb.h>
 #include <device/usbd_pvt.h>
 #include "webusb.h"
+#include "ctrl.h"
 #include "config.h"
+#include "profile.h"
 #include "hid.h"
 #include "tusb_config.h"
-#include "helper.h"
+#include "common.h"
 #include "logging.h"
 
 char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
-Ctrl_cfg_type webusb_pending_config_share = 0;
 
-Ctrl webusb_ctrl_log() {
-    Ctrl ctrl = {
-        .protocol_version = CTRL_VERSION,
-        .device_id = ALPAKKA,
-        .message_type = LOG
-    };
-    ctrl.len = constrain(webusb_ptr_in-webusb_ptr_out, 0, CTRL_MAX_PAYLOAD_SIZE);
-    uint8_t* offset_ptr = webusb_buffer + webusb_ptr_out;
-    for (uint8_t i=0; i<ctrl.len; i++) {
-        ctrl.payload[i] = offset_ptr[i];
-    }
-    webusb_ptr_out += ctrl.len;
-    if (webusb_ptr_out >= webusb_ptr_in) {
-        webusb_ptr_in = 0;
-        webusb_ptr_out = 0;
-    }
-    return ctrl;
-}
-
-Ctrl webusb_ctrl_config_share() {
-    Ctrl ctrl = {
-        .protocol_version = CTRL_VERSION,
-        .device_id = ALPAKKA,
-        .message_type = CONFIG_SHARE,
-        .len = 7
-    };
-    ctrl.payload[0] = webusb_pending_config_share;
-    uint8_t index = webusb_pending_config_share;
-    if (index == PROTOCOL) {
-        ctrl.payload[1] = config_get_protocol();
-        // All values are sent as zero / ignored.
-    }
-    else if (index == SENS_TOUCH) {
-        ctrl.payload[1] = config_get_touch_sens_preset();
-        ctrl.payload[2] = 0;  // Auto.
-        ctrl.payload[3] = config_get_touch_sens_value(1);
-        ctrl.payload[4] = config_get_touch_sens_value(2);
-        ctrl.payload[5] = config_get_touch_sens_value(3);
-        ctrl.payload[6] = config_get_touch_sens_value(4);
-    }
-    else if (index == SENS_MOUSE) {
-        ctrl.payload[1] = config_get_mouse_sens_preset();
-        ctrl.payload[2] = config_get_mouse_sens_value(0) * 10;
-        ctrl.payload[3] = config_get_mouse_sens_value(1) * 10;
-        ctrl.payload[4] = config_get_mouse_sens_value(2) * 10;
-    }
-    else if (index == DEADZONE) {
-        ctrl.payload[1] = config_get_deadzone_preset();
-        ctrl.payload[2] = config_get_deadzone_value(0) * 100;
-        ctrl.payload[3] = config_get_deadzone_value(1) * 100;
-        ctrl.payload[4] = config_get_deadzone_value(2) * 100;
-    }
-    webusb_pending_config_share = 0;
-    return ctrl;
-}
+uint8_t webusb_pending_config_share = 0;
+uint8_t webusb_pending_profile_share = 0;
+uint8_t webusb_pending_section_share = 0;
 
 void webusb_flush_force() {
     uint16_t i = 0;
@@ -95,7 +44,9 @@ bool webusb_flush() {
     // Check if there is anything to flush.
     if (
         webusb_ptr_in == 0 &&
-        !webusb_pending_config_share
+        !webusb_pending_config_share &&
+        !webusb_pending_profile_share &&
+        !webusb_pending_section_share
     ) {
         return true;
     }
@@ -111,8 +62,23 @@ bool webusb_flush() {
     // referenced by the transfer underlying mechanisms.
     static Ctrl ctrl;
     // Generate message.
-    if (webusb_pending_config_share) ctrl = webusb_ctrl_config_share();
-    else ctrl = webusb_ctrl_log();
+    if (webusb_pending_config_share) {
+        ctrl = ctrl_config_share(webusb_pending_config_share);
+        webusb_pending_config_share = 0;
+    } else if (webusb_pending_profile_share || webusb_pending_section_share) {
+        ctrl = ctrl_profile_share(webusb_pending_profile_share, webusb_pending_section_share);
+        webusb_pending_profile_share = 0;
+        webusb_pending_section_share = 0;
+    } else {
+        uint8_t len = constrain(webusb_ptr_in-webusb_ptr_out, 0, CTRL_MAX_PAYLOAD_SIZE);
+        uint8_t *offset_ptr = webusb_buffer + webusb_ptr_out;
+        ctrl = ctrl_log(offset_ptr, len);
+        webusb_ptr_out += len;
+        if (webusb_ptr_out >= webusb_ptr_in) {
+            webusb_ptr_in = 0;
+            webusb_ptr_out = 0;
+        }
+    }
     // Transfer message.
     usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (unsigned char *)&ctrl, ctrl.len+4);
     usbd_edpt_release(0, ADDR_WEBUSB_IN);
@@ -148,14 +114,17 @@ void webusb_handle_config_get(Ctrl_cfg_type key) {
     webusb_pending_config_share = key;
 }
 
+void webusb_handle_profile_get(uint8_t profile, uint8_t section) {
+    webusb_pending_profile_share = profile;
+    webusb_pending_section_share = section;
+}
+
 void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[5]) {
     if (key > 4) return;
     webusb_pending_config_share = key;
-    config_nvm_t config;
-    config_read(&config);
     if (key == PROTOCOL) config_set_protocol(preset);
     else if (key == SENS_TOUCH) {
-        config_set_touch_sens_values(values);
+        config_set_touch_sens_values(values, true);
         config_set_touch_sens_preset(preset, false);
     }
     else if (key == SENS_MOUSE) {
@@ -182,6 +151,16 @@ void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[
     }
 }
 
+void webusb_handle_profile_set(uint8_t profileIndex, uint8_t sectionIndex, uint8_t section[58]) {
+    // Update profile in config.
+    CtrlProfile *profile_cfg = config_profile_read(profileIndex);
+    profile_cfg->sections[sectionIndex] = *(CtrlSection*)section;
+    // Update profile runtime.
+    Profile *profile = profile_get(profileIndex);
+    profile->load_from_config(profile, profile_cfg);
+    config_profile_set_sync(profileIndex, false);
+}
+
 void webusb_read() {
     // Parse data coming from the app.
     if (!tud_ready() || usbd_edpt_busy(0, ADDR_WEBUSB_OUT)) return;
@@ -192,17 +171,24 @@ void webusb_read() {
     usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)&ctrl, 64);
     usbd_edpt_release(0, ADDR_WEBUSB_OUT);
     // Handle incomming message.
-    if (ctrl.message_type == PROC) {
-        webusb_handle_proc(ctrl.payload[0]);
-    }
-    if (ctrl.message_type == CONFIG_GET) {
-        webusb_handle_config_get(ctrl.payload[0]);
-    }
+    if (ctrl.message_type == PROC) webusb_handle_proc(ctrl.payload[0]);
+    if (ctrl.message_type == CONFIG_GET) webusb_handle_config_get(ctrl.payload[0]);
     if (ctrl.message_type == CONFIG_SET) {
         webusb_handle_config_set(
             ctrl.payload[0],  // Config index.
             ctrl.payload[1],  // Preset index.
-            &ctrl.payload[2]);  // Preset values. (Reference to sub-array).
+            &ctrl.payload[2]  // Preset values. (Reference to sub-array).
+        );
+    }
+    if (ctrl.message_type == PROFILE_GET) {
+        webusb_handle_profile_get(ctrl.payload[0], ctrl.payload[1]);
+    }
+    if (ctrl.message_type == PROFILE_SET) {
+        webusb_handle_profile_set(
+            ctrl.payload[0],
+            ctrl.payload[1],
+            &ctrl.payload[2]
+        );
     }
 }
 

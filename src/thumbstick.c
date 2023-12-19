@@ -3,18 +3,19 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include <pico/stdlib.h>
-#include <stdarg.h>
 #include <hardware/adc.h>
 #include "config.h"
 #include "pin.h"
 #include "button.h"
 #include "thumbstick.h"
-#include "helper.h"
+#include "common.h"
 #include "hid.h"
 #include "led.h"
 #include "profile.h"
 #include "logging.h"
+#include "webusb.h"
 
 float offset_x = 0;
 float offset_y = 0;
@@ -40,10 +41,9 @@ void thumbstick_update_deadzone() {
 }
 
 void thumbstick_update_offsets() {
-    config_nvm_t config;
-    config_read(&config);
-    offset_x = config.offset_ts_x;
-    offset_y = config.offset_ts_y;
+    Config *config = config_read();
+    offset_x = config->offset_ts_x;
+    offset_y = config->offset_ts_y;
 }
 
 void thumbstick_calibrate() {
@@ -70,10 +70,11 @@ void thumbstick_init() {
     thumbstick_update_offsets();
     thumbstick_update_deadzone();
     // Alternative usage of ABXY while doing daisywheel.
-    daisy_a = Button_(PIN_A,  NORMAL, ACTIONS(KEY_NONE));
-    daisy_b = Button_(PIN_B,  NORMAL, ACTIONS(KEY_NONE));
-    daisy_x = Button_(PIN_X,  NORMAL, ACTIONS(KEY_NONE));
-    daisy_y = Button_(PIN_Y,  NORMAL, ACTIONS(KEY_NONE));
+    Actions none = {0,};
+    daisy_a = Button_(PIN_A, NORMAL, none, none);
+    daisy_b = Button_(PIN_B, NORMAL, none, none);
+    daisy_x = Button_(PIN_X, NORMAL, none, none);
+    daisy_y = Button_(PIN_Y, NORMAL, none, none);
 }
 
 void thumbstick_report_axis(uint8_t axis, float value) {
@@ -93,27 +94,48 @@ uint8_t thumbstick_get_direction(float angle, float overlap) {
     float a = 45 * (1 - overlap);
     float b = 180 - a;
     uint8_t mask = 0;
-    if (is_between(angle, -b, -a)) mask += DIR4_LEFT;
-    if (is_between(angle, a, b)) mask += DIR4_RIGHT;
-    if (fabs(angle) <= (90 - a)) mask += DIR4_UP;
-    if (fabs(angle) >= (90 + a)) mask += DIR4_DOWN;
+    if (is_between(angle, -b, -a)) mask += DIR4_MASK_LEFT;
+    if (is_between(angle, a, b)) mask += DIR4_MASK_RIGHT;
+    if (fabs(angle) <= (90 - a)) mask += DIR4_MASK_UP;
+    if (fabs(angle) >= (90 + a)) mask += DIR4_MASK_DOWN;
     return mask;
 }
 
-void Thumbstick__report_4dir(
+// ============================================================================
+// Class.
+
+void Thumbstick__config_4dir(
     Thumbstick *self,
-    ThumbstickPosition pos,
-    float deadzone
+    Button left,
+    Button right,
+    Button up,
+    Button down,
+    Button push,
+    Button inner,
+    Button outer
+) {
+    self->left = left;
+    self->right = right;
+    self->up = up;
+    self->down = down;
+    self->push = push;
+    self->inner = inner;
+    self->outer = outer;
+}
+
+void Thumbstick__report_axial(
+    Thumbstick *self,
+    ThumbstickPosition pos
 ) {
     // Evaluate virtual buttons.
-    if (pos.radius > deadzone) {
+    if (pos.radius > CFG_THUMBSTICK_ADDITIONAL_DEADZONE_FOR_BUTTONS) {
         if (pos.radius < CFG_THUMBSTICK_INNER_RADIUS) self->inner.virtual_press = true;
         else self->outer.virtual_press = true;
         uint8_t direction = thumbstick_get_direction(pos.angle, self->overlap);
-        if (direction & DIR4_LEFT)  self->left.virtual_press = true;
-        if (direction & DIR4_RIGHT) self->right.virtual_press = true;
-        if (direction & DIR4_UP)    self->up.virtual_press = true;
-        if (direction & DIR4_DOWN)  self->down.virtual_press = true;
+        if (direction & DIR4_MASK_LEFT)  self->left.virtual_press = true;
+        if (direction & DIR4_MASK_RIGHT) self->right.virtual_press = true;
+        if (direction & DIR4_MASK_UP)    self->up.virtual_press = true;
+        if (direction & DIR4_MASK_DOWN)  self->down.virtual_press = true;
     }
     // Report directional virtual buttons or axis.
     //// Left.
@@ -128,123 +150,53 @@ void Thumbstick__report_4dir(
     //// Down.
     if (!hid_is_axis(self->down.actions[0])) self->down.report(&self->down);
     else thumbstick_report_axis(self->down.actions[0], constrain(pos.y, 0, 1));
-    // Report inner and outer (only if calibrated).
-    if (offset_x != 0 && offset_y != 0) {
-        self->inner.report(&self->inner);
-        self->outer.report(&self->outer);
-    }
+    // Report inner and outer.
+    self->inner.report(&self->inner);
+    self->outer.report(&self->outer);
     // Report push.
     self->push.report(&self->push);
 }
 
 void Thumbstick__report_radial(Thumbstick *self, ThumbstickPosition pos) {
     uint8_t direction = thumbstick_get_direction(pos.angle, self->overlap);
-    thumbstick_report_axis(self->left.actions[0],  (direction & DIR4_LEFT)  ? pos.radius : 0);
-    thumbstick_report_axis(self->right.actions[0], (direction & DIR4_RIGHT) ? pos.radius : 0);
-    thumbstick_report_axis(self->up.actions[0],    (direction & DIR4_UP)    ? pos.radius : 0);
-    thumbstick_report_axis(self->down.actions[0],  (direction & DIR4_DOWN)  ? pos.radius : 0);
+    thumbstick_report_axis(self->left.actions[0],  (direction & DIR4_MASK_LEFT)  ? pos.radius : 0);
+    thumbstick_report_axis(self->right.actions[0], (direction & DIR4_MASK_RIGHT) ? pos.radius : 0);
+    thumbstick_report_axis(self->up.actions[0],    (direction & DIR4_MASK_UP)    ? pos.radius : 0);
+    thumbstick_report_axis(self->down.actions[0],  (direction & DIR4_MASK_DOWN)  ? pos.radius : 0);
     self->push.report(&self->push);
 }
 
-void Thumbstick__config_glyphstick(Thumbstick *self, ...) {
-    va_list va;
-    va_start(va, 0);
-    uint8_t glyph_index = 0;
-    uint8_t sub_index = 0;
-    uint8_t arg_prev = 0;
-    bool action_phase = true;
-    // Iterate over provided glyph+actions definition pairs.
-    for(uint8_t i=0; true; i++) {
-        uint8_t arg = va_arg(va, int);
-        if (arg == SENTINEL && arg_prev == SENTINEL) break;
-        if (action_phase) {
-            // Actions.
-            if (arg != SENTINEL) {
-                // Store action definition.
-                self->glyphstick_actions[glyph_index][sub_index] = arg;
-                sub_index += 1;
-            } else {
-                for(uint8_t j=sub_index; j<4; j++) {
-                    // Init all remaining slots to avoid undefined behavior.
-                    self->glyphstick_actions[glyph_index][j] = 0;
-                }
-                sub_index = 0;
-                action_phase = false;
-            }
-        } else {
-            // Glyphs.
-            if (arg != SENTINEL) {
-                // Store glyph definition.
-                self->glyphstick_glyphs[glyph_index][sub_index] = arg;
-                sub_index += 1;
-            } else {
-                self->glyphstick_glyphs[glyph_index][sub_index] = SENTINEL;
-                for(uint8_t j=sub_index+1; j<8; j++) {
-                    // Init all remaining slots to avoid undefined behavior.
-                    self->glyphstick_glyphs[glyph_index][j] = 0;
-                }
-                sub_index = 0;
-                glyph_index += 1;
-                action_phase = true;
-            }
-        }
-        arg_prev = arg;
-    }
-    va_end(va);
+void Thumbstick__config_glyphstick(Thumbstick *self, Actions actions, Glyph glyph) {
+    uint8_t index = self->glyphstick_index;
+    memcpy(self->glyphstick_actions[index], actions, 4);
+    memcpy(self->glyphstick_glyphs[index], glyph, 5);
+    self->glyphstick_index += 1;
 }
 
-void Thumbstick__report_glyphstick(Thumbstick *self, uint8_t len, Dir4 *input) {
+void Thumbstick__report_glyphstick(Thumbstick *self, Glyph input) {
     bool matched = false;
     // Iterate over all defined glyphs.
-    for(uint8_t glyph=0; glyph<64; glyph++) {
-        // Exit if there is no more glyphs.
-        if (self->glyphstick_actions[glyph][0] == 0) break;
+    uint8_t nglyphs = self->glyphstick_index;
+    for(uint8_t i=0; i<nglyphs; i++) {
         // Pattern match user input against glyph.
-        for(uint8_t i=0; i<len; i++) {
-            if (input[i] != self->glyphstick_glyphs[glyph][i]) break;
-            if (i+1==len && self->glyphstick_glyphs[glyph][i+1] == SENTINEL) {
-                hid_press_multiple(self->glyphstick_actions[glyph]);
-                hid_release_multiple_later(self->glyphstick_actions[glyph], 100);
-                matched = true;
+        bool match = true;
+        for(uint8_t j=0; j<5; j++) {
+            if (input[j] != self->glyphstick_glyphs[i][j]) {
+                match = false;
                 break;
             }
         }
-        if (matched) break;
+        // Trigger actions if matches.
+        if (match) {
+            hid_press_multiple(self->glyphstick_actions[i]);
+            hid_release_multiple_later(self->glyphstick_actions[i], 100);
+            break;
+        }
     }
 }
 
-void Thumbstick__config_daisywheel(Thumbstick *self, ...) {
-    va_list va;
-    va_start(va, 0);
-    uint8_t dir_index = 0;
-    uint8_t button_index = 0;
-    uint8_t action_index = 0;
-    // Iterate over the 8 thumbstick directions.
-    for(uint8_t i=0; true; i++) {
-        if (action_index >= 4) {
-            action_index = 0;
-            button_index += 1;
-        }
-        if (button_index >= 4) {
-            button_index = 0;
-            dir_index += 1;
-        }
-        if (dir_index >= 8) break;
-        uint8_t arg = va_arg(va, int);
-        if (arg != SENTINEL) {
-            // Store actions based on sequencial indexes.
-            self->daisywheel[dir_index][button_index][action_index] = arg;
-            action_index += 1;
-        } else {
-            for(uint8_t j=action_index; j<4; j++) {
-                // Init all remaining slots to avoid undefined behavior.
-                self->daisywheel[dir_index][button_index][j] = 0;
-            }
-            action_index = 0;
-            button_index += 1;
-        }
-    }
-    va_end(va);
+void Thumbstick__config_daisywheel(Thumbstick *self, uint8_t dir, uint8_t button, Actions actions) {
+    memcpy(self->daisywheel[dir][button], actions, 4);
 }
 
 void Thumbstick__report_daisywheel(Thumbstick *self, Dir8 dir) {
@@ -272,7 +224,7 @@ void Thumbstick__report_daisywheel(Thumbstick *self, Dir8 dir) {
 }
 
 void Thumbstick__report_alphanumeric(Thumbstick *self, ThumbstickPosition pos) {
-    static Dir4 input[8] = {0,};
+    static Glyph input = {0};
     static uint8_t input_index = 0;
     static float CUT4 = 45;
     static float CUT4X = 135;  // 180-45
@@ -306,8 +258,10 @@ void Thumbstick__report_alphanumeric(Thumbstick *self, ThumbstickPosition pos) {
         if (input_index > 0) {
             // Glyph-stick match.
             if (!daisywheel_used) {
-                self->report_glyphstick(self, input_index, input);
+                self->report_glyphstick(self, input);
             }
+            // Glyph-stick reset.
+            memset(input, 0, 5);
             input_index = 0;
             // Daisywheel reset.
             daisywheel_used = false;
@@ -317,65 +271,69 @@ void Thumbstick__report_alphanumeric(Thumbstick *self, ThumbstickPosition pos) {
 }
 
 void Thumbstick__report(Thumbstick *self) {
+    // Do not report if not calibrated.
+    if (offset_x == 0 && offset_y == 0) return;
     // Get values from ADC.
     float x = thumbstick_adc(1, offset_x);
     float y = thumbstick_adc(0, offset_y);
+    // Get correct deadzone.
+    float deadzone = self->deadzone;
+    if (deadzone == DEADZONE_FROM_CONFIG) deadzone = config_deadzone;
     // Calculate trigonometry.
     float angle = atan2(x, -y) * (180 / M_PI);
     float radius = sqrt(powf(x, 2) + powf(y, 2));
-    float deadzone = self->deadzone == DEADZONE_FROM_CONFIG ? config_deadzone : self->deadzone;
     radius = constrain(radius, 0, 1);
     radius = ramp_low(radius, deadzone);
     x = sin(radians(angle)) * radius;
     y = -cos(radians(angle)) * radius;
     ThumbstickPosition pos = {x, y, angle, radius};
     // Report.
-    if (self->mode == THUMBSTICK_MODE_4DIR) self->report_4dir(self, pos, deadzone);
-    else if (self->mode == THUMBSTICK_MODE_RADIAL) self->report_radial(self, pos);
+    if (self->mode == THUMBSTICK_MODE_4DIR) {
+        if (self->distance_mode == THUMBSTICK_DISTANCE_AXIAL) {
+            self->report_axial(self, pos);
+        }
+        if (self->distance_mode == THUMBSTICK_DISTANCE_RADIAL) {
+            self->report_radial(self, pos);
+        }
+    }
     else if (self->mode == THUMBSTICK_MODE_ALPHANUMERIC) self->report_alphanumeric(self, pos);
 }
 
 void Thumbstick__reset(Thumbstick *self) {
-    self->left.reset(&self->left);
-    self->right.reset(&self->right);
-    self->up.reset(&self->up);
-    self->down.reset(&self->down);
-    self->push.reset(&self->push);
-    self->inner.reset(&self->inner);
-    self->outer.reset(&self->inner);
+    if (self->mode == THUMBSTICK_MODE_4DIR) {
+        self->left.reset(&self->left);
+        self->right.reset(&self->right);
+        self->up.reset(&self->up);
+        self->down.reset(&self->down);
+        self->push.reset(&self->push);
+        self->inner.reset(&self->inner);
+        self->outer.reset(&self->outer);
+    }
 }
 
 Thumbstick Thumbstick_ (
     ThumbstickMode mode,
+    ThumbstickDistance distance_mode,
     float deadzone,
-    float overlap,
-    Button left,
-    Button right,
-    Button up,
-    Button down,
-    Button push,
-    Button inner,
-    Button outer
+    float overlap
 ) {
     Thumbstick thumbstick;
-    thumbstick.mode = mode;
+    // Methods.
     thumbstick.report = Thumbstick__report;
-    thumbstick.report_4dir = Thumbstick__report_4dir;
+    thumbstick.report_axial = Thumbstick__report_axial;
     thumbstick.report_radial = Thumbstick__report_radial;
     thumbstick.report_alphanumeric = Thumbstick__report_alphanumeric;
     thumbstick.reset = Thumbstick__reset;
+    thumbstick.config_4dir = Thumbstick__config_4dir;
     thumbstick.config_glyphstick = Thumbstick__config_glyphstick;
     thumbstick.report_glyphstick = Thumbstick__report_glyphstick;
     thumbstick.config_daisywheel = Thumbstick__config_daisywheel;
     thumbstick.report_daisywheel = Thumbstick__report_daisywheel;
+    // Attributes.
+    thumbstick.mode = mode;
+    thumbstick.distance_mode = distance_mode;
     thumbstick.deadzone = deadzone;
     thumbstick.overlap = overlap;
-    thumbstick.left = left;
-    thumbstick.right = right;
-    thumbstick.up = up;
-    thumbstick.down = down;
-    thumbstick.inner = inner;
-    thumbstick.outer = outer;
-    thumbstick.push = push;
+    thumbstick.glyphstick_index = 0;
     return thumbstick;
 }

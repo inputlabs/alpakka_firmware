@@ -86,11 +86,12 @@ Dhat Dhat_ (
     dhat.reset = Dhat__reset;
     dhat.timestamp = 0;
     // Real buttons.
-    dhat.left =  Button_(PIN_DHAT_LEFT,  NORMAL, ACTIONS(KEY_NONE));
-    dhat.right = Button_(PIN_DHAT_RIGHT, NORMAL, ACTIONS(KEY_NONE));
-    dhat.up =    Button_(PIN_DHAT_UP,    NORMAL, ACTIONS(KEY_NONE));
-    dhat.down =  Button_(PIN_DHAT_DOWN,  NORMAL, ACTIONS(KEY_NONE));
-    dhat.push =  Button_(PIN_DHAT_PUSH,  NORMAL, ACTIONS(KEY_NONE));
+    Actions none = {0,};
+    dhat.left =  Button_(PIN_DHAT_LEFT,  NORMAL, none, none);
+    dhat.right = Button_(PIN_DHAT_RIGHT, NORMAL, none, none);
+    dhat.up =    Button_(PIN_DHAT_UP,    NORMAL, none, none);
+    dhat.down =  Button_(PIN_DHAT_DOWN,  NORMAL, none, none);
+    dhat.push =  Button_(PIN_DHAT_PUSH,  NORMAL, none, none);
     // Virtual buttons.
     dhat.up_left = up_left;
     dhat.up_center = up_center;

@@ -5,10 +5,13 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include "ctrl.h"
 
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
-#define NVM_STRUCT_VERSION 12
+#define NVM_STRUCT_VERSION 15
+#define NVM_CONFIG_SIZE 256
+#define NVM_PROFILE_SIZE 4096
 
 #define PROTOCOL_XINPUT_WIN 0
 #define PROTOCOL_XINPUT_UNIX 1
@@ -41,12 +44,13 @@
 #define CFG_HOLD_OVERLAP_LONG_TIME 2000  // Milliseconds.
 #define CFG_DOUBLE_PRESS 300  // Milliseconds.
 
-#define CFG_THUMBSTICK_SATURATION 1.8
+#define CFG_THUMBSTICK_SATURATION 1.6
 #define CFG_THUMBSTICK_INNER_RADIUS 0.75
+#define CFG_THUMBSTICK_ADDITIONAL_DEADZONE_FOR_BUTTONS 0.05
 
 #define CFG_DHAT_DEBOUNCE_TIME 100  // Milliseconds.
 
-typedef struct {
+typedef struct Config_struct {
     uint8_t header;
     uint8_t config_version;
     uint8_t profile;
@@ -72,11 +76,13 @@ typedef struct {
     double offset_accel_1_x;
     double offset_accel_1_y;
     double offset_accel_1_z;
-    uint8_t padding[256];
-} config_nvm_t;
+    uint8_t padding[256]; // Guarantee block is at least 256 bytes or more.
+} Config;
 
 void config_init();
-void config_read(config_nvm_t* config);
+void config_init_profiles_from_defaults();
+void config_sync();
+Config* config_read();
 void config_set_profile(uint8_t profile);
 uint8_t config_get_profile();
 void config_set_thumbstick_offset(float x, float y);
@@ -108,6 +114,20 @@ uint8_t config_get_touch_sens_value(uint8_t index);
 double config_get_mouse_sens_value(uint8_t index);
 float config_get_deadzone_value(uint8_t index);
 
-void config_set_touch_sens_values(uint8_t* values);
+void config_set_touch_sens_values(uint8_t* values, bool write);
 void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
+
+// Profiles
+CtrlProfile* config_profile_read(uint8_t index);
+void config_profile_write(uint8_t index);
+void config_profile_set_sync(uint8_t index, bool state);
+void config_profile_default_home(CtrlProfile *profile);
+void config_profile_default_fps_fusion(CtrlProfile *profile);
+void config_profile_default_fps_wasd(CtrlProfile *profile);
+void config_profile_default_racing(CtrlProfile *profile);
+void config_profile_default_flight(CtrlProfile *profile);
+void config_profile_default_console(CtrlProfile *profile);
+void config_profile_default_console_legacy(CtrlProfile *profile);
+void config_profile_default_desktop(CtrlProfile *profile);
+void config_profile_default_rts(CtrlProfile *profile);

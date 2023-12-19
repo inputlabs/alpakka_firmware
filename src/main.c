@@ -16,7 +16,7 @@
 #include "hid.h"
 #include "uart.h"
 #include "logging.h"
-#include "helper.h"
+#include "common.h"
 
 #if __has_include("version.h")
     #include "version.h"
@@ -40,12 +40,13 @@ void main_init() {
     stdio_init_all();
     logging_set_level(LOG_INFO);
     logging_init();
+    // Load config.
+    title();
+    config_init();
     // Init USB.
     tusb_init();
     wait_for_usb_init();
     // Init components.
-    title();
-    config_init();
     bus_init();
     hid_init();
     thumbstick_init();
@@ -56,12 +57,15 @@ void main_init() {
 }
 
 void main_loop() {
+    info("INIT: Main loop\n");
     int16_t i = 0;
     logging_set_onloop(true);
     while (true) {
         i++;
         // Start timer.
         uint32_t tick_start = time_us_32();
+        // Config.
+        config_sync();
         // Report.
         profile_report_active();
         hid_report();

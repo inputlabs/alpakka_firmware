@@ -2,122 +2,212 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <stdio.h>
-#include "pin.h"
 #include "hid.h"
+#include "pin.h"
+#include "webusb.h"
 #include "button.h"
-#include "profile.h"
+#include "thumbstick.h"
+#include "gyro.h"
 
-Profile profile_init_racing() {
-    Profile profile = Profile_();
+void config_profile_default_racing(CtrlProfile *profile){
+    // Profile name.
+    profile->sections[SECTION_NAME].name = (CtrlProfileName){.name="Racing"};
 
-    profile.select_1 = Button_(PIN_SELECT_1, NORMAL, ACTIONS(GAMEPAD_SELECT));
-    profile.select_2 = Button_(PIN_SELECT_2, NORMAL, ACTIONS(KEY_M));
-    profile.start_1 =  Button_(PIN_START_1,  NORMAL, ACTIONS(GAMEPAD_START));
-    profile.start_2 =  Button_(PIN_START_2,  NORMAL, ACTIONS(KEY_N));
+    // ABXY.
+    profile->sections[SECTION_A].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_A},
+        .hint="MDF page",
+    };
+    profile->sections[SECTION_B].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_B},
+        .hint="Horn",
+    };
+    profile->sections[SECTION_X].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_X},
+        .hint="Wipers",
+    };
+    profile->sections[SECTION_Y].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_Y},
+        .hint="Lights",
+    };
 
-    profile.dpad_left =  Button_(PIN_DPAD_LEFT,  NORMAL, ACTIONS(GAMEPAD_LEFT));
-    profile.dpad_right = Button_(PIN_DPAD_RIGHT, NORMAL, ACTIONS(GAMEPAD_RIGHT));
-    profile.dpad_up =    Button_(PIN_DPAD_UP,    NORMAL, ACTIONS(GAMEPAD_UP));
-    profile.dpad_down =  Button_(PIN_DPAD_DOWN,  NORMAL, ACTIONS(GAMEPAD_DOWN));
+    // DPad.
+    profile->sections[SECTION_DPAD_LEFT].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_LEFT},
+        .hint="MDF -",
+    };
+    profile->sections[SECTION_DPAD_RIGHT].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_RIGHT},
+        .hint="MDF +",
+    };
+    profile->sections[SECTION_DPAD_UP].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_UP},
+        .hint="MDF Up",
+    };
+    profile->sections[SECTION_DPAD_DOWN].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_DOWN},
+        .hint="MDF Down",
+    };
 
-    profile.a = Button_(PIN_A, NORMAL, ACTIONS(GAMEPAD_A));
-    profile.b = Button_(PIN_B, NORMAL, ACTIONS(GAMEPAD_B));
-    profile.x = Button_(PIN_X, NORMAL, ACTIONS(GAMEPAD_X));
-    profile.y = Button_(PIN_Y, NORMAL, ACTIONS(GAMEPAD_Y));
+    // Select/Start.
+    profile->sections[SECTION_SELECT_1].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_SELECT},
+        .hint="View",
+    };
+    profile->sections[SECTION_START_1].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_START},
+        .hint="Pause",
+    };
+    profile->sections[SECTION_SELECT_2].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={KEY_M},
+        .hint="Map",
+    };
+    profile->sections[SECTION_START_2].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={KEY_N},
+        .hint="Neutral",
+    };
 
-    profile.l1 = Button_(PIN_L1, NORMAL, ACTIONS(GAMEPAD_L1));
-    profile.r1 = Button_(PIN_R1, NORMAL, ACTIONS(GAMEPAD_R1));
-    profile.l2 = Button_(PIN_L2, NORMAL, ACTIONS(GAMEPAD_L3));
-    profile.r2 = Button_(PIN_R2, NORMAL, ACTIONS(GAMEPAD_R3));
-    profile.l4 = Button_(PIN_L4, NORMAL, ACTIONS(GAMEPAD_LEFT));
-    profile.r4 = Button_(PIN_R4, NORMAL, ACTIONS(GAMEPAD_RIGHT));
+    // Triggers.
+    profile->sections[SECTION_L1].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_L1},
+        .hint="Clutch",
+    };
+    profile->sections[SECTION_R1].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_R1},
+        .hint="Pit limiter",
+    };
+    profile->sections[SECTION_L2].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_L3},
+        .hint="Gear down",
+    };
+    profile->sections[SECTION_R2].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_R3},
+        .hint="Gear up",
+    };
+    profile->sections[SECTION_L4].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_LEFT},
+        .hint="MDF-",
+    };
+    profile->sections[SECTION_R4].button = (CtrlButton){
+        .mode=HOLD_OVERLAP,
+        .actions={GAMEPAD_RIGHT},
+        .hint="MDF+",
+    };
 
-    profile.rotary = Rotary_(NULL, ACTIONS(GAMEPAD_UP), ACTIONS(GAMEPAD_DOWN));
-    profile.rotary.config_mode(&profile.rotary, 1, ACTIONS(KEY_PAD_1), ACTIONS(KEY_PAD_2));
-    profile.rotary.config_mode(&profile.rotary, 2, ACTIONS(KEY_PAD_3), ACTIONS(KEY_PAD_4));
-    profile.rotary.config_mode(&profile.rotary, 3, ACTIONS(KEY_PAD_5), ACTIONS(KEY_PAD_6));
-    profile.rotary.config_mode(&profile.rotary, 4, ACTIONS(KEY_PAD_7), ACTIONS(KEY_PAD_8));
-    profile.rotary.config_mode(&profile.rotary, 5, ACTIONS(PROC_ADZ), ACTIONS(PROC_ADZN));
+    // DHat.
+    profile->sections[SECTION_DHAT_LEFT].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_RX_NEG, PROC_ROTARY_MODE_1},
+    };
+    profile->sections[SECTION_DHAT_RIGHT].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_RX, PROC_ROTARY_MODE_3},
+    };
+    profile->sections[SECTION_DHAT_UP].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_RY_NEG, PROC_ROTARY_MODE_4},
+    };
+    profile->sections[SECTION_DHAT_DOWN].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_RY, PROC_ROTARY_MODE_2},
+    };
+    profile->sections[SECTION_DHAT_UL].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY_NEG},
+    };
+    profile->sections[SECTION_DHAT_UR].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY_NEG},
+    };
+    profile->sections[SECTION_DHAT_DL].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY},
+    };
+    profile->sections[SECTION_DHAT_DR].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY},
+    };
+    profile->sections[SECTION_DHAT_PUSH].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={KEY_R, PROC_ROTARY_MODE_0},
+    };
 
-    profile.thumbstick = Thumbstick_(
-        THUMBSTICK_MODE_RADIAL,                                  // Mode.
-        DEADZONE_FROM_CONFIG,                                    // Deadzone.
-        0.8,                                                     // Overlap.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),         // Left.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),         // Right.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_RZ)),  // Up.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(GAMEPAD_AXIS_LZ)),  // Down.
-        Button_(PIN_L3,      NORMAL, ACTIONS(KEY_L)),            // Push.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE)),         // Inner.
-        Button_(PIN_VIRTUAL, NORMAL, ACTIONS(KEY_NONE))          // Outer.
-    );
+    // Rotary.
+    profile->sections[SECTION_ROTARY_UP].rotary = (CtrlRotary){
+        .actions_0={GAMEPAD_UP},
+        .actions_1={KEY_PAD_1},
+        .actions_2={KEY_PAD_3},
+        .actions_3={KEY_PAD_5},
+        .actions_4={KEY_PAD_7},
+        .hint_0="MDF Up",
+        .hint_1="TC+",
+        .hint_2="ABS+",
+        .hint_3="BB+",
+        .hint_4="MIX+",
+    };
+    profile->sections[SECTION_ROTARY_DOWN].rotary = (CtrlRotary){
+        .actions_0={GAMEPAD_DOWN},
+        .actions_1={KEY_PAD_2},
+        .actions_2={KEY_PAD_4},
+        .actions_3={KEY_PAD_6},
+        .actions_4={KEY_PAD_8},
+        .hint_0="MDF Down",
+        .hint_1="TC-",
+        .hint_2="ABS-",
+        .hint_3="BB-",
+        .hint_4="MIX-",
+    };
 
-    profile.dhat = Dhat_(
-        // Left.
-        Button_(
-            PIN_VIRTUAL,
-            NORMAL,
-            ACTIONS(GAMEPAD_AXIS_RX_NEG, PROC_ROTARY_MODE_1)
-        ),
-        // Right.
-        Button_(
-            PIN_VIRTUAL,
-            NORMAL,
-            ACTIONS(GAMEPAD_AXIS_RX, PROC_ROTARY_MODE_3)
-        ),
-        // Up.
-        Button_(
-            PIN_VIRTUAL,
-            NORMAL,
-            ACTIONS(GAMEPAD_AXIS_RY_NEG, PROC_ROTARY_MODE_4)
-        ),
-        // Down.
-        Button_(
-            PIN_VIRTUAL,
-            NORMAL,
-            ACTIONS(GAMEPAD_AXIS_RY, PROC_ROTARY_MODE_2)
-        ),
-        // ↖
-        Button_(
-            PIN_VIRTUAL,
-            NORMAL,
-            ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY_NEG)
-        ),
-        // ↗
-        Button_(
-            PIN_VIRTUAL,
-            NORMAL,
-            ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY_NEG)
-        ),
-        // ↙
-        Button_(
-            PIN_VIRTUAL,
-            NORMAL,
-            ACTIONS(GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY)
-        ),
-        // ↘
-        Button_(
-            PIN_VIRTUAL,
-            NORMAL,
-            ACTIONS(GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY)
-        ),
-        // Push.
-        Button_(
-            PIN_VIRTUAL,
-            HOLD_OVERLAP_LONG,
-            ACTIONS(KEY_R, PROC_ROTARY_MODE_0),
-            ACTIONS(PROC_ROTARY_MODE_5)
-        )
-    );
+    // Thumbstick.
+    profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_4DIR,
+        .distance_mode=THUMBSTICK_DISTANCE_RADIAL,
+        .deadzone=DEADZONE_FROM_CONFIG,
+        .overlap=80,
+    };
+    profile->sections[SECTION_THUMBSTICK_UP].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_RZ},
+    };
+    profile->sections[SECTION_THUMBSTICK_DOWN].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_LZ},
+    };
+    profile->sections[SECTION_THUMBSTICK_PUSH].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={KEY_L},
+    };
+    profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){};
+    profile->sections[SECTION_THUMBSTICK_RIGHT].button = (CtrlButton){};
+    profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){};
+    profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){};
 
-    profile.gyro = Gyro_(
-        GYRO_MODE_AXIS_ABSOLUTE,
-        PIN_NONE,
-        ACTIONS(GAMEPAD_AXIS_LX_NEG), ACTIONS(GAMEPAD_AXIS_LX),  // X rotation.
-        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE),                    // Y rotation.
-        ACTIONS(KEY_NONE), ACTIONS(KEY_NONE)                     // Z rotation.
-    );
-    profile.gyro.config_absolute_x_range(&profile.gyro, -90, 90);
-
-    return profile;
+    // Gyro.
+    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+        .mode=GYRO_MODE_AXIS_ABSOLUTE,
+    };
+    profile->sections[SECTION_GYRO_X].gyro_axis = (CtrlGyroAxis){
+        .actions_neg={GAMEPAD_AXIS_LX_NEG},
+        .actions_pos={GAMEPAD_AXIS_LX},
+        .angle_min=-90,
+        .angle_max=90,
+        .hint_pos="Steering",
+    };
 }

@@ -3,6 +3,19 @@
 
 #pragma once
 #include <pico/time.h>
+#include "common.h"
+
+#define MODIFIER_INDEX 154
+#define MOUSE_INDEX 162
+#define GAMEPAD_INDEX 174
+#define GAMEPAD_AXIS_INDEX 190
+#define PROC_INDEX 202
+
+#define MODIFIER_INDEX_END  MOUSE_INDEX - 1
+#define MOUSE_INDEX_END  GAMEPAD_INDEX - 1
+#define GAMEPAD_INDEX_END  GAMEPAD_AXIS_INDEX - 1
+#define GAMEPAD_AXIS_INDEX_END  PROC_INDEX - 1
+#define PROC_INDEX_END 255
 
 #define KEY_NONE 0
 
@@ -51,8 +64,8 @@
 #define KEY_SPACE 44
 #define KEY_MINUS 45
 #define KEY_EQUALS 46
-#define KEY_LEFT_BRACKET 47
-#define KEY_RIGHT_BRACKET 48
+#define KEY_BRACKET_LEFT 47
+#define KEY_BRACKET_RIGHT 48
 #define KEY_BACKSLASH 49
 #define KEY_SEMICOLON 51
 #define KEY_QUOTE 52
@@ -61,6 +74,9 @@
 #define KEY_PERIOD 55
 #define KEY_SLASH 56
 #define KEY_CAPS_LOCK 57
+
+#define KEY_ISO_1 50
+#define KEY_ISO_2 100
 
 #define KEY_F1 58
 #define KEY_F2 59
@@ -75,6 +91,9 @@
 #define KEY_F11 68
 #define KEY_F12 69
 
+#define KEY_PRINT_SCREEN 70
+#define KEY_SCROLL_LOCK 71
+#define KEY_PAUSE 72
 #define KEY_INSERT 73
 #define KEY_HOME 74
 #define KEY_PAGE_UP 75
@@ -104,8 +123,8 @@
 #define KEY_PAD_9 97
 #define KEY_PAD_0 98
 #define KEY_PAD_PERIOD 99
-#define KEY_PAD_BACKSLASH 100
-#define KEY_PAD_EQUAL 103
+
+#define KEY_POWER 102
 
 #define KEY_F13 104
 #define KEY_F14 105
@@ -120,20 +139,38 @@
 #define KEY_F23 114
 #define KEY_F24 115
 
-#define MODIFIER_INDEX 120
-#define MOUSE_INDEX 140
-#define GAMEPAD_INDEX 160
-#define GAMEPAD_AXIS_INDEX 180
-#define PROC_INDEX 200
+#define KEY_MUTE 127
+#define KEY_VOLUME_UP 128
+#define KEY_VOLUME_DOWN 129
 
-#define KEY_LEFT_CONTROL   MODIFIER_INDEX + 0
-#define KEY_LEFT_SHIFT     MODIFIER_INDEX + 1
-#define KEY_LEFT_ALT       MODIFIER_INDEX + 2
-#define KEY_LEFT_SUPER     MODIFIER_INDEX + 3
-#define KEY_RIGHT_CONTROL  MODIFIER_INDEX + 4
-#define KEY_RIGHT_SHIFT    MODIFIER_INDEX + 5
-#define KEY_RIGHT_ALT      MODIFIER_INDEX + 6
-#define KEY_RIGHT_SUPER    MODIFIER_INDEX + 7
+#define KEY_KANJI_1 135
+#define KEY_KANJI_2 136
+#define KEY_KANJI_3 137
+#define KEY_KANJI_4 138
+#define KEY_KANJI_5 139
+#define KEY_KANJI_6 140
+#define KEY_KANJI_7 141
+#define KEY_KANJI_8 142
+#define KEY_KANJI_9 143
+
+#define KEY_LANG_1 144
+#define KEY_LANG_2 145
+#define KEY_LANG_3 146
+#define KEY_LANG_4 147
+#define KEY_LANG_5 148
+#define KEY_LANG_6 149
+#define KEY_LANG_7 150
+#define KEY_LANG_8 151
+#define KEY_LANG_9 152
+
+#define KEY_CONTROL_LEFT   MODIFIER_INDEX + 0
+#define KEY_SHIFT_LEFT     MODIFIER_INDEX + 1
+#define KEY_ALT_LEFT       MODIFIER_INDEX + 2
+#define KEY_SUPER_LEFT     MODIFIER_INDEX + 3
+#define KEY_CONTROL_RIGHT  MODIFIER_INDEX + 4
+#define KEY_SHIFT_RIGHT    MODIFIER_INDEX + 5
+#define KEY_ALT_RIGHT      MODIFIER_INDEX + 6
+#define KEY_SUPER_RIGHT    MODIFIER_INDEX + 7
 
 #define MOUSE_1            MOUSE_INDEX + 0
 #define MOUSE_2            MOUSE_INDEX + 1
@@ -147,6 +184,7 @@
 #define MOUSE_X_NEG        MOUSE_INDEX + 9
 #define MOUSE_Y_NEG        MOUSE_INDEX + 10
 
+// Gamepad buttons sorted as in XInput.
 #define GAMEPAD_UP       GAMEPAD_INDEX + 0
 #define GAMEPAD_DOWN     GAMEPAD_INDEX + 1
 #define GAMEPAD_LEFT     GAMEPAD_INDEX + 2
@@ -158,7 +196,7 @@
 #define GAMEPAD_L1       GAMEPAD_INDEX + 8
 #define GAMEPAD_R1       GAMEPAD_INDEX + 9
 #define GAMEPAD_HOME     GAMEPAD_INDEX + 10
-#define GAMEPAD_A        GAMEPAD_INDEX + 12
+#define GAMEPAD_A        GAMEPAD_INDEX + 12  // Index 11 is padding.
 #define GAMEPAD_B        GAMEPAD_INDEX + 13
 #define GAMEPAD_X        GAMEPAD_INDEX + 14
 #define GAMEPAD_Y        GAMEPAD_INDEX + 15
@@ -190,31 +228,38 @@
 #define PROC_PROFILE_11  PROC_INDEX + 11
 #define PROC_PROFILE_12  PROC_INDEX + 12
 
-#define PROC_TUNE_UP               PROC_INDEX + 13
-#define PROC_TUNE_DOWN             PROC_INDEX + 14
-#define PROC_TUNE_OS               PROC_INDEX + 15
-#define PROC_TUNE_SENSITIVITY      PROC_INDEX + 16
-#define PROC_TUNE_DEADZONE         PROC_INDEX + 17
-#define PROC_TUNE_TOUCH_THRESHOLD  PROC_INDEX + 18
-#define PROC_TUNE_VIBRATION        PROC_INDEX + 19
-#define PROC_CALIBRATE             PROC_INDEX + 20
-#define PROC_RESTART               PROC_INDEX + 21
-#define PROC_BOOTSEL               PROC_INDEX + 22
-#define PROC_FACTORY               PROC_INDEX + 23
-#define PROC_THANKS                PROC_INDEX + 24
-#define PROC_MACRO                 PROC_INDEX + 25
-#define PROC_HOME_GAMEPAD          PROC_INDEX + 26
+#define PROC_TUNE_UP          PROC_INDEX + 13
+#define PROC_TUNE_DOWN        PROC_INDEX + 14
+#define PROC_TUNE_OS          PROC_INDEX + 15
+#define PROC_TUNE_MOUSE_SENS  PROC_INDEX + 16
+#define PROC_TUNE_TOUCH_SENS  PROC_INDEX + 17
+#define PROC_TUNE_DEADZONE    PROC_INDEX + 18
+#define PROC_CALIBRATE        PROC_INDEX + 19
+#define PROC_RESTART          PROC_INDEX + 20
+#define PROC_BOOTSEL          PROC_INDEX + 21
+#define PROC_FACTORY          PROC_INDEX + 22
+#define PROC_THANKS           PROC_INDEX + 23
+#define PROC_HOME_GAMEPAD     PROC_INDEX + 24
 
-#define PROC_ROTARY_MODE_0  PROC_INDEX + 27
-#define PROC_ROTARY_MODE_1  PROC_INDEX + 28
-#define PROC_ROTARY_MODE_2  PROC_INDEX + 29
-#define PROC_ROTARY_MODE_3  PROC_INDEX + 30
-#define PROC_ROTARY_MODE_4  PROC_INDEX + 31
-#define PROC_ROTARY_MODE_5  PROC_INDEX + 32
+#define PROC_MACRO_1          PROC_INDEX + 25
+#define PROC_MACRO_2          PROC_INDEX + 26
+#define PROC_MACRO_3          PROC_INDEX + 27
+#define PROC_MACRO_4          PROC_INDEX + 28
+#define PROC_MACRO_5          PROC_INDEX + 29
+#define PROC_MACRO_6          PROC_INDEX + 30
+#define PROC_MACRO_7          PROC_INDEX + 31
+#define PROC_MACRO_8          PROC_INDEX + 32
+
+#define PROC_ROTARY_MODE_0  PROC_INDEX + 33
+#define PROC_ROTARY_MODE_1  PROC_INDEX + 34
+#define PROC_ROTARY_MODE_2  PROC_INDEX + 35
+#define PROC_ROTARY_MODE_3  PROC_INDEX + 36
+#define PROC_ROTARY_MODE_4  PROC_INDEX + 37
+#define PROC_ROTARY_MODE_5  PROC_INDEX + 38
 
 // Experimental anti-deadzone.
-#define PROC_ADZ    PROC_INDEX + 33
-#define PROC_ADZN   PROC_INDEX + 34
+#define PROC_ADZ    PROC_INDEX + 39
+#define PROC_ADZN   PROC_INDEX + 40
 
 void hid_thanks();
 void hid_matrix_reset();
@@ -230,6 +275,7 @@ void hid_press_later_callback(alarm_id_t alarm, uint8_t key);
 void hid_release_later_callback(alarm_id_t alarm, uint8_t key);
 void hid_press_multiple_later_callback(alarm_id_t alarm, uint8_t *keys);
 void hid_release_multiple_later_callback(alarm_id_t alarm, uint8_t *keys);
+void hid_macro(uint8_t index);
 bool hid_is_axis(uint8_t key);
 void hid_mouse_move(int16_t x, int16_t y);
 void hid_mouse_wheel(int8_t z);
