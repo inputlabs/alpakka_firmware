@@ -124,7 +124,7 @@ void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[
     webusb_pending_config_share = key;
     if (key == PROTOCOL) config_set_protocol(preset);
     else if (key == SENS_TOUCH) {
-        config_set_touch_sens_values(values, true);
+        config_set_touch_sens_values(values);
         config_set_touch_sens_preset(preset, false);
     }
     else if (key == SENS_MOUSE) {
