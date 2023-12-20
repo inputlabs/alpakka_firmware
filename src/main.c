@@ -59,6 +59,7 @@ void main_init() {
     hci_dump_init(hci_dump_embedded_stdout_get_instance()); 
     hci_dump_enable_packet_log(true); 
 #endif
+    // BT Init
     bt_hid_device_setup();
 
     // Init components.
