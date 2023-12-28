@@ -37,7 +37,7 @@
 
 #define STRING_VENDOR "Input Labs"
 #define STRING_PRODUCT "Alpakka"
-#define STRING_DEVICE_VERSION "1.0"
+#define STRING_DEVICE_VERSION "1.1"
 #define STRING_HID "HID"
 #define STRING_WEBUSB "WEBUSB"
 #define STRING_XINPUT "XINPUT_GENERIC_CONTROLLER"
@@ -51,7 +51,7 @@
 #define USB_UNIX_PRODUCT 0x028E  // 360 controller product.
 
 #define USB_GENERIC_VENDOR  0x0170  // Input Labs.
-#define USB_GENERIC_PRODUCT 0xA100  // Alpakka (HID complilant gamepad)
+#define USB_GENERIC_PRODUCT 0x0100  // Alpakka (HID complilant gamepad)
 
 #define DESCRIPTOR_DEVICE \
     0x12,    /* .bLength */\
