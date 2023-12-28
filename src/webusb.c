@@ -89,7 +89,7 @@ void webusb_write(char *msg) {
     // Queue data to be sent (flushed) to the app later.
     uint16_t len = strlen(msg);
     if (webusb_ptr_in + len >= WEBUSB_BUFFER_SIZE-64-1) {
-        printf("Warning: WebUSB buffer is full\n");
+        debug_uart("Warning: WebUSB buffer is full\n");
         return;
     }
     strncpy(webusb_buffer + webusb_ptr_in, msg, len);
