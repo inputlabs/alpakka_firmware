@@ -154,6 +154,7 @@ void config_profile_default_home(CtrlProfile *profile){
     // Thumbstick.
     profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
         .mode=THUMBSTICK_MODE_4DIR,
+        .deadzone_override=true,
         .deadzone=25,
         .overlap=-50,
     };

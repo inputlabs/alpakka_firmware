@@ -6,8 +6,6 @@
 #include "button.h"
 #include "glyph.h"
 
-#define DEADZONE_FROM_CONFIG 0
-
 typedef enum ThumbstickMode_enum {
     THUMBSTICK_MODE_OFF,
     THUMBSTICK_MODE_4DIR,
@@ -67,6 +65,7 @@ struct Thumbstick_struct {
     void (*config_daisywheel) (Thumbstick *self, uint8_t dir, uint8_t button, Actions actions);
     ThumbstickMode mode;
     ThumbstickDistance distance_mode;
+    bool deadzone_override;
     float deadzone;
     float overlap;
     Button left;
@@ -85,6 +84,7 @@ struct Thumbstick_struct {
 Thumbstick Thumbstick_ (
     ThumbstickMode mode,
     ThumbstickDistance distance_mode,
+    bool deadzone_override,
     float deadzone,
     float overlap
 );

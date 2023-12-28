@@ -125,15 +125,15 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
     rotary.config_mode(&rotary, 4, up.actions_4, down.actions_4);
     self->rotary = rotary;
     // Thumbstick.
-    uint8_t ts_mode = profile->sections[SECTION_THUMBSTICK].thumbstick.mode;
-    uint8_t dist_mode = profile->sections[SECTION_THUMBSTICK].thumbstick.distance_mode;
+    CtrlThumbstick ctrl_thumbtick = profile->sections[SECTION_THUMBSTICK].thumbstick;
     self->thumbstick = Thumbstick_(
-        ts_mode,
-        dist_mode,
-        profile->sections[SECTION_THUMBSTICK].thumbstick.deadzone / 100.0,
-        (int8_t)profile->sections[SECTION_THUMBSTICK].thumbstick.overlap / 100.0
+        ctrl_thumbtick.mode,
+        ctrl_thumbtick.distance_mode,
+        ctrl_thumbtick.deadzone_override,
+        ctrl_thumbtick.deadzone / 100.0,
+        (int8_t)ctrl_thumbtick.overlap / 100.0
     );
-    if (ts_mode == THUMBSTICK_MODE_4DIR) {
+    if (ctrl_thumbtick.mode == THUMBSTICK_MODE_4DIR) {
         self->thumbstick.config_4dir(
             &(self->thumbstick),
             Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_LEFT]),
@@ -145,7 +145,7 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
             Button_from_ctrl(PIN_VIRTUAL, profile->sections[SECTION_THUMBSTICK_OUTER])
         );
     }
-    if (ts_mode == THUMBSTICK_MODE_ALPHANUMERIC) {
+    if (ctrl_thumbtick.mode == THUMBSTICK_MODE_ALPHANUMERIC) {
         // Iterate sections.
         for(uint8_t s=0; s<4; s++) {
             // Iterate groups.
@@ -175,30 +175,34 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
         }
     }
     // Gyro.
+    CtrlGyro ctrl_gyro = profile->sections[SECTION_GYRO].gyro;
+    CtrlGyroAxis ctrl_gyro_x = profile->sections[SECTION_GYRO_X].gyro_axis;
+    CtrlGyroAxis ctrl_gyro_y = profile->sections[SECTION_GYRO_Y].gyro_axis;
+    CtrlGyroAxis ctrl_gyro_z = profile->sections[SECTION_GYRO_Z].gyro_axis;
     self->gyro = Gyro_(
-        profile->sections[SECTION_GYRO].gyro.mode,
-        profile->sections[SECTION_GYRO].gyro.engage
+        ctrl_gyro.mode,
+        ctrl_gyro.engage
     );
     self->gyro.config_x(
         &(self->gyro),
-        (int8_t)profile->sections[SECTION_GYRO_X].gyro_axis.angle_min,
-        (int8_t)profile->sections[SECTION_GYRO_X].gyro_axis.angle_max,
-        profile->sections[SECTION_GYRO_X].gyro_axis.actions_neg,
-        profile->sections[SECTION_GYRO_X].gyro_axis.actions_pos
+        (int8_t)ctrl_gyro_x.angle_min,
+        (int8_t)ctrl_gyro_x.angle_max,
+        ctrl_gyro_x.actions_neg,
+        ctrl_gyro_x.actions_pos
     );
     self->gyro.config_y(
         &(self->gyro),
-        (int8_t)profile->sections[SECTION_GYRO_Y].gyro_axis.angle_min,
-        (int8_t)profile->sections[SECTION_GYRO_Y].gyro_axis.angle_max,
-        profile->sections[SECTION_GYRO_Y].gyro_axis.actions_neg,
-        profile->sections[SECTION_GYRO_Y].gyro_axis.actions_pos
+        (int8_t)ctrl_gyro_y.angle_min,
+        (int8_t)ctrl_gyro_y.angle_max,
+        ctrl_gyro_y.actions_neg,
+        ctrl_gyro_y.actions_pos
     );
     self->gyro.config_z(
         &(self->gyro),
-        (int8_t)profile->sections[SECTION_GYRO_Z].gyro_axis.angle_min,
-        (int8_t)profile->sections[SECTION_GYRO_Z].gyro_axis.angle_max,
-        profile->sections[SECTION_GYRO_Z].gyro_axis.actions_neg,
-        profile->sections[SECTION_GYRO_Z].gyro_axis.actions_pos
+        (int8_t)ctrl_gyro_z.angle_min,
+        (int8_t)ctrl_gyro_z.angle_max,
+        ctrl_gyro_z.actions_neg,
+        ctrl_gyro_z.actions_pos
     );
 }
 
