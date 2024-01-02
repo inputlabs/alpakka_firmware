@@ -40,6 +40,10 @@ void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     uint8_t xl = bus_spi_read_one(cs, IMU_CTRL1_XL);
     uint8_t g = bus_spi_read_one(cs, IMU_CTRL2_G);
     info("  IMU cs=%i id=0x%02x xl=0b%08i g=0b%08i\n", cs, id, bin(xl), bin(g));
+    if (id == 0x00) {
+        warn("Gyro was not able to initialize\n");
+        led_set_warning_gyro(true);
+    }
 }
 
 void imu_init() {

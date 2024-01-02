@@ -9,92 +9,158 @@
 #include "pin.h"
 #include "config.h"
 #include "common.h"
+#include "logging.h"
 
-repeating_timer_t timer;
-uint8_t cycle_position;
-uint8_t blink_mask;
+LEDMode led_mode = LED_MODE_IDLE;
+
+// Masks.
+uint8_t idle_mask = 0;
+uint8_t static_mask = 0;
+uint8_t blink_mask = 0;
+
+// Cycling.
+repeating_timer_t led_timer;
 bool blink_state = false;
+uint8_t cycle_position = 0;
 
-void led_set(uint8_t led, bool state) {
-    uint8_t pins[] = {PIN_LED_UP, PIN_LED_RIGHT, PIN_LED_DOWN, PIN_LED_LEFT};
-    pwm_set_gpio_level(pins[led], state ? (255 * CFG_LED_BRIGHTNESS) : 1);
+// Warnings.
+bool warning_calibration = false;
+bool warning_gyro = false;
+
+
+void led_set(uint8_t pin, bool state) {
+    uint8_t slice_num = pwm_gpio_to_slice_num(pin);
+    pwm_clear_irq(slice_num);
+    uint8_t brightness = state ? (255 * CFG_LED_BRIGHTNESS) : 0;
+    pwm_set_gpio_level(pin, brightness);
 }
 
-void led_shape_all_off_stop(bool stop) {
-    if (stop) led_stop();
-    led_set(0, false);
-    led_set(1, false);
-    led_set(2, false);
-    led_set(3, false);
+void led_idle() {
+    led_set(PIN_LED_UP,    LED_UP    & idle_mask);
+    led_set(PIN_LED_RIGHT, LED_RIGHT & idle_mask);
+    led_set(PIN_LED_DOWN,  LED_DOWN  & idle_mask);
+    led_set(PIN_LED_LEFT,  LED_LEFT  & idle_mask);
 }
 
-void led_shape_all_off() {
-    led_shape_all_off_stop(true);
+void led_static() {
+    led_set(PIN_LED_UP,    LED_UP    & static_mask);
+    led_set(PIN_LED_RIGHT, LED_RIGHT & static_mask);
+    led_set(PIN_LED_DOWN,  LED_DOWN  & static_mask);
+    led_set(PIN_LED_LEFT,  LED_LEFT  & static_mask);
 }
 
-void led_shape_all_on() {
-    led_stop();
-    led_set(0, true);
-    led_set(1, true);
-    led_set(2, true);
-    led_set(3, true);
+void led_blink_step() {
+    bool bg_up =    LED_UP    & static_mask;
+    bool bg_right = LED_RIGHT & static_mask;
+    bool bg_down =  LED_DOWN  & static_mask;
+    bool bg_left =  LED_LEFT  & static_mask;
+    led_set(PIN_LED_UP,    (LED_UP    & blink_mask) ? blink_state : bg_up);
+    led_set(PIN_LED_RIGHT, (LED_RIGHT & blink_mask) ? blink_state : bg_right);
+    led_set(PIN_LED_DOWN,  (LED_DOWN  & blink_mask) ? blink_state : bg_down);
+    led_set(PIN_LED_LEFT,  (LED_LEFT  & blink_mask) ? blink_state : bg_left);
+
+    blink_state = !blink_state;
 }
 
-void led_mask(uint8_t mask) {
-    if (!(0b0001 & mask)) led_set(0, false);
-    if (!(0b0010 & mask)) led_set(1, false);
-    if (!(0b0100 & mask)) led_set(2, false);
-    if (!(0b1000 & mask)) led_set(3, false);
-    if (0b0001 & mask) led_set(0, true);
-    if (0b0010 & mask) led_set(1, true);
-    if (0b0100 & mask) led_set(2, true);
-    if (0b1000 & mask) led_set(3, true);
+void led_blink() {
+    blink_state = !(static_mask == 0b1111);  // Immediate feedback.
+    add_repeating_timer_ms(
+        LED_BLINK_PERIOD,
+        (repeating_timer_callback_t)led_blink_step,
+        NULL,
+        &led_timer
+    );
 }
 
 void led_cycle_step() {
     if(cycle_position > 3) cycle_position = 0;
-    led_shape_all_off_stop(false);
-    led_set(cycle_position, true);
+    led_static(LED_NONE);
+    uint8_t pins[] = {PIN_LED_UP, PIN_LED_RIGHT, PIN_LED_DOWN, PIN_LED_LEFT};
+    led_set(pins[cycle_position], true);
     cycle_position += 1;
 }
 
 void led_cycle() {
     cycle_position = 0;
-    led_stop();
     add_repeating_timer_ms(
-        100,
+        LED_BLINK_PERIOD,
         (repeating_timer_callback_t)led_cycle_step,
         NULL,
-        &timer
+        &led_timer
     );
 }
 
-void led_blink_step() {
-    if (LED_MASK_UP & blink_mask) led_set(LED_UP, blink_state);
-    if (LED_MASK_RIGHT & blink_mask) led_set(LED_RIGHT, blink_state);
-    if (LED_MASK_DOWN & blink_mask) led_set(LED_DOWN, blink_state);
-    if (LED_MASK_LEFT & blink_mask) led_set(LED_LEFT, blink_state);
+void led_warning_step() {
+    uint8_t mask = (
+        blink_state ?
+        (LED_LEFT + LED_RIGHT) :
+        (LED_UP + LED_DOWN)
+    );
+    led_static_mask(mask);
+    led_static();
     blink_state = !blink_state;
 }
 
-void led_blink_mask(uint8_t mask) {
-    led_stop();
-    if (LED_MASK_UP & mask) led_set(LED_UP, true);
-    if (LED_MASK_RIGHT & mask) led_set(LED_RIGHT, true);
-    if (LED_MASK_DOWN & mask) led_set(LED_DOWN, true);
-    if (LED_MASK_LEFT & mask) led_set(LED_LEFT, true);
+void led_warning() {
     blink_state = false;
-    blink_mask = mask;
     add_repeating_timer_ms(
-        100,
-        (repeating_timer_callback_t)led_blink_step,
+        LED_WARNING_PERIOD,
+        (repeating_timer_callback_t)led_warning_step,
         NULL,
-        &timer
+        &led_timer
     );
 }
 
 void led_stop() {
-    cancel_repeating_timer(&timer);
+    cancel_repeating_timer(&led_timer);
+}
+
+void led_idle_mask(uint8_t mask) {
+    idle_mask = mask;
+}
+
+void led_static_mask(uint8_t mask) {
+    static_mask = mask;
+}
+
+void led_blink_mask(uint8_t mask) {
+    blink_mask = mask;
+}
+
+bool led_warnings_are_pending() {
+    return warning_calibration || warning_gyro;
+}
+
+void led_execute() {
+    led_stop();
+    if (led_mode == LED_MODE_IDLE) {
+        if (led_warnings_are_pending()) led_warning();
+        else led_idle();
+    }
+    if (led_mode == LED_MODE_STATIC) led_static();
+    if (led_mode == LED_MODE_BLINK) led_blink();
+    if (led_mode == LED_MODE_CYCLE) led_cycle();
+}
+
+void led_set_mode(LEDMode mode) {
+    led_mode = mode;
+    led_execute();
+}
+
+void led_set_warning_calibration(bool state) {
+    warning_calibration = state;
+    led_execute();
+}
+
+void led_set_warning_gyro(bool state) {
+    warning_gyro = state;
+    led_execute();
+}
+
+void led_ignore_warnings() {
+    warn("User requested to ignore LED warnings\n");
+    warning_calibration = false;
+    warning_gyro = false;
 }
 
 void led_init_each(uint8_t pin) {
@@ -114,5 +180,8 @@ void led_init() {
     led_init_each(PIN_LED_RIGHT);
     led_init_each(PIN_LED_DOWN);
     led_init_each(PIN_LED_LEFT);
-    led_blink_mask(0b1111);
+    // Blink all LEDs until something else happens.
+    led_static_mask(LED_NONE);
+    led_blink_mask(LED_ALL);
+    led_set_mode(LED_MODE_BLINK);
 }

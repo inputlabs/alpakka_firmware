@@ -36,7 +36,7 @@ void gyro_wheel_antideadzone(int8_t increment) {
     antideadzone = constrain(antideadzone, 0, 0.50);
     printf("antideadzone=%f\n", antideadzone);
     uint8_t adz = (antideadzone * 100) + 0.001;
-    led_shape_all_off();
+    led_static_mask(LED_NONE);
     if      (adz==1  || adz==11 || adz==21) led_blink_mask(0b0001);
     else if (adz==2  || adz==12 || adz==22) led_blink_mask(0b0010);
     else if (adz==3  || adz==13 || adz==23) led_blink_mask(0b0100);
