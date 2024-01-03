@@ -19,14 +19,22 @@
 #include "common.h"
 #include "logging.h"
 
+// Config values.
 Config config_cache;
 bool config_cache_synced = true;
 
+// Profiles.
 CtrlProfile config_profile_cache[13];
 bool config_profile_cache_synced[13] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
 
+// Misc.
 uint8_t config_tune_mode = 0;
 uint8_t pcb_gen = 255;
+
+// Problems.
+bool problem_calibration = false;
+bool problem_gyro = false;
+
 
 void config_load() {
     // Load main config from NVM into the cache.
@@ -179,7 +187,7 @@ void config_print() {
     if (config_cache.offset_ts_x == 0 && config_cache.offset_ts_y == 0) {
         warn("The controller is not calibrated\n");
         warn("Please run calibration\n");
-        led_set_warning_calibration(true);
+        config_set_problem_calibration(true);
     }
 }
 
@@ -312,7 +320,7 @@ void config_calibrate() {
     }
     info("\n");
     config_calibrate_execute();
-    led_set_warning_calibration(false);
+    config_set_problem_calibration(false);
     led_set_mode(LED_MODE_IDLE);
     info("Calibration completed\n");
     logging_set_onloop(true);
@@ -418,6 +426,27 @@ void config_set_deadzone_values(float* values) {
     config_cache.deadzone_values[1] = values[1];
     config_cache.deadzone_values[2] = values[2];
     config_cache_synced = false;
+}
+
+void config_set_problem_calibration(bool state) {
+    problem_calibration = state;
+    led_show();
+}
+
+void config_set_problem_gyro(bool state) {
+    problem_gyro = state;
+    led_show();
+}
+
+void config_ignore_problems() {
+    warn("User requested to ignore problems\n");
+    problem_calibration = false;
+    problem_gyro = false;
+    led_show();
+}
+
+bool config_problems_are_pending() {
+    return problem_calibration || problem_gyro;
 }
 
 void config_init_profiles_from_defaults() {

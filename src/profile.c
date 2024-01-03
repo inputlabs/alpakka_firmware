@@ -262,7 +262,7 @@ void profile_set_home(bool state) {
     home_is_active = state;
     if (state) {
         led_static_mask(LED_ALL);
-        led_set_mode(LED_MODE_STATIC);
+        led_set_mode(LED_MODE_ENGAGE);
     } else {
         profile_update_leds();
     }
@@ -273,7 +273,7 @@ void profile_set_home_gamepad(bool state) {
     home_gamepad_is_active = state;
     if (state) {
         led_static_mask(LED_NONE);
-        led_set_mode(LED_MODE_STATIC);
+        led_set_mode(LED_MODE_ENGAGE);
     } else {
         profile_update_leds();
     }

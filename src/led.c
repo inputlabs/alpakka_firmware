@@ -1,6 +1,32 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2022, Input Labs Oy.
 
+/*
+LED modes (and masks) define how LEDs are going to be lit.
+
+Idle mode is a static pattern shown when the user is not interacting with the
+controller, the pattern is defined my the idle mask. Alternatively if there are
+pending warnings, a dynamic pattern will be shown communicating the user that
+there are unresolved issues.
+
+Engage mode is a static pattern shown when the user is actively interacting
+with the controller, the pattern is defined by the engage mask.
+
+Blink mode is a blinking pattern shown to communicate even more information
+when the user is interacting with the controller, the blinking pattern is
+defined both by the blink mask and the engage mask, the engage mask acting as
+a kind of background pattern (see the implementation for details).
+
+Cycle mode is a hardcoded dynamic pattern (a series of static patterns) which
+is not using any mask, but just rotating a single led clockwise.
+
+The intended use of the internal API is as follows:
+- Set one (or more) masks for the mode that is intended to be used.
+- Set the LED mode.
+- Perform related task (eg: change the profile, do calibration, tune settings).
+- Optionally set set back the LED mode to idle, or whatever was the previous mode.
+*/
+
 #include <stdio.h>
 #include <pico/stdlib.h>
 #include <pico/time.h>
@@ -15,17 +41,13 @@ LEDMode led_mode = LED_MODE_IDLE;
 
 // Masks.
 uint8_t idle_mask = 0;
-uint8_t static_mask = 0;
+uint8_t engage_mask = 0;
 uint8_t blink_mask = 0;
 
 // Cycling.
 repeating_timer_t led_timer;
 bool blink_state = false;
 uint8_t cycle_position = 0;
-
-// Warnings.
-bool warning_calibration = false;
-bool warning_gyro = false;
 
 
 void led_set(uint8_t pin, bool state) {
@@ -35,77 +57,73 @@ void led_set(uint8_t pin, bool state) {
     pwm_set_gpio_level(pin, brightness);
 }
 
-void led_idle() {
+void led_show_idle() {
     led_set(PIN_LED_UP,    LED_UP    & idle_mask);
     led_set(PIN_LED_RIGHT, LED_RIGHT & idle_mask);
     led_set(PIN_LED_DOWN,  LED_DOWN  & idle_mask);
     led_set(PIN_LED_LEFT,  LED_LEFT  & idle_mask);
 }
 
-void led_static() {
-    led_set(PIN_LED_UP,    LED_UP    & static_mask);
-    led_set(PIN_LED_RIGHT, LED_RIGHT & static_mask);
-    led_set(PIN_LED_DOWN,  LED_DOWN  & static_mask);
-    led_set(PIN_LED_LEFT,  LED_LEFT  & static_mask);
+void led_show_engage() {
+    led_set(PIN_LED_UP,    LED_UP    & engage_mask);
+    led_set(PIN_LED_RIGHT, LED_RIGHT & engage_mask);
+    led_set(PIN_LED_DOWN,  LED_DOWN  & engage_mask);
+    led_set(PIN_LED_LEFT,  LED_LEFT  & engage_mask);
 }
 
-void led_blink_step() {
-    bool bg_up =    LED_UP    & static_mask;
-    bool bg_right = LED_RIGHT & static_mask;
-    bool bg_down =  LED_DOWN  & static_mask;
-    bool bg_left =  LED_LEFT  & static_mask;
+void led_show_blink_step() {
+    bool bg_up =    LED_UP    & engage_mask;
+    bool bg_right = LED_RIGHT & engage_mask;
+    bool bg_down =  LED_DOWN  & engage_mask;
+    bool bg_left =  LED_LEFT  & engage_mask;
     led_set(PIN_LED_UP,    (LED_UP    & blink_mask) ? blink_state : bg_up);
     led_set(PIN_LED_RIGHT, (LED_RIGHT & blink_mask) ? blink_state : bg_right);
     led_set(PIN_LED_DOWN,  (LED_DOWN  & blink_mask) ? blink_state : bg_down);
     led_set(PIN_LED_LEFT,  (LED_LEFT  & blink_mask) ? blink_state : bg_left);
-
     blink_state = !blink_state;
 }
 
-void led_blink() {
-    blink_state = !(static_mask == 0b1111);  // Immediate feedback.
+void led_show_blink() {
+    blink_state = !(engage_mask == 0b1111);  // Immediate feedback.
     add_repeating_timer_ms(
         LED_BLINK_PERIOD,
-        (repeating_timer_callback_t)led_blink_step,
+        (repeating_timer_callback_t)led_show_blink_step,
         NULL,
         &led_timer
     );
 }
 
-void led_cycle_step() {
+void led_show_cycle_step() {
     if(cycle_position > 3) cycle_position = 0;
-    led_static(LED_NONE);
-    uint8_t pins[] = {PIN_LED_UP, PIN_LED_RIGHT, PIN_LED_DOWN, PIN_LED_LEFT};
-    led_set(pins[cycle_position], true);
+    uint8_t frames[] = {PIN_LED_UP, PIN_LED_RIGHT, PIN_LED_DOWN, PIN_LED_LEFT};
+    led_set(frames[cycle_position], true);
     cycle_position += 1;
 }
 
-void led_cycle() {
+void led_show_cycle() {
     cycle_position = 0;
     add_repeating_timer_ms(
         LED_BLINK_PERIOD,
-        (repeating_timer_callback_t)led_cycle_step,
+        (repeating_timer_callback_t)led_show_cycle_step,
         NULL,
         &led_timer
     );
 }
 
-void led_warning_step() {
-    uint8_t mask = (
-        blink_state ?
-        (LED_LEFT + LED_RIGHT) :
-        (LED_UP + LED_DOWN)
-    );
+void led_show_warning_step() {
+    uint8_t frame_0 = LED_LEFT + LED_RIGHT;
+    uint8_t frame_1 = LED_UP + LED_DOWN;
+    uint8_t mask = blink_state ? frame_0 : frame_1;
     led_static_mask(mask);
-    led_static();
+    led_show_engage();
     blink_state = !blink_state;
 }
 
-void led_warning() {
+void led_show_warning() {
     blink_state = false;
     add_repeating_timer_ms(
         LED_WARNING_PERIOD,
-        (repeating_timer_callback_t)led_warning_step,
+        (repeating_timer_callback_t)led_show_warning_step,
         NULL,
         &led_timer
     );
@@ -120,47 +138,27 @@ void led_idle_mask(uint8_t mask) {
 }
 
 void led_static_mask(uint8_t mask) {
-    static_mask = mask;
+    engage_mask = mask;
 }
 
 void led_blink_mask(uint8_t mask) {
     blink_mask = mask;
 }
 
-bool led_warnings_are_pending() {
-    return warning_calibration || warning_gyro;
-}
-
-void led_execute() {
+void led_show() {
     led_stop();
     if (led_mode == LED_MODE_IDLE) {
-        if (led_warnings_are_pending()) led_warning();
-        else led_idle();
+        if (config_problems_are_pending()) led_show_warning();
+        else led_show_idle();
     }
-    if (led_mode == LED_MODE_STATIC) led_static();
-    if (led_mode == LED_MODE_BLINK) led_blink();
-    if (led_mode == LED_MODE_CYCLE) led_cycle();
+    if (led_mode == LED_MODE_ENGAGE) led_show_engage();
+    if (led_mode == LED_MODE_BLINK) led_show_blink();
+    if (led_mode == LED_MODE_CYCLE) led_show_cycle();
 }
 
 void led_set_mode(LEDMode mode) {
     led_mode = mode;
-    led_execute();
-}
-
-void led_set_warning_calibration(bool state) {
-    warning_calibration = state;
-    led_execute();
-}
-
-void led_set_warning_gyro(bool state) {
-    warning_gyro = state;
-    led_execute();
-}
-
-void led_ignore_warnings() {
-    warn("User requested to ignore LED warnings\n");
-    warning_calibration = false;
-    warning_gyro = false;
+    led_show();
 }
 
 void led_init_each(uint8_t pin) {

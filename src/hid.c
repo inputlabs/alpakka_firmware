@@ -64,7 +64,7 @@ void hid_procedure_press(uint8_t procedure){
     if (procedure == PROC_RESTART) config_reboot();
     if (procedure == PROC_BOOTSEL) config_bootsel();
     if (procedure == PROC_THANKS) hid_thanks();
-    if (procedure == PROC_IGNORE_LED_WARNINGS) led_ignore_warnings();
+    if (procedure == PROC_IGNORE_LED_WARNINGS) config_ignore_problems();
     // Scrollwheel alternative modes. (Used for example in Racing profile).
     if (procedure == PROC_ROTARY_MODE_0) rotary_set_mode(0);
     if (procedure == PROC_ROTARY_MODE_1) rotary_set_mode(1);

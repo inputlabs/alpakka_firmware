@@ -118,7 +118,7 @@ void config_set_touch_sens_values(uint8_t* values);
 void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
 
-// Profiles
+// Profiles.
 CtrlProfile* config_profile_read(uint8_t index);
 void config_profile_write(uint8_t index);
 void config_profile_set_sync(uint8_t index, bool state);
@@ -131,3 +131,9 @@ void config_profile_default_console(CtrlProfile *profile);
 void config_profile_default_console_legacy(CtrlProfile *profile);
 void config_profile_default_desktop(CtrlProfile *profile);
 void config_profile_default_rts(CtrlProfile *profile);
+
+// Problems.
+void config_set_problem_calibration(bool state);
+void config_set_problem_gyro(bool state);
+void config_ignore_problems();
+bool config_problems_are_pending();
