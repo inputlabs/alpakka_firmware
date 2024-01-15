@@ -228,20 +228,20 @@
         /* X, Y position [-32767, 32767] */ \
         HID_USAGE       ( HID_USAGE_DESKTOP_X                    ) ,\
         HID_USAGE       ( HID_USAGE_DESKTOP_Y                    ) ,\
-        HID_LOGICAL_MIN_N ( 0x8000, 2                            ) ,\
-        HID_LOGICAL_MAX_N ( 0x7FFF, 2                            ) ,\
-        HID_REPORT_COUNT( 2                                      ) ,\
-        HID_REPORT_SIZE ( 16                                     ) ,\
+        HID_LOGICAL_MIN_N ( 0x8000, 2                            ) /* CHANGED */ ,\
+        HID_LOGICAL_MAX_N ( 0x7FFF, 2                            ) /* CHANGED */ ,\
+        HID_REPORT_COUNT( 2                                      ) /* CHANGED */ ,\
+        HID_REPORT_SIZE ( 16                                     ) /* CHANGED */ ,\
         HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_RELATIVE ) ,\
-        /* Verital wheel scroll [-127, 127] */ \
-        HID_USAGE       ( HID_USAGE_DESKTOP_WHEEL                )  ,\
-        HID_LOGICAL_MIN ( 0x81                                   )  ,\
-        HID_LOGICAL_MAX ( 0x7f                                   )  ,\
-        HID_REPORT_COUNT( 1                                      )  ,\
-        HID_REPORT_SIZE ( 8                                      )  ,\
-        HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_RELATIVE )  ,\
+        /* Vertical wheel scroll [-127, 127] */ \
+        HID_USAGE       ( HID_USAGE_DESKTOP_WHEEL                ) ,\
+        HID_LOGICAL_MIN ( 0x81                                   ) ,\
+        HID_LOGICAL_MAX ( 0x7f                                   ) ,\
+        HID_REPORT_COUNT( 1                                      ) ,\
+        HID_REPORT_SIZE ( 8                                      ) ,\
+        HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_RELATIVE ) ,\
       HID_USAGE_PAGE  ( HID_USAGE_PAGE_CONSUMER ), \
-       /* Horizontal wheel scroll [-127, 127] */ \
+        /* Horizontal wheel scroll [-127, 127] */ \
         HID_USAGE_N     ( HID_USAGE_CONSUMER_AC_PAN, 2           ), \
         HID_LOGICAL_MIN ( 0x81                                   ), \
         HID_LOGICAL_MAX ( 0x7f                                   ), \
@@ -268,10 +268,10 @@
     HID_USAGE         ( HID_USAGE_DESKTOP_RY                   ) ,\
     HID_USAGE         ( HID_USAGE_DESKTOP_Z                    ) ,\
     HID_USAGE         ( HID_USAGE_DESKTOP_RZ                   ) ,\
-    HID_LOGICAL_MIN_N ( -32767, 2                              ) ,\
-    HID_LOGICAL_MAX_N ( 32767, 2                               ) ,\
-    HID_REPORT_COUNT  ( 6                                      ) ,\
-    HID_REPORT_SIZE   ( 16                                     ) ,\
+    HID_LOGICAL_MIN_N ( -32767, 2                              ) /* CHANGED */ ,\
+    HID_LOGICAL_MAX_N ( 32767, 2                               ) /* CHANGED */ ,\
+    HID_REPORT_COUNT  ( 6                                      ) /* CHANGED */ ,\
+    HID_REPORT_SIZE   ( 16                                     ) /* CHANGED */ ,\
     HID_INPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
     /* Button mask */ \
     HID_USAGE_PAGE    ( HID_USAGE_PAGE_BUTTON                  ) ,\
