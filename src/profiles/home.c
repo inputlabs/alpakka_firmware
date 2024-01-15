@@ -154,8 +154,9 @@ void config_profile_default_home(CtrlProfile *profile){
     // Thumbstick.
     profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
         .mode=THUMBSTICK_MODE_4DIR,
-        .deadzone=25,
-        .overlap=-50,
+        .deadzone_override=true,
+        .deadzone=25,  // To avoid quickchat accidental triggers.
+        .overlap=-50,  // Ignore diagonals because quickchat.
     };
     profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){
         .mode=HOLD_EXCLUSIVE,

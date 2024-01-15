@@ -37,7 +37,7 @@
 
 #define STRING_VENDOR "Input Labs"
 #define STRING_PRODUCT "Alpakka"
-#define STRING_DEVICE_VERSION "1.0"
+#define STRING_DEVICE_VERSION "1.1"
 #define STRING_HID "HID"
 #define STRING_WEBUSB "WEBUSB"
 #define STRING_XINPUT "XINPUT_GENERIC_CONTROLLER"
@@ -45,13 +45,13 @@
 #define MS_OS_VENDOR 0x17
 
 #define USB_WIN_VENDOR  0x0170  // Input Labs.
-#define USB_WIN_PRODUCT 0xA09A  // Alpakka (Xinput)
+#define USB_WIN_PRODUCT 0xA09C  // Alpakka (Xinput)
 
 #define USB_UNIX_VENDOR  0x045E  // 360 controller vendor.
 #define USB_UNIX_PRODUCT 0x028E  // 360 controller product.
 
 #define USB_GENERIC_VENDOR  0x0170  // Input Labs.
-#define USB_GENERIC_PRODUCT 0xA09B  // Alpakka (HID complilant gamepad)
+#define USB_GENERIC_PRODUCT 0xA09D  // Alpakka (HID complilant gamepad)
 
 #define DESCRIPTOR_DEVICE \
     0x12,    /* .bLength */\
@@ -200,6 +200,57 @@
     '-', 0, 'F', 0, 'B', 0, 'C', 0, '4', 0, '2', 0, '2', 0, '5', 0, \
     '8', 0, '6', 0, '6', 0, 'A', 0, '1', 0, '}', 0,  0 , 0
 
+// Mouse HID definition that differs from the default implementation included
+// in TinyUSB. (Custom 16bit deltas).
+// https://github.com/hathach/tinyusb/blob/ae364b1460b91153cd94b4b0303eeda6419ff1d1/src/class/hid/hid_device.h#L221
+#define TUD_HID_REPORT_DESC_MOUSE_CUSTOM(...) \
+  HID_USAGE_PAGE ( HID_USAGE_PAGE_DESKTOP      )                   ,\
+  HID_USAGE      ( HID_USAGE_DESKTOP_MOUSE     )                   ,\
+  HID_COLLECTION ( HID_COLLECTION_APPLICATION  )                   ,\
+    /* Report ID if any */\
+    __VA_ARGS__ \
+    HID_USAGE      ( HID_USAGE_DESKTOP_POINTER )                   ,\
+    HID_COLLECTION ( HID_COLLECTION_PHYSICAL   )                   ,\
+      HID_USAGE_PAGE  ( HID_USAGE_PAGE_BUTTON  )                   ,\
+        HID_USAGE_MIN   ( 1                                      ) ,\
+        HID_USAGE_MAX   ( 5                                      ) ,\
+        HID_LOGICAL_MIN ( 0                                      ) ,\
+        HID_LOGICAL_MAX ( 1                                      ) ,\
+        /* Left, Right, Middle, Backward, Forward buttons */ \
+        HID_REPORT_COUNT( 5                                      ) ,\
+        HID_REPORT_SIZE ( 1                                      ) ,\
+        HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
+        /* 3 bit padding */ \
+        HID_REPORT_COUNT( 1                                      ) ,\
+        HID_REPORT_SIZE ( 3                                      ) ,\
+        HID_INPUT       ( HID_CONSTANT                           ) ,\
+      HID_USAGE_PAGE  ( HID_USAGE_PAGE_DESKTOP )                   ,\
+        /* X, Y position [-32767, 32767] */ \
+        HID_USAGE       ( HID_USAGE_DESKTOP_X                    ) ,\
+        HID_USAGE       ( HID_USAGE_DESKTOP_Y                    ) ,\
+        HID_LOGICAL_MIN_N ( 0x8000, 2                            ) /* CHANGED */ ,\
+        HID_LOGICAL_MAX_N ( 0x7FFF, 2                            ) /* CHANGED */ ,\
+        HID_REPORT_COUNT( 2                                      ) /* CHANGED */ ,\
+        HID_REPORT_SIZE ( 16                                     ) /* CHANGED */ ,\
+        HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_RELATIVE ) ,\
+        /* Vertical wheel scroll [-127, 127] */ \
+        HID_USAGE       ( HID_USAGE_DESKTOP_WHEEL                ) ,\
+        HID_LOGICAL_MIN ( 0x81                                   ) ,\
+        HID_LOGICAL_MAX ( 0x7f                                   ) ,\
+        HID_REPORT_COUNT( 1                                      ) ,\
+        HID_REPORT_SIZE ( 8                                      ) ,\
+        HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_RELATIVE ) ,\
+      HID_USAGE_PAGE  ( HID_USAGE_PAGE_CONSUMER ), \
+        /* Horizontal wheel scroll [-127, 127] */ \
+        HID_USAGE_N     ( HID_USAGE_CONSUMER_AC_PAN, 2           ), \
+        HID_LOGICAL_MIN ( 0x81                                   ), \
+        HID_LOGICAL_MAX ( 0x7f                                   ), \
+        HID_REPORT_COUNT( 1                                      ), \
+        HID_REPORT_SIZE ( 8                                      ), \
+        HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_RELATIVE ), \
+    HID_COLLECTION_END                                            , \
+  HID_COLLECTION_END \
+
 // Gamepad HID definition that differs from the default implementation included
 // in TinyUSB. (16bit axis, different button layout).
 // https://github.com/hathach/tinyusb/blob/7bf5923052e5861f54c9cb0581e328f8be26a0a9/src/class/hid/hid_device.h#L315
@@ -217,10 +268,10 @@
     HID_USAGE         ( HID_USAGE_DESKTOP_RY                   ) ,\
     HID_USAGE         ( HID_USAGE_DESKTOP_Z                    ) ,\
     HID_USAGE         ( HID_USAGE_DESKTOP_RZ                   ) ,\
-    HID_LOGICAL_MIN_N ( -32767, 2                              ) ,\
-    HID_LOGICAL_MAX_N ( 32767, 2                               ) ,\
-    HID_REPORT_COUNT  ( 6                                      ) ,\
-    HID_REPORT_SIZE   ( 16                                     ) ,\
+    HID_LOGICAL_MIN_N ( -32767, 2                              ) /* CHANGED */ ,\
+    HID_LOGICAL_MAX_N ( 32767, 2                               ) /* CHANGED */ ,\
+    HID_REPORT_COUNT  ( 6                                      ) /* CHANGED */ ,\
+    HID_REPORT_SIZE   ( 16                                     ) /* CHANGED */ ,\
     HID_INPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
     /* Button mask */ \
     HID_USAGE_PAGE    ( HID_USAGE_PAGE_BUTTON                  ) ,\
@@ -233,7 +284,15 @@
     HID_INPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
   HID_COLLECTION_END
 
-typedef struct TU_ATTR_PACKED {
+typedef struct {
+  uint8_t buttons;
+  int16_t x;
+  int16_t y;
+  int8_t scroll;
+  int8_t pan;
+} __attribute__((packed)) hid_mouse_custom_report_t;
+
+typedef struct {
   int16_t lx;
   int16_t ly;
   int16_t rx;
@@ -241,6 +300,6 @@ typedef struct TU_ATTR_PACKED {
   int16_t lz;
   int16_t rz;
   uint32_t buttons;
-} hid_gamepad_custom_report_t;
+} __attribute__((packed)) hid_gamepad_custom_report_t;
 
 void wait_for_usb_init();

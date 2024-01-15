@@ -20,6 +20,11 @@ typedef enum ProfileIndex_enum {
     PROFILE_FLIGHT,
     PROFILE_CONSOLE_LEGACY,
     PROFILE_RTS,
+    PROFILE_CUSTOM_1,
+    PROFILE_CUSTOM_2,
+    PROFILE_CUSTOM_3,
+    PROFILE_CUSTOM_4,
+    PROFILE_HOME_GAMEPAD,
 } ProfileIndex;
 
 typedef struct Profile_struct Profile;
@@ -70,15 +75,6 @@ void profile_enable_abxy(bool value);
 Profile* profile_get(uint8_t index);
 Profile* profile_get_active(bool strict);
 uint8_t profile_get_active_index(bool strict);
-
-Profile profile_init_none();
-Profile profile_init_home();
-Profile profile_init_fps_fusion();
-Profile profile_init_fps_wasd();
-Profile profile_init_console();
-Profile profile_init_console_legacy();
-Profile profile_init_desktop();
-Profile profile_init_racing();
 
 extern bool profile_led_lock;
 extern bool profile_pending_reboot;

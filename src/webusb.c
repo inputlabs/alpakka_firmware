@@ -85,15 +85,19 @@ bool webusb_flush() {
     return true;
 }
 
+// Queue data to be sent (flushed) to the app later.
 void webusb_write(char *msg) {
-    // Queue data to be sent (flushed) to the app later.
     uint16_t len = strlen(msg);
+    // If the buffer is full, ignore the latest messages.
     if (webusb_ptr_in + len >= WEBUSB_BUFFER_SIZE-64-1) {
-        printf("Warning: WebUSB buffer is full\n");
         return;
     }
+    // Add message to the buffer.
     strncpy(webusb_buffer + webusb_ptr_in, msg, len);
     webusb_ptr_in += len;
+    // If the configuration is still running (still not in the main loop), and
+    // the webusb connection has not been flagged as timed out, then force
+    // flush directly.
     if (!logging_get_onloop()) {
         if (!webusb_timedout) {
             webusb_flush_force();

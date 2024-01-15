@@ -277,8 +277,7 @@ void Thumbstick__report(Thumbstick *self) {
     float x = thumbstick_adc(1, offset_x);
     float y = thumbstick_adc(0, offset_y);
     // Get correct deadzone.
-    float deadzone = self->deadzone;
-    if (deadzone == DEADZONE_FROM_CONFIG) deadzone = config_deadzone;
+    float deadzone = self->deadzone_override ? self->deadzone : config_deadzone;
     // Calculate trigonometry.
     float angle = atan2(x, -y) * (180 / M_PI);
     float radius = sqrt(powf(x, 2) + powf(y, 2));
@@ -314,6 +313,7 @@ void Thumbstick__reset(Thumbstick *self) {
 Thumbstick Thumbstick_ (
     ThumbstickMode mode,
     ThumbstickDistance distance_mode,
+    bool deadzone_override,
     float deadzone,
     float overlap
 ) {
@@ -332,6 +332,7 @@ Thumbstick Thumbstick_ (
     // Attributes.
     thumbstick.mode = mode;
     thumbstick.distance_mode = distance_mode;
+    thumbstick.deadzone_override = deadzone_override;
     thumbstick.deadzone = deadzone;
     thumbstick.overlap = overlap;
     thumbstick.glyphstick_index = 0;

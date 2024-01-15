@@ -60,6 +60,7 @@ target_sources(${PROJECT} PUBLIC
     src/profile.c
     src/profiles/console_legacy.c
     src/profiles/console.c
+    src/profiles/custom.c
     src/profiles/desktop.c
     src/profiles/flight.c
     src/profiles/fps_fusion.c
