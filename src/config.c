@@ -20,14 +20,22 @@
 #include "common.h"
 #include "logging.h"
 
+// Config values.
 Config config_cache;
 bool config_cache_synced = true;
 
+// Profiles.
 CtrlProfile config_profile_cache[NVM_PROFILE_SLOTS];
 bool config_profile_cache_synced[NVM_PROFILE_SLOTS] = {0,};
 
+// Misc.
 uint8_t config_tune_mode = 0;
 uint8_t pcb_gen = 255;
+
+// Problems.
+bool problem_calibration = false;
+bool problem_gyro = false;
+
 
 void config_load() {
     // Load main config from NVM into the cache.
@@ -179,8 +187,9 @@ void config_print() {
         config_cache.offset_accel_1_z
     );
     if (config_cache.offset_ts_x == 0 && config_cache.offset_ts_y == 0) {
-        warn("The controller seems to be not calibrated\n");
+        warn("The controller is not calibrated\n");
         warn("Please run calibration\n");
+        config_set_problem_calibration(true);
     }
 }
 
@@ -222,34 +231,35 @@ void config_set_accel_offset(double ax, double ay, double az, double bx, double 
 
 void config_tune_update_leds() {
     if (config_tune_mode == PROC_TUNE_OS) {
-        led_shape_all_off();
-        led_set(LED_UP, true);
-        if (config_cache.protocol == 0) led_blink_mask(LED_MASK_LEFT);
-        if (config_cache.protocol == 1) led_blink_mask(LED_MASK_DOWN);
-        if (config_cache.protocol == 2) led_blink_mask(LED_MASK_RIGHT);
+        led_static_mask(LED_UP);
+        if (config_cache.protocol == 0) led_blink_mask(LED_LEFT);
+        if (config_cache.protocol == 1) led_blink_mask(LED_DOWN);
+        if (config_cache.protocol == 2) led_blink_mask(LED_RIGHT);
+        led_set_mode(LED_MODE_BLINK);
+
     }
     if (config_tune_mode == PROC_TUNE_MOUSE_SENS) {
-        led_shape_all_off();
-        led_set(LED_DOWN, true);
-        if (config_cache.sens_mouse == 0) led_blink_mask(LED_MASK_LEFT);
-        if (config_cache.sens_mouse == 1) led_blink_mask(LED_MASK_UP);
-        if (config_cache.sens_mouse == 2) led_blink_mask(LED_MASK_RIGHT);
+        led_static_mask(LED_DOWN);
+        if (config_cache.sens_mouse == 0) led_blink_mask(LED_LEFT);
+        if (config_cache.sens_mouse == 1) led_blink_mask(LED_UP);
+        if (config_cache.sens_mouse == 2) led_blink_mask(LED_RIGHT);
+        led_set_mode(LED_MODE_BLINK);
     }
     if (config_tune_mode == PROC_TUNE_DEADZONE) {
-        led_shape_all_off();
-        led_set(LED_LEFT, true);
-        if (config_cache.deadzone == 0) led_blink_mask(LED_MASK_DOWN);
-        if (config_cache.deadzone == 1) led_blink_mask(LED_MASK_RIGHT);
-        if (config_cache.deadzone == 2) led_blink_mask(LED_MASK_UP);
+        led_static_mask(LED_LEFT);
+        if (config_cache.deadzone == 0) led_blink_mask(LED_DOWN);
+        if (config_cache.deadzone == 1) led_blink_mask(LED_RIGHT);
+        if (config_cache.deadzone == 2) led_blink_mask(LED_UP);
+        led_set_mode(LED_MODE_BLINK);
     }
     if (config_tune_mode == PROC_TUNE_TOUCH_SENS) {
-        led_shape_all_off();
-        led_set(LED_RIGHT, true);
-        if (config_cache.sens_touch == 0) led_blink_mask(LED_MASK_DOWN);
-        if (config_cache.sens_touch == 1) led_blink_mask(LED_MASK_DOWN + LED_MASK_LEFT);
-        if (config_cache.sens_touch == 2) led_blink_mask(LED_MASK_LEFT);
-        if (config_cache.sens_touch == 3) led_blink_mask(LED_MASK_LEFT + LED_MASK_UP);
-        if (config_cache.sens_touch == 4) led_blink_mask(LED_MASK_UP);
+        led_static_mask(LED_RIGHT);
+        if (config_cache.sens_touch == 0) led_blink_mask(LED_DOWN);
+        if (config_cache.sens_touch == 1) led_blink_mask(LED_DOWN + LED_LEFT);
+        if (config_cache.sens_touch == 2) led_blink_mask(LED_LEFT);
+        if (config_cache.sens_touch == 3) led_blink_mask(LED_LEFT + LED_UP);
+        if (config_cache.sens_touch == 4) led_blink_mask(LED_UP);
+        led_set_mode(LED_MODE_BLINK);
     }
 }
 
@@ -292,26 +302,28 @@ void config_factory() {
 }
 
 void config_calibrate_execute() {
-    led_shape_all_off();
+    led_set_mode(LED_MODE_CYCLE);
     thumbstick_calibrate();
     imu_calibrate();
-    led_shape_all_off();
     profile_led_lock = false;
-    profile_update_leds();
+    led_set_mode(LED_MODE_IDLE);
 }
 
 void config_calibrate() {
     logging_set_onloop(false);
     info("Calibration about to start, leave the controller on a flat surface\n");
     profile_led_lock = true;
-    led_shape_all_off();
-    led_blink_mask(LED_MASK_LEFT | LED_MASK_RIGHT);
+    led_static_mask(LED_NONE);
+    led_blink_mask(LED_LEFT | LED_RIGHT);
+    led_set_mode(LED_MODE_BLINK);
     for(uint8_t i=0; i<5; i++) {
         info("%i... ", 5-i);
         sleep_ms(1000);
     }
     info("\n");
     config_calibrate_execute();
+    config_set_problem_calibration(false);
+    led_set_mode(LED_MODE_IDLE);
     info("Calibration completed\n");
     logging_set_onloop(true);
 }
@@ -416,6 +428,27 @@ void config_set_deadzone_values(float* values) {
     config_cache.deadzone_values[1] = values[1];
     config_cache.deadzone_values[2] = values[2];
     config_cache_synced = false;
+}
+
+void config_set_problem_calibration(bool state) {
+    problem_calibration = state;
+    led_show();
+}
+
+void config_set_problem_gyro(bool state) {
+    problem_gyro = state;
+    led_show();
+}
+
+void config_ignore_problems() {
+    warn("User requested to ignore problems\n");
+    problem_calibration = false;
+    problem_gyro = false;
+    led_show();
+}
+
+bool config_problems_are_pending() {
+    return problem_calibration || problem_gyro;
 }
 
 void config_init_profiles_from_defaults() {

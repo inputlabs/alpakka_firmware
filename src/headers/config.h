@@ -28,7 +28,7 @@
 #define CFG_CALIBRATION_SAMPLES_THUMBSTICK 100000  // Samples.
 #define CFG_CALIBRATION_SAMPLES_GYRO 200000  // Samples.
 #define CFG_CALIBRATION_SAMPLES_ACCEL 100000  // Samples.
-#define CFG_CALIBRATION_BLINK_FREQ 5000  // Ticks.
+#define CFG_CALIBRATION_BLINK_FREQ 50000  // Ticks.
 
 #define CFG_GYRO_SENSITIVITY  pow(2, -9) * 1.45
 #define CFG_GYRO_SENSITIVITY_X  CFG_GYRO_SENSITIVITY * 1
@@ -119,7 +119,7 @@ void config_set_touch_sens_values(uint8_t* values);
 void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
 
-// Profiles
+// Profiles.
 CtrlProfile* config_profile_read(uint8_t index);
 void config_profile_write(uint8_t index);
 void config_profile_set_sync(uint8_t index, bool state);
@@ -133,3 +133,9 @@ void config_profile_default_console_legacy(CtrlProfile *profile);
 void config_profile_default_desktop(CtrlProfile *profile);
 void config_profile_default_rts(CtrlProfile *profile);
 void config_profile_default_custom(CtrlProfile *profile);
+
+// Problems.
+void config_set_problem_calibration(bool state);
+void config_set_problem_gyro(bool state);
+void config_ignore_problems();
+bool config_problems_are_pending();

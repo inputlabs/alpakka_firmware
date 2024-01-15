@@ -227,25 +227,26 @@ void profile_reset_all() {
 void profile_update_leds() {
     if (profile_led_lock) return;
     if (home_is_active) {
-        led_shape_all_on();
-        if (profile_active_index == 1) led_blink_mask(LED_MASK_UP);
-        if (profile_active_index == 2) led_blink_mask(LED_MASK_RIGHT);
-        if (profile_active_index == 3) led_blink_mask(LED_MASK_DOWN);
-        if (profile_active_index == 4) led_blink_mask(LED_MASK_LEFT);
-        if (profile_active_index == 5) led_blink_mask(LED_MASK_TRIANGLE_UP);
-        if (profile_active_index == 6) led_blink_mask(LED_MASK_TRIANGLE_RIGHT);
-        if (profile_active_index == 7) led_blink_mask(LED_MASK_TRIANGLE_DOWN);
-        if (profile_active_index == 8) led_blink_mask(LED_MASK_TRIANGLE_LEFT);
+        led_static_mask(LED_ALL);
+        if (profile_active_index == 1) led_blink_mask(LED_UP);
+        if (profile_active_index == 2) led_blink_mask(LED_RIGHT);
+        if (profile_active_index == 3) led_blink_mask(LED_DOWN);
+        if (profile_active_index == 4) led_blink_mask(LED_LEFT);
+        if (profile_active_index == 5) led_blink_mask(LED_TRIANGLE_UP);
+        if (profile_active_index == 6) led_blink_mask(LED_TRIANGLE_RIGHT);
+        if (profile_active_index == 7) led_blink_mask(LED_TRIANGLE_DOWN);
+        if (profile_active_index == 8) led_blink_mask(LED_TRIANGLE_LEFT);
+        led_set_mode(LED_MODE_BLINK);
     } else {
-        led_shape_all_off();
-        if (profile_active_index == 1) led_mask(LED_MASK_UP);
-        if (profile_active_index == 2) led_mask(LED_MASK_RIGHT);
-        if (profile_active_index == 3) led_mask(LED_MASK_DOWN);
-        if (profile_active_index == 4) led_mask(LED_MASK_LEFT);
-        if (profile_active_index == 5) led_mask(LED_MASK_TRIANGLE_UP);
-        if (profile_active_index == 6) led_mask(LED_MASK_TRIANGLE_RIGHT);
-        if (profile_active_index == 7) led_mask(LED_MASK_TRIANGLE_DOWN);
-        if (profile_active_index == 8) led_mask(LED_MASK_TRIANGLE_LEFT);
+        if (profile_active_index == 1) led_idle_mask(LED_UP);
+        if (profile_active_index == 2) led_idle_mask(LED_RIGHT);
+        if (profile_active_index == 3) led_idle_mask(LED_DOWN);
+        if (profile_active_index == 4) led_idle_mask(LED_LEFT);
+        if (profile_active_index == 5) led_idle_mask(LED_TRIANGLE_UP);
+        if (profile_active_index == 6) led_idle_mask(LED_TRIANGLE_RIGHT);
+        if (profile_active_index == 7) led_idle_mask(LED_TRIANGLE_DOWN);
+        if (profile_active_index == 8) led_idle_mask(LED_TRIANGLE_LEFT);
+        led_set_mode(LED_MODE_IDLE);
     }
 }
 
@@ -263,15 +264,23 @@ void profile_report_active() {
 void profile_set_home(bool state) {
     info("Profile: Home %s\n", state ? "on" : "off");
     home_is_active = state;
-    if (state) led_shape_all_on();
-    else profile_update_leds();
+    if (state) {
+        led_static_mask(LED_ALL);
+        led_set_mode(LED_MODE_ENGAGE);
+    } else {
+        profile_update_leds();
+    }
     pending_reset = true;
 }
 
 void profile_set_home_gamepad(bool state) {
     home_gamepad_is_active = state;
-    if (state) led_shape_all_off();
-    else profile_update_leds();
+    if (state) {
+        led_static_mask(LED_NONE);
+        led_set_mode(LED_MODE_ENGAGE);
+    } else {
+        profile_update_leds();
+    }
 }
 
 void profile_set_active(uint8_t index) {
@@ -318,7 +327,7 @@ void profile_init() {
     info("INIT: Profiles\n");
     // Home button setup.
     Actions actions = {PROC_HOME};
-    Actions actions_secondary = {GAMEPAD_HOME, PROC_HOME_GAMEPAD};
+    Actions actions_secondary = {GAMEPAD_HOME, PROC_HOME_GAMEPAD, PROC_IGNORE_LED_WARNINGS};
     home = Button_(PIN_HOME, HOLD_DOUBLE_PRESS, actions, actions_secondary);
     // Profiles setup.
     for(uint8_t i=0; i<=NVM_PROFILE_SLOTS; i++) {
