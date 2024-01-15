@@ -165,7 +165,6 @@ void config_profile_default_fps_fusion(CtrlProfile *profile){
     // Thumbstick.
     profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
         .mode=THUMBSTICK_MODE_4DIR,
-        .deadzone=DEADZONE_FROM_CONFIG,
         .overlap=50,
     };
     profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){
