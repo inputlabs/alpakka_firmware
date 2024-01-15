@@ -258,43 +258,21 @@ void hid_gamepad_rz(double value) {
 }
 
 void hid_mouse_report() {
+    // Create button bitmask.
     int8_t buttons = 0;
     for(int i=0; i<5; i++) {
         buttons += state_matrix[MOUSE_INDEX + i] << i;
     }
-    int8_t report_x = 0;
-    int8_t report_y = 0;
-    if (mouse_x >= 127) {
-        report_x = 127;
-        mouse_x -= 127;
-    } else if (mouse_x <= -127) {
-        report_x = -127;
-        mouse_x += 127;
-    } else {
-        report_x = (int8_t)mouse_x;
-        mouse_x = 0;
-    }
-    if (mouse_y >= 127) {
-        report_y = 127;
-        mouse_y -= 127;
-    } else if (mouse_y <= -127) {
-        report_y = -127;
-        mouse_y += 127;
-    } else {
-        report_y = (int8_t)mouse_y;
-        mouse_y = 0;
-    }
-    uint8_t mouse_z = state_matrix[MOUSE_SCROLL_UP] - state_matrix[MOUSE_SCROLL_DOWN];
+    uint8_t scroll = state_matrix[MOUSE_SCROLL_UP] - state_matrix[MOUSE_SCROLL_DOWN];
+    // Create report.
+    hid_mouse_custom_report_t report = {buttons, mouse_x, mouse_y, scroll, 0};
+    // Reset values.
+    mouse_x = 0;
+    mouse_y = 0;
     state_matrix[MOUSE_SCROLL_UP] = 0;
     state_matrix[MOUSE_SCROLL_DOWN] = 0;
-    tud_hid_mouse_report(
-        REPORT_MOUSE,
-        buttons,
-        report_x,
-        report_y,
-        mouse_z,
-        0
-    );
+    // Send report.
+    tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
 }
 
 void hid_keyboard_report() {
