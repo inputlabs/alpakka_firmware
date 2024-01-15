@@ -94,10 +94,12 @@ void led_show_blink() {
 }
 
 void led_show_cycle_step() {
-    if(cycle_position > 3) cycle_position = 0;
-    uint8_t frames[] = {PIN_LED_UP, PIN_LED_RIGHT, PIN_LED_DOWN, PIN_LED_LEFT};
-    led_set(frames[cycle_position], true);
+    led_set(PIN_LED_UP,    LED_UP    & (1 << cycle_position));
+    led_set(PIN_LED_RIGHT, LED_RIGHT & (1 << cycle_position));
+    led_set(PIN_LED_DOWN,  LED_DOWN  & (1 << cycle_position));
+    led_set(PIN_LED_LEFT,  LED_LEFT  & (1 << cycle_position));
     cycle_position += 1;
+    if(cycle_position > 3) cycle_position = 0;
 }
 
 void led_show_cycle() {
