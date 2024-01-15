@@ -9,9 +9,10 @@
 
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
-#define NVM_STRUCT_VERSION 15
+#define NVM_STRUCT_VERSION 16
 #define NVM_CONFIG_SIZE 256
 #define NVM_PROFILE_SIZE 4096
+#define NVM_PROFILE_SLOTS 14
 
 #define PROTOCOL_XINPUT_WIN 0
 #define PROTOCOL_XINPUT_UNIX 1
@@ -131,3 +132,4 @@ void config_profile_default_console(CtrlProfile *profile);
 void config_profile_default_console_legacy(CtrlProfile *profile);
 void config_profile_default_desktop(CtrlProfile *profile);
 void config_profile_default_rts(CtrlProfile *profile);
+void config_profile_default_custom(CtrlProfile *profile);

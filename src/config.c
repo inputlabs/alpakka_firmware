@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <hardware/sync.h>
 #include <hardware/watchdog.h>
 #include <pico/bootrom.h>
@@ -22,8 +23,8 @@
 Config config_cache;
 bool config_cache_synced = true;
 
-CtrlProfile config_profile_cache[13];
-bool config_profile_cache_synced[13] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
+CtrlProfile config_profile_cache[NVM_PROFILE_SLOTS];
+bool config_profile_cache_synced[NVM_PROFILE_SLOTS] = {0,};
 
 uint8_t config_tune_mode = 0;
 uint8_t pcb_gen = 255;
@@ -37,6 +38,7 @@ void config_profile_load(uint8_t index) {
     // Load a profile from NVM into the cache.
     uint32_t addr = NVM_CONFIG_ADDR + (NVM_PROFILE_SIZE * (index+1));
     nvm_read(addr, (uint8_t*)&config_profile_cache[index], NVM_PROFILE_SIZE);
+    config_profile_cache_synced[index] = true;
 }
 
 Config* config_read() {
@@ -76,7 +78,7 @@ void config_sync() {
         config_write();
     }
     // Sync profiles.
-    for(uint8_t i=0; i<13; i++) {
+    for(uint8_t i=0; i<NVM_PROFILE_SLOTS; i++) {
         if (!config_profile_cache_synced[i]) {
             config_profile_write(i);
         }
@@ -418,23 +420,28 @@ void config_set_deadzone_values(float* values) {
 
 void config_init_profiles_from_defaults() {
     warn("Loading profiles from defaults\n");
-    config_profile_default_home(&(config_profile_cache[0]));
-    config_profile_default_fps_fusion(&(config_profile_cache[1]));
-    config_profile_default_racing(&(config_profile_cache[2]));
-    config_profile_default_console(&(config_profile_cache[3]));
-    config_profile_default_desktop(&(config_profile_cache[4]));
-    config_profile_default_fps_wasd(&(config_profile_cache[5]));
-    config_profile_default_flight(&(config_profile_cache[6]));
-    config_profile_default_console_legacy(&(config_profile_cache[7]));
-    config_profile_default_rts(&(config_profile_cache[8]));
-    for(uint8_t i=0; i<9; i++) {
+    config_profile_default_home(           &(config_profile_cache[PROFILE_HOME]));
+    config_profile_default_fps_fusion(     &(config_profile_cache[PROFILE_FPS_FUSION]));
+    config_profile_default_racing(         &(config_profile_cache[PROFILE_RACING]));
+    config_profile_default_console(        &(config_profile_cache[PROFILE_CONSOLE]));
+    config_profile_default_desktop(        &(config_profile_cache[PROFILE_DESKTOP]));
+    config_profile_default_fps_wasd(       &(config_profile_cache[PROFILE_FPS_WASD]));
+    config_profile_default_flight(         &(config_profile_cache[PROFILE_FLIGHT]));
+    config_profile_default_console_legacy( &(config_profile_cache[PROFILE_CONSOLE_LEGACY]));
+    config_profile_default_rts(            &(config_profile_cache[PROFILE_RTS]));
+    config_profile_default_custom(         &(config_profile_cache[PROFILE_CUSTOM_1]));
+    config_profile_default_custom(         &(config_profile_cache[PROFILE_CUSTOM_2]));
+    config_profile_default_custom(         &(config_profile_cache[PROFILE_CUSTOM_3]));
+    config_profile_default_custom(         &(config_profile_cache[PROFILE_CUSTOM_4]));
+    config_profile_default_console_legacy( &(config_profile_cache[PROFILE_HOME_GAMEPAD]));
+    for(uint8_t i=0; i<NVM_PROFILE_SLOTS; i++) {
         config_profile_write(i);
     }
 }
 
 void config_init_profiles_from_nvm() {
     info("NVM: Loading profiles\n");
-    for(uint8_t i=0; i<9; i++) {
+    for(uint8_t i=0; i<NVM_PROFILE_SLOTS; i++) {
         config_profile_load(i);
     }
 }

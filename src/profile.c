@@ -288,7 +288,7 @@ Profile* profile_get_active(bool strict) {
         return &profiles[profile_active_index];
     } else {
         if (home_is_active) return &profiles[PROFILE_HOME];
-        else if (home_gamepad_is_active) return &profiles[PROFILE_CONSOLE_LEGACY];  // TODO FIX.
+        else if (home_gamepad_is_active) return &profiles[PROFILE_HOME_GAMEPAD];
         else return &profiles[profile_active_index];
     }
 }
@@ -302,7 +302,6 @@ uint8_t profile_get_active_index(bool strict) {
         return profile_active_index;
     } else {
         if (home_is_active) return 0;
-        // else if (home_gamepad_is_active) ...;  // TODO
         else return profile_active_index;
     }
 }
@@ -322,7 +321,7 @@ void profile_init() {
     Actions actions_secondary = {GAMEPAD_HOME, PROC_HOME_GAMEPAD};
     home = Button_(PIN_HOME, HOLD_DOUBLE_PRESS, actions, actions_secondary);
     // Profiles setup.
-    for(uint8_t i=0; i<=8; i++) {
+    for(uint8_t i=0; i<=NVM_PROFILE_SLOTS; i++) {
         profiles[i] = Profile_();
         profiles[i].load_from_config(&(profiles[i]), config_profile_read(i));
     }
