@@ -317,7 +317,7 @@ void profile_init() {
     Actions actions_secondary = {GAMEPAD_HOME, PROC_HOME_GAMEPAD};
     home = Button_(PIN_HOME, HOLD_DOUBLE_PRESS, actions, actions_secondary);
     // Profiles setup.
-    for(uint8_t i=0; i<=NVM_PROFILE_SLOTS; i++) {
+    for(uint8_t i=0; i<NVM_PROFILE_SLOTS; i++) {
         profiles[i] = Profile_();
         profiles[i].load_from_config(&(profiles[i]), config_profile_read(i));
     }
