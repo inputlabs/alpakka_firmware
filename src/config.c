@@ -441,6 +441,7 @@ void config_set_problem_gyro(bool state) {
 }
 
 void config_ignore_problems() {
+    if (!config_problems_are_pending()) return;
     warn("User requested to ignore problems\n");
     problem_calibration = false;
     problem_gyro = false;

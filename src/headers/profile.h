@@ -10,6 +10,8 @@
 #include "webusb.h"
 #include "common.h"
 
+#define PROFILE_SLOTS 14
+
 typedef enum ProfileIndex_enum {
     PROFILE_HOME,
     PROFILE_FPS_FUSION,
