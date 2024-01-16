@@ -7,7 +7,6 @@
 #include "logging.h"
 #include "tusb_config.h"
 
-#define REPORT_ID 0x01
 
 static uint8_t hid_service_buffer[300];
 static uint8_t device_id_sdp_service_buffer[100];
@@ -17,6 +16,8 @@ static uint16_t host_max_latency = 1600;
 static uint16_t host_min_timeout = 3200;
 static uint8_t send_buffer_storage[16];
 static btstack_ring_buffer_t  send_buffer;
+
+static uint16_t hid_cid;
 
 static const char hid_device_name[] = "Input Labs Alpakka";
 
@@ -72,13 +73,173 @@ const uint8_t hid_descriptor_keyboard[] = {
 };
 
 static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * packet, uint16_t packet_size){
-    debug("Packet type 0x%02x, ", packet_type);
-}
+    uint8_t   event;
+    uint8_t   subevent;
+    uint8_t   status;
 
+    debug("Packet type 0x%02x, ", packet_type);
+
+    switch (packet_type) {                                                   // src/bluetooth.h
+        case HCI_EVENT_PACKET:                                                 // 0x04
+            debug("HCI_EVENT_PACKET\n");
+            event = hci_event_packet_get_type(packet);
+            debug("Event: 0x%02x, ", event);
+
+            switch (event) {                                                    //src/btstack_defines.h
+                case HCI_EVENT_CONNECTION_COMPLETE:                               // 0x03
+                    debug("HCI_EVENT_CONNECTION_COMPLETE, doing nothing\n");
+                    break;
+                case HCI_EVENT_CONNECTION_REQUEST:                                // 0x04
+                    debug("HCI_EVENT_CONNECTION_REQUEST, doing nothing\n");
+                    break;
+                case HCI_EVENT_DISCONNECTION_COMPLETE:                                // 0x05
+                    debug("HCI_EVENT_DISCONNECTION_COMPLETE, doing nothing\n");
+                    break;
+                case HCI_EVENT_ENCRYPTION_CHANGE:                                 // 0x08
+                    debug("HCI_EVENT_ENCRYPTION_CHANGE, doing nothing\n");
+                    break;
+                case HCI_EVENT_READ_REMOTE_SUPPORTED_FEATURES_COMPLETE:           // 0x0B
+                    debug("HCI_EVENT_READ_REMOTE_SUPPORTED_FEATURES_COMPLETE, doing nothing\n");
+                    break;
+                case HCI_EVENT_COMMAND_COMPLETE:                                  // 0x0E
+                    debug("HCI_EVENT_COMMAND_COMPLETE, doing nothing\n");
+                    break;
+                case HCI_EVENT_COMMAND_STATUS:                                    // 0x0F
+                    debug("HCI_EVENT_COMMAND_STATUS, doing nothing\n");
+                    break;
+                case HCI_EVENT_NUMBER_OF_COMPLETED_PACKETS:                       // 0x13
+                    debug("HCI_EVENT_NUMBER_OF_COMPLETED_PACKETS, doing nothing\n");
+                    break;
+                case HCI_EVENT_LINK_KEY_REQUEST:                                  // 0x17
+                    debug("HCI_EVENT_LINK_KEY_REQUEST, doing nothing\n");
+                    break;
+                case HCI_EVENT_LINK_KEY_NOTIFICATION:                             // 0x18
+                    debug("HCI_EVENT_LINK_KEY_NOTIFICATION, doing nothing\n");
+                    break;
+                case HCI_EVENT_MAX_SLOTS_CHANGED:                                 // 0x1B
+                    debug("HCI_EVENT_MAX_SLOTS_CHANGED, doing nothing\n");
+                    break;
+                case HCI_EVENT_READ_REMOTE_EXTENDED_FEATURES_COMPLETE:            // 0x23
+                    debug("HCI_EVENT_READ_REMOTE_EXTENDED_FEATURES_COMPLETE, doing nothing\n");
+                    break;
+                case HCI_EVENT_IO_CAPABILITY_REQUEST:                             // 0x31
+                    debug("HCI_EVENT_IO_CAPABILITY_REQUEST, doing nothing\n");
+                    break;
+                case HCI_EVENT_IO_CAPABILITY_RESPONSE:                             // 0x32
+                    debug("HCI_EVENT_IO_CAPABILITY_RESPONSE, doing nothing\n");
+                    break;
+                case HCI_EVENT_USER_CONFIRMATION_REQUEST:                             // 0x33
+                    debug("HCI_EVENT_USER_CONFIRMATION_REQUEST, doing nothing\n");
+                    break;
+                case HCI_EVENT_SIMPLE_PAIRING_COMPLETE:                            // 0x36
+                    debug("HCI_EVENT_SIMPLE_PAIRING_COMPLETE, doing nothing\n");
+                    break;
+
+                case BTSTACK_EVENT_STATE:                                         // 0x60
+                    uint8_t state = btstack_event_state_get_state(packet);
+                    debug("BTSTACK_EVENT_STATE\n");
+                    debug("State: 0x%02x, ", state);
+
+                    switch (state) {                                                // src/hci_cmd.h
+                        case HCI_STATE_INITIALIZING:                                  // 0x1
+	                        debug("HCI_STATE_INITIALIZING, doing nothing\n");
+                            return;
+	                        break;
+                        case HCI_STATE_WORKING:                                       // 0x2
+    	                    debug("HCI_STATE_WORKING\n");              
+	                        debug("!!! Waiting for connection\n");
+                            app_state = APP_NOT_CONNECTED;
+	                        break;
+                        default:
+	                        debug("\n---\n!!! Defaulting on state 0x%02x\n---\n", state);
+                            return;
+    	                    break;
+                    }
+
+                    break;
+                case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:                        // 0x61
+                    debug("BTSTACK_EVENT_NR_CONNECTIONS_CHANGED, doing nothing\n");
+                    break;
+                case BTSTACK_EVENT_SCAN_MODE_CHANGED:                             // 0x66
+                    debug("BTSTACK_EVENT_SCAN_MODE_CHANGED, doing nothing\n");
+                    break;
+                case HCI_EVENT_TRANSPORT_PACKET_SENT:                             // 0x6E
+                    debug("HCI_EVENT_TRANSPORT_PACKET_SENT, doing nothing\n");
+                    break;
+
+                case GAP_EVENT_SECURITY_LEVEL:                                    // 0xD8
+                    debug("GAP_EVENT_SECURITY_LEVEL, doing nothing\n");
+                    break;
+                case GAP_EVENT_PAIRING_STARTED:                                    // 0xE0
+                    debug("GAP_EVENT_PAIRING_STARTED, doing nothing\n");
+                    break;
+                case GAP_EVENT_PAIRING_COMPLETE:                                    // 0xE1
+                    debug("GAP_EVENT_PAIRING_COMPLETE, doing nothing\n");
+                    break;
+                case HCI_EVENT_HID_META:                                          // 0xEF
+                    debug("HCI_EVENT_HID_META\n");
+                    subevent = hci_event_hid_meta_get_subevent_code(packet);
+                    debug("Subevent: 0x%02x, ", subevent);
+
+                    switch (subevent){
+                        case HID_SUBEVENT_CONNECTION_OPENED:                          // 0x02
+	                        debug("HID_SUBEVENT_CONNECTION_OPENED\n");
+                            status = hid_subevent_connection_opened_get_status(packet);
+
+                            if (status != ERROR_CODE_SUCCESS) {
+                                debug("Connection failed, status 0x%x\n", status);
+                                app_state = APP_NOT_CONNECTED;
+                                hid_cid = 0;
+                                return;
+                            }
+                            app_state = APP_CONNECTED;
+                            hid_cid = hid_subevent_connection_opened_get_hid_cid(packet);
+                            debug("HID Connected\n");
+			                hid_device_request_can_send_now_event(hid_cid);
+
+                            gap_discoverable_control(0); // disabling to reduce latency
+                            gap_connectable_control(0);  // disabling to reduce latency
+	                        break;
+                        case HID_SUBEVENT_CONNECTION_CLOSED:                          // 0x03
+	                        debug("HID_SUBEVENT_CONNECTION_CLOSED, doing nothing\n");
+                            break;
+                        case HID_SUBEVENT_CAN_SEND_NOW:                               // 0x04
+	                        debug("HID_SUBEVENT_CAN_SEND_NOW\n");
+
+//                            uint8_t report[] = { 0xa1, REPORT_ID, 0, 0, keycode, 0, 0, 0, 0, 0};
+
+                            debug("Sending report:\n");
+//                            printf_hexdump(report, sizeof(report));
+//                            debug("Sending keycode %d via BT\n", keycode);
+
+	                        break;
+                        case HID_SUBEVENT_SNIFF_SUBRATING_PARAMS:     // 0x0E
+    	                    debug("HID_SUBEVENT_SNIFF_SUBRATING_PARAMS, doing nothing\n");
+	                        break;
+                        default:
+	                        debug("\n---\n!!! Defaulting on subevent 0x%02x\n---\n", subevent);
+	                        break;
+                    }
+
+                    break;
+                case HCI_EVENT_VENDOR_SPECIFIC:                                   // 0xFF
+                    debug("HCI_EVENT_VENDOR_SPECIFIC, doing nothing\n");
+                    break;
+                default:
+                    debug("\n---\n!!! Defaulting on event type 0x%02x\n---\n", event);
+                    break;
+            }
+
+            break;
+        default:
+            debug("\n---\n!!! Defaulting on packet type 0x%02x\n---\n", packet_type);
+            break;
+    }
+}
 
 void bt_hid_device_setup(void){
     if (cyw43_arch_init()) {
-        error("failed to initialise cyw43_arch\n");
+        error("failed to initialise cyw43_arch. Not a pico-w?\n");
         return -1;
     }
 
