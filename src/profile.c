@@ -219,7 +219,7 @@ Profile Profile_ () {
 
 void profile_reset_all() {
     config_tune_set_mode(0);
-    for(uint8_t i=0; i<=8; i++) {
+    for(uint8_t i=0; i<PROFILE_SLOTS; i++) {
         profiles[i].reset(&profiles[i]);
     }
 }
@@ -281,6 +281,7 @@ void profile_set_home_gamepad(bool state) {
     } else {
         profile_update_leds();
     }
+    pending_reset = true;
 }
 
 void profile_set_active(uint8_t index) {
@@ -330,7 +331,7 @@ void profile_init() {
     Actions actions_secondary = {GAMEPAD_HOME, PROC_HOME_GAMEPAD, PROC_IGNORE_LED_WARNINGS};
     home = Button_(PIN_HOME, HOLD_DOUBLE_PRESS, actions, actions_secondary);
     // Profiles setup.
-    for(uint8_t i=0; i<NVM_PROFILE_SLOTS; i++) {
+    for(uint8_t i=0; i<PROFILE_SLOTS; i++) {
         profiles[i] = Profile_();
         profiles[i].load_from_config(&(profiles[i]), config_profile_read(i));
     }
