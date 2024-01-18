@@ -17,6 +17,9 @@ set(PROJECT alpakka)
 project(${PROJECT} C CXX ASM)
 pico_sdk_init()
 
+set(PICO_BOARD pico_w)
+set(PICO_CYW43_ARCH_THREADSAFE_BACKGROUND=1)
+
 add_executable(${PROJECT}
     src/main.c
 )

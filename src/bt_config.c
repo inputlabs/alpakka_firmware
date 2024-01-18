@@ -134,6 +134,9 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                 case HCI_EVENT_SIMPLE_PAIRING_COMPLETE:                            // 0x36
                     debug("HCI_EVENT_SIMPLE_PAIRING_COMPLETE, doing nothing\n");
                     break;
+                case HCI_EVENT_LINK_SUPERVISION_TIMEOUT_CHANGED:                   // 0x38
+                    debug("HCI_EVENT_LINK_SUPERVISION_TIMEOUT_CHANGED, doing nothing\n");
+                    break;
 
                 case BTSTACK_EVENT_STATE:                                         // 0x60
                     uint8_t state = btstack_event_state_get_state(packet);
@@ -301,7 +304,7 @@ void bt_hid_device_setup(void){
 
     hci_power_control(HCI_POWER_ON);
     
-    btstack_run_loop_execute() ;
+//    btstack_run_loop_execute() ;
 
     debug("BT: running\n");
 }
