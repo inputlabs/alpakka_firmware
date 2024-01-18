@@ -28,7 +28,7 @@
     #define VERSION "undefined"
 #endif
 
-#define ENABLE_HCI_DUMP
+//#define ENABLE_HCI_DUMP
 
 
 void title() {

@@ -27,6 +27,7 @@ static btstack_packet_callback_registration_t hci_event_callback_registration;
 const uint8_t hid_descriptor_keyboard[] = {
   0x05, 0x01,                    // Usage Page (Generic Desktop)
   0x09, 0x06,                    // Usage (Keyboard)
+//  0x09, 0x02,                    // USAGE (Mouse)
   0xa1, 0x01,                    // Collection (Application)
 
   // Report ID
@@ -92,7 +93,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                 case HCI_EVENT_CONNECTION_REQUEST:                                // 0x04
                     debug("HCI_EVENT_CONNECTION_REQUEST, doing nothing\n");
                     break;
-                case HCI_EVENT_DISCONNECTION_COMPLETE:                                // 0x05
+                case HCI_EVENT_DISCONNECTION_COMPLETE:                            // 0x05
                     debug("HCI_EVENT_DISCONNECTION_COMPLETE, doing nothing\n");
                     break;
                 case HCI_EVENT_ENCRYPTION_CHANGE:                                 // 0x08
@@ -128,7 +129,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                 case HCI_EVENT_IO_CAPABILITY_RESPONSE:                             // 0x32
                     debug("HCI_EVENT_IO_CAPABILITY_RESPONSE, doing nothing\n");
                     break;
-                case HCI_EVENT_USER_CONFIRMATION_REQUEST:                             // 0x33
+                case HCI_EVENT_USER_CONFIRMATION_REQUEST:                          // 0x33
                     debug("HCI_EVENT_USER_CONFIRMATION_REQUEST, doing nothing\n");
                     break;
                 case HCI_EVENT_SIMPLE_PAIRING_COMPLETE:                            // 0x36
@@ -138,17 +139,17 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                     debug("HCI_EVENT_LINK_SUPERVISION_TIMEOUT_CHANGED, doing nothing\n");
                     break;
 
-                case BTSTACK_EVENT_STATE:                                         // 0x60
+                case BTSTACK_EVENT_STATE:                                          // 0x60
                     uint8_t state = btstack_event_state_get_state(packet);
                     debug("BTSTACK_EVENT_STATE\n");
                     debug("State: 0x%02x, ", state);
 
-                    switch (state) {                                                // src/hci_cmd.h
-                        case HCI_STATE_INITIALIZING:                                  // 0x1
+                    switch (state) {                                               // src/hci_cmd.h
+                        case HCI_STATE_INITIALIZING:                               // 0x1
 	                        debug("HCI_STATE_INITIALIZING, doing nothing\n");
                             return;
 	                        break;
-                        case HCI_STATE_WORKING:                                       // 0x2
+                        case HCI_STATE_WORKING:                                    // 0x2
     	                    debug("HCI_STATE_WORKING\n");              
 	                        debug("!!! Waiting for connection\n");
                             app_state = APP_NOT_CONNECTED;
@@ -160,32 +161,32 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                     }
 
                     break;
-                case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:                        // 0x61
+                case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:                         // 0x61
                     debug("BTSTACK_EVENT_NR_CONNECTIONS_CHANGED, doing nothing\n");
                     break;
-                case BTSTACK_EVENT_SCAN_MODE_CHANGED:                             // 0x66
+                case BTSTACK_EVENT_SCAN_MODE_CHANGED:                              // 0x66
                     debug("BTSTACK_EVENT_SCAN_MODE_CHANGED, doing nothing\n");
                     break;
-                case HCI_EVENT_TRANSPORT_PACKET_SENT:                             // 0x6E
+                case HCI_EVENT_TRANSPORT_PACKET_SENT:                              // 0x6E
                     debug("HCI_EVENT_TRANSPORT_PACKET_SENT, doing nothing\n");
                     break;
 
-                case GAP_EVENT_SECURITY_LEVEL:                                    // 0xD8
+                case GAP_EVENT_SECURITY_LEVEL:                                     // 0xD8
                     debug("GAP_EVENT_SECURITY_LEVEL, doing nothing\n");
                     break;
                 case GAP_EVENT_PAIRING_STARTED:                                    // 0xE0
                     debug("GAP_EVENT_PAIRING_STARTED, doing nothing\n");
                     break;
-                case GAP_EVENT_PAIRING_COMPLETE:                                    // 0xE1
+                case GAP_EVENT_PAIRING_COMPLETE:                                   // 0xE1
                     debug("GAP_EVENT_PAIRING_COMPLETE, doing nothing\n");
                     break;
-                case HCI_EVENT_HID_META:                                          // 0xEF
+                case HCI_EVENT_HID_META:                                           // 0xEF
                     debug("HCI_EVENT_HID_META\n");
                     subevent = hci_event_hid_meta_get_subevent_code(packet);
                     debug("Subevent: 0x%02x, ", subevent);
 
                     switch (subevent){
-                        case HID_SUBEVENT_CONNECTION_OPENED:                          // 0x02
+                        case HID_SUBEVENT_CONNECTION_OPENED:                       // 0x02
 	                        debug("HID_SUBEVENT_CONNECTION_OPENED\n");
                             status = hid_subevent_connection_opened_get_status(packet);
 
@@ -203,10 +204,10 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                             gap_discoverable_control(0); // disabling to reduce latency
                             gap_connectable_control(0);  // disabling to reduce latency
 	                        break;
-                        case HID_SUBEVENT_CONNECTION_CLOSED:                          // 0x03
+                        case HID_SUBEVENT_CONNECTION_CLOSED:                       // 0x03
 	                        debug("HID_SUBEVENT_CONNECTION_CLOSED, doing nothing\n");
                             break;
-                        case HID_SUBEVENT_CAN_SEND_NOW:                               // 0x04
+                        case HID_SUBEVENT_CAN_SEND_NOW:                            // 0x04
 	                        debug("HID_SUBEVENT_CAN_SEND_NOW\n");
 
 //                            uint8_t report[] = { 0xa1, REPORT_ID, 0, 0, keycode, 0, 0, 0, 0, 0};
@@ -214,7 +215,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                             debug("Sending report:\n");
 //                            printf_hexdump(report, sizeof(report));
 //                            debug("Sending keycode %d via BT\n", keycode);
-
+//                            hid_device_send_interrupt_message(hid_cid, &report[0], sizeof(report));
 	                        break;
                         case HID_SUBEVENT_SNIFF_SUBRATING_PARAMS:     // 0x0E
     	                    debug("HID_SUBEVENT_SNIFF_SUBRATING_PARAMS, doing nothing\n");
@@ -260,6 +261,8 @@ void bt_hid_device_setup(void){
     debug("BT: init l2cap\n");
     l2cap_init();
 
+    sm_init();
+
     debug("BT: init service discovery\n");
     sdp_init();
 
@@ -283,6 +286,11 @@ void bt_hid_device_setup(void){
         sizeof(hid_descriptor_keyboard),
         hid_device_name
     };
+
+    hid_create_sdp_record(hid_service_buffer, sdp_create_service_record_handle(), &hid_params);
+    btstack_assert(de_get_len( hid_service_buffer) <= sizeof(hid_service_buffer));
+    sdp_register_service(hid_service_buffer);
+
 
     device_id_create_sdp_record(device_id_sdp_service_buffer, sdp_create_service_record_handle(), USB_GENERIC_VENDOR, USB_GENERIC_PRODUCT, 1, 1);
     btstack_assert(de_get_len( device_id_sdp_service_buffer) <= sizeof(device_id_sdp_service_buffer));
