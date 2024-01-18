@@ -16,7 +16,7 @@
 #include "hid.h"
 #include "uart.h"
 #include "logging.h"
-#include "helper.h"
+#include "common.h"
 
 #include "hci_dump.h"
 #include "hci_dump_embedded_stdout.h"
@@ -49,7 +49,9 @@ void main_init() {
 //    logging_set_level(LOG_INFO);
     logging_set_level(LOG_DEBUG);    
     logging_init();
-
+    // Load config.
+    title();
+    config_init();
     // Init USB.
     tusb_init();
     wait_for_usb_init();
@@ -63,8 +65,6 @@ void main_init() {
     bt_hid_device_setup();
 
     // Init components.
-    title();
-    config_init();
     bus_init();
     hid_init();
     thumbstick_init();
@@ -75,12 +75,15 @@ void main_init() {
 }
 
 void main_loop() {
+    info("INIT: Main loop\n");
     int16_t i = 0;
     logging_set_onloop(true);
     while (true) {
         i++;
         // Start timer.
         uint32_t tick_start = time_us_32();
+        // Config.
+        config_sync();
         // Report.
         profile_report_active();
         hid_report();

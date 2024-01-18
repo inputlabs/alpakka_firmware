@@ -56,10 +56,12 @@ target_include_directories(${PROJECT} PUBLIC
 target_sources(${PROJECT} PUBLIC
     src/bus.c
     src/button.c
+    src/common.c
     src/config.c
+    src/ctrl.c
     src/dhat.c
+    src/glyph.c
     src/gyro.c
-    src/helper.c
     src/hid.c
     src/imu.c
     src/led.c
@@ -68,12 +70,14 @@ target_sources(${PROJECT} PUBLIC
     src/profile.c
     src/profiles/console_legacy.c
     src/profiles/console.c
+    src/profiles/custom.c
     src/profiles/desktop.c
+    src/profiles/flight.c
     src/profiles/fps_fusion.c
     src/profiles/fps_wasd.c
     src/profiles/home.c
     src/profiles/racing.c
-    src/profiles/none.c
+    src/profiles/rts.c
     src/self_test.c
     src/rotary.c
     src/thumbstick.c

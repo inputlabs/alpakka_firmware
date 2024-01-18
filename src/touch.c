@@ -7,7 +7,7 @@
 #include "config.h"
 #include "touch.h"
 #include "pin.h"
-#include "helper.h"
+#include "common.h"
 #include "logging.h"
 
 uint8_t loglevel = 0;

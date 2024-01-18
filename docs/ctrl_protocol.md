@@ -46,6 +46,78 @@ PROFILE_GET | 10
 PROFILE_SET | 11
 PROFILE_SHARE | 12
 
+### Procedure index
+Procedure index as defined in [hid.h](/src/headers/hid.h).
+
+### Config index
+| Key        | Index |
+| -          | -     |
+| PROTOCOL   | 1
+| SENS_TOUCH | 2
+| SENS_MOUSE | 3
+| DEADZONE   | 4
+
+### Section index
+| Key              | Index |
+| -                | -     |
+| NAME             | 1
+| A                | 2
+| B                | 3
+| X                | 4
+| Y                | 5
+| DPAD_LEFT        | 6
+| DPAD_RIGHT       | 7
+| DPAD_UP          | 8
+| DPAD_DOWN        | 9
+| SELECT_1         | 10
+| START_1          | 11
+| SELECT_2         | 12
+| START_2          | 13
+| L1               | 14
+| R1               | 15
+| L2               | 16
+| R2               | 17
+| L4               | 18
+| R4               | 19
+| DHAT_LEFT        | 20
+| DHAT_RIGHT       | 21
+| DHAT_UP          | 22
+| DHAT_DOWN        | 23
+| DHAT_UL          | 24
+| DHAT_UR          | 25
+| DHAT_DL          | 26
+| DHAT_DR          | 27
+| DHAT_PUSH        | 28
+| ROTARY_UP        | 29
+| ROTARY_DOWN      | 30
+| THUMBSTICK       | 31
+| THUMBSTICK_LEFT  | 32
+| THUMBSTICK_RIGHT | 33
+| THUMBSTICK_UP    | 34
+| THUMBSTICK_DOWN  | 35
+| THUMBSTICK_PUSH  | 36
+| THUMBSTICK_INNER | 37
+| THUMBSTICK_OUTER | 38
+| GLYPHS_0         | 39
+| GLYPHS_1         | 40
+| GLYPHS_2         | 41
+| GLYPHS_3         | 42
+| DAISY_0          | 43
+| DAISY_1          | 44
+| DAISY_2          | 45
+| DAISY_3          | 46
+| GYRO             | 47
+| GYRO_X           | 48
+| GYRO_Y           | 49
+| GYRO_Z           | 50
+| MACRO_1          | 51
+| MACRO_2          | 52
+| MACRO_3          | 53
+| MACRO_4          | 54
+
+### Section data
+Section structs as defined in [ctrl.h](/src/headers/ctrl.h).
+
 ## Log message
 Message output by the firmware, as strings of arbitrary size.
 
@@ -66,9 +138,6 @@ Direction: `Controller` <- `App`
 | Version | Device Id | Message type | Payload size | Payload
 |         |           | PROC         | 1            | PROC INDEX
 
-### Procedure index
-Procedure index as defined in [hid.h](/src/headers/hid.h#L179).
-
 ## Config GET message
 Request the current value of some specific configuration parameter.
 
@@ -87,7 +156,7 @@ Direction: `Controller` <- `App`
 | Byte 0 | 1 | 2 | 3 | 4 | 5 | 6~10
 | - | - | - | - | - | - | - |
 | Version | Device Id | Message type | Payload size | Payload      | Payload       | Payload
-|         |           | CONFIG_SET   | 7            | CONFIG INDEX | PRESET INDEX  | PRESETS VALUE
+|         |           | CONFIG_SET   | 6            | CONFIG INDEX | PRESET INDEX  | PRESETS VALUE
 
 ## Config SHARE message
 Notify the current value of some specific configuration parameter.
@@ -97,30 +166,50 @@ Direction: `Controller` -> `App`
 | Byte 0 | 1 | 2 | 3 | 4 | 5 | 6~10 |
 | - | - | - | - | - | - | - |
 | Version | Device Id | Message type | Payload size | Payload      | Payload       | Payload
-|         |           | CONFIG_SHARE | 7            | CONFIG INDEX | PRESET INDEX  | PRESETS VALUE
+|         |           | CONFIG_SHARE | 6            | CONFIG INDEX | PRESET INDEX  | PRESETS VALUE
 
-### Config index
+## Profile GET message
+Request the current value of some specific profile section.
 
-| Key | Index |
-| - | - |
-| PROTOCOL | 1
-| SENS_TOUCH | 2
-| SENS_MOUSE | 3
-| DEADZONE | 4
+Direction: `Controller` <- `App`
 
-## Profile messages
-TODO
+| Byte 0  | 1         | 2            | 3            | 4             | 5 |
+| -       | -         | -            | -            | -             | - |
+| Version | Device Id | Message type | Payload size | Payload       | Payload
+|         |           | PROFILE_GET  | 2            | PROFILE INDEX | SECTION INDEX
+
+## Profile SET message
+Change the value of some specific profile section.
+
+Direction: `Controller` <- `App`
+
+| Byte 0  | 1         | 2            | 3            | 4             | 5             | 6~64 |
+| -       | -         | -            | -            | -             | -             | -    |
+| Version | Device Id | Message type | Payload size | Payload       | Payload       | Payload
+|         |           | PROFILE_SET  | 58           | PROFILE INDEX | SECTION INDEX | SECTION DATA
+
+## Profile SHARE message
+Notify the current value of some specific profile section.
+
+Direction: `Controller` -> `App`
+
+| Byte 0  | 1         | 2              | 3            | 4             | 5             | 6~64 |
+| -       | -         | -              | -            | -             | -             | -    |
+| Version | Device Id | Message type   | Payload size | Payload       | Payload       | Payload
+|         |           | PROFILE_SHARE  | 58           | PROFILE INDEX | SECTION INDEX | SECTION DATA
 
 ## Example of config interchange
-
-(Imagine this is a sequence diagram)
-| App |  | Controller
-| - | - | - |
-| App is about to display current mouse sens
-| App request the current mouse sens value | -- CONFIG_GET --> | OK
-| OK | <-- CONFIG_SHARE -- | Controller share the current value
-| App display the current mouse sensitivity
-| User changes mouse sensitivity in-app
-| App request to change the current value | -- CONFIG_SET --> | OK
-| OK | <-- CONFIG_SHARE -- | Controller share the new current value
-| App display the new mouse sensitivity
+```mermaid
+sequenceDiagram
+    participant A as App
+    participant C as Controller
+    Note over A: App must display current mouse sens
+    A->>C: App request the current mouse sensitivity value <br>[CONFIG_GET]
+    C->>A: Controller share the current value <br>[CONFIG_SHARE]
+    Note over A: App display the current mouse sensitivity
+    Note over A: ...
+    Note over A: User changes mouse sensitivity in-app
+    A->>C: App request to change the current value <br>[CONFIG_SET]
+    C->>A: Controller share the new value as confirmation <br>[CONFIG_SHARE]
+    Note over A: App display the new mouse sensitivity
+```

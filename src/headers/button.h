@@ -4,6 +4,12 @@
 #pragma once
 #include <stdbool.h>
 #include <pico/stdlib.h>
+#include "ctrl.h"
+#include "common.h"
+
+#define ACTIONS_LEN 4
+
+typedef uint8_t Actions[ACTIONS_LEN];
 
 // https://inputlabs.io/alpakka/manual/dev_profiles#button_mode
 typedef enum ButtonMode_enum {
@@ -16,13 +22,7 @@ typedef enum ButtonMode_enum {
     HOLD_DOUBLE_PRESS,
 } ButtonMode;
 
-#define SENTINEL 255
-#define MACROS_LEN 16
-#define ACTIONS_LEN 4
-#define ACTIONS(...)  __VA_ARGS__, SENTINEL
-
 typedef struct Button_struct Button;
-
 struct Button_struct {
     bool (*is_pressed) (Button *self);
     void (*report) (Button *self);
@@ -33,9 +33,9 @@ struct Button_struct {
     void (*handle_hold_overlap) (Button *self,  uint16_t time);
     void (*handle_hold_double_press) (Button *self);
     uint8_t pin;
-    uint8_t mode;
-    uint8_t actions[MACROS_LEN];
-    uint8_t actions_secondary[MACROS_LEN];
+    ButtonMode mode;
+    Actions actions;
+    Actions actions_secondary;
     bool state;
     bool state_secondary;
     bool virtual_press;
@@ -46,5 +46,11 @@ struct Button_struct {
 Button Button_ (
     uint8_t pin,
     ButtonMode mode,
-    ...  // Actions.
+    Actions actions,
+    Actions actions_secondary
+);
+
+Button Button_from_ctrl(
+    uint8_t pin,
+    CtrlSection section
 );

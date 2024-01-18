@@ -10,14 +10,13 @@
 #include <hardware/spi.h>
 #include "imu.h"
 #include "config.h"
-#include "helper.h"
+#include "common.h"
 #include "pin.h"
 #include "bus.h"
 #include "touch.h"
 #include "hid.h"
 #include "led.h"
 #include "vector.h"
-#include "helper.h"
 #include "logging.h"
 
 double offset_gyro_0_x;
@@ -41,26 +40,29 @@ void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     uint8_t xl = bus_spi_read_one(cs, IMU_CTRL1_XL);
     uint8_t g = bus_spi_read_one(cs, IMU_CTRL2_G);
     info("  IMU cs=%i id=0x%02x xl=0b%08i g=0b%08i\n", cs, id, bin(xl), bin(g));
+    if (id == 0x00) {
+        warn("Gyro was not able to initialize\n");
+        config_set_problem_gyro(true);
+    }
 }
 
 void imu_init() {
     info("INIT: IMU\n");
     imu_init_single(PIN_SPI_CS0, IMU_CTRL2_G_500);
     imu_init_single(PIN_SPI_CS1, IMU_CTRL2_G_125);
-    config_nvm_t config;
-    config_read(&config);
-    offset_gyro_0_x = config.offset_gyro_0_x;
-    offset_gyro_0_y = config.offset_gyro_0_y;
-    offset_gyro_0_z = config.offset_gyro_0_z;
-    offset_gyro_1_x = config.offset_gyro_1_x;
-    offset_gyro_1_y = config.offset_gyro_1_y;
-    offset_gyro_1_z = config.offset_gyro_1_z;
-    offset_accel_0_x = config.offset_accel_0_x;
-    offset_accel_0_y = config.offset_accel_0_y;
-    offset_accel_0_z = config.offset_accel_0_z;
-    offset_accel_1_x = config.offset_accel_1_x;
-    offset_accel_1_y = config.offset_accel_1_y;
-    offset_accel_1_z = config.offset_accel_1_z;
+    Config *config = config_read();
+    offset_gyro_0_x = config->offset_gyro_0_x;
+    offset_gyro_0_y = config->offset_gyro_0_y;
+    offset_gyro_0_z = config->offset_gyro_0_z;
+    offset_gyro_1_x = config->offset_gyro_1_x;
+    offset_gyro_1_y = config->offset_gyro_1_y;
+    offset_gyro_1_z = config->offset_gyro_1_z;
+    offset_accel_0_x = config->offset_accel_0_x;
+    offset_accel_0_y = config->offset_accel_0_y;
+    offset_accel_0_z = config->offset_accel_0_z;
+    offset_accel_1_x = config->offset_accel_1_x;
+    offset_accel_1_y = config->offset_accel_1_y;
+    offset_accel_1_z = config->offset_accel_1_z;
 }
 
 Vector imu_read_gyro_bits(uint8_t cs) {
@@ -149,7 +151,7 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
         CFG_CALIBRATION_SAMPLES_GYRO
     );
     while(i < samples) {
-        if (!(i % CFG_CALIBRATION_BLINK_FREQ)) led_cycle_step();
+        if (!(i % CFG_CALIBRATION_BLINK_FREQ)) led_show_cycle_step();
         Vector sample = mode ? imu_read_accel_bits(cs) : imu_read_gyro_bits(cs);
         tx += sample.x;
         ty += sample.y;
