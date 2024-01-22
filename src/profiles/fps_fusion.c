@@ -190,12 +190,12 @@ void config_profile_default_fps_fusion(CtrlProfile *profile){
     };
     profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){
         .mode=NORMAL,
-        .actions={KEY_SHIFT_RIGHT},
+        .actions={KEY_BRACKET_LEFT},
         .hint="Walk",
     };
     profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){
         .mode=NORMAL,
-        .actions={KEY_CONTROL_RIGHT},
+        .actions={KEY_BRACKET_RIGHT},
         .hint="Run",
     };
 
