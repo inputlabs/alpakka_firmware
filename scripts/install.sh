@@ -7,9 +7,10 @@ SDK_TAG=1.5.1
 
 # ARM toolchain.
 # WEBSITE: https://developer.arm.com/downloads/-/gnu-rm
-ARM_URL_COMMON=https://developer.arm.com/-/media/Files/downloads/gnu/12.3.rel1/binrel/
+ARM_URL_COMMON=https://developer.arm.com/-/media/Files/downloads/gnu/12.3.rel1/binrel
 ARM_FILENAME_DARWIN=arm-gnu-toolchain-12.3.rel1-darwin-arm64-arm-none-eabi.tar.xz
-ARM_FILENAME_LINUX=arm-gnu-toolchain-12.3.rel1-x86_64-arm-none-eabi.tar.xz
+ARM_FILENAME_LINUX_X86_64=arm-gnu-toolchain-12.3.rel1-x86_64-arm-none-eabi.tar.xz
+ARM_FILENAME_LINUX_ARM64=arm-gnu-toolchain-12.3.rel1-aarch64-arm-none-eabi.tar.xz
 ARM_TAR=arm-toolchain.tar.bz2
 ARM_DIR=arm-toolchain
 
@@ -20,10 +21,17 @@ rm -rf deps
 mkdir deps
 cd deps
 
-if [ `uname` = 'Darwin' ]; then
+PLATFORM="$( uname -sm )"
+
+if [ "$PLATFORM" = "Darwin arm64" ]; then
     ARM_URL=$ARM_URL_COMMON/$ARM_FILENAME_DARWIN
+elif [ "$PLATFORM" = "Linux x86_64" ]; then
+    ARM_URL=$ARM_URL_COMMON/$ARM_FILENAME_LINUX_X86_64
+elif [ "$PLATFORM" = "Linux aarch64" ]; then
+    ARM_URL=$ARM_URL_COMMON/$ARM_FILENAME_LINUX_ARM64
 else
-    ARM_URL=$ARM_URL_COMMON/$ARM_FILENAME_LINUX
+    echo "Unsupported platform: ${PLATFORM}"
+    exit 1
 fi
 
 echo 'Downloading ARM toolchain...'
