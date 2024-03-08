@@ -266,6 +266,7 @@
 void hid_thanks();
 void hid_matrix_reset();
 void hid_press(uint8_t key);
+void hid_press_state(uint8_t key, bool state);
 void hid_release(uint8_t key);
 void hid_press_multiple(uint8_t *keys);
 void hid_release_multiple(uint8_t *keys);
@@ -288,6 +289,9 @@ void hid_gamepad_ry(double value);
 void hid_gamepad_lz(double value);
 void hid_gamepad_rz(double value);
 void hid_report();
+void hid_report_direct_keyboard(int8_t modifiers, int8_t keys[6]);
+void hid_report_direct_mouse(uint8_t buttons, int8_t x, int8_t y, int8_t scroll);
+void hid_report_wireless_device();
 void hid_init();
 
 extern bool hid_allow_communication;

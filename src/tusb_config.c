@@ -43,18 +43,24 @@ uint8_t descriptor_configuration_xinput[] = {
 uint8_t const *tud_descriptor_device_cb() {
     debug_uart("USB: tud_descriptor_device_cb\n");
     static tusb_desc_device_t descriptor_device = {DESCRIPTOR_DEVICE};
-    if (config_get_protocol() == PROTOCOL_XINPUT_WIN) {
-        descriptor_device.idVendor = USB_WIN_VENDOR;
-        descriptor_device.idProduct = USB_WIN_PRODUCT;
-    }
-    if (config_get_protocol() == PROTOCOL_XINPUT_UNIX) {
-        descriptor_device.idVendor = USB_UNIX_VENDOR;
-        descriptor_device.idProduct = USB_UNIX_PRODUCT;
-    }
-    if (config_get_protocol() == PROTOCOL_GENERIC) {
-        descriptor_device.idVendor = USB_GENERIC_VENDOR;
-        descriptor_device.idProduct = USB_GENERIC_PRODUCT;
-    }
+    #ifdef FW_DEVICE_ALPAKKA
+        descriptor_device.idVendor = USB_BT_VENDOR;
+        descriptor_device.idProduct = USB_BT_PRODUCT;
+    #endif
+    #ifdef FW_DEVICE_DONGLE
+        if (config_get_protocol() == PROTOCOL_XINPUT_WIN) {
+            descriptor_device.idVendor = USB_WIN_VENDOR;
+            descriptor_device.idProduct = USB_WIN_PRODUCT;
+        }
+        if (config_get_protocol() == PROTOCOL_XINPUT_UNIX) {
+            descriptor_device.idVendor = USB_UNIX_VENDOR;
+            descriptor_device.idProduct = USB_UNIX_PRODUCT;
+        }
+        if (config_get_protocol() == PROTOCOL_GENERIC) {
+            descriptor_device.idVendor = USB_GENERIC_VENDOR;
+            descriptor_device.idProduct = USB_GENERIC_PRODUCT;
+        }
+    #endif
     return (uint8_t const *) &descriptor_device;
 }
 

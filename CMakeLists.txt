@@ -14,6 +14,13 @@ else()
 endif()
 
 set(PROJECT alpakka)
+set(PICO_BOARD pico_w)
+set(DEBUG 0)
+
+# set(PICO_CYW43_ARCH_DEBUG_ENABLED=1)
+# set(PICO_CYW43_ARCH_POLL=1)
+# set(PICO_CYW43_ARCH_THREADSAFE_BACKGROUND=1)
+
 project(${PROJECT} C CXX ASM)
 pico_sdk_init()
 
@@ -21,9 +28,16 @@ add_executable(${PROJECT}
     src/main.c
 )
 
+if(DEFINED FW_DEVICE_ALPAKKA)
+    target_compile_definitions(${PROJECT} PUBLIC FW_DEVICE_ALPAKKA=1)
+endif()
+
+if(DEFINED FW_DEVICE_DONGLE)
+    target_compile_definitions(${PROJECT} PUBLIC FW_DEVICE_DONGLE=1)
+endif()
+
 target_link_libraries(${PROJECT}
     pico_stdlib
-    pico_multicore
     pico_time
     pico_unique_id
     pico_bootrom
@@ -36,6 +50,8 @@ target_link_libraries(${PROJECT}
     hardware_sync
     hardware_timer
     tinyusb_device
+    pico_cyw43_arch_lwip_poll
+    # pico_cyw43_arch_lwip_threadsafe_background
 )
 
 target_include_directories(${PROJECT} PUBLIC
@@ -76,6 +92,7 @@ target_sources(${PROJECT} PUBLIC
     src/uart.c
     src/vector.c
     src/webusb.c
+    src/wlan.c
     src/xinput.c
 )
 

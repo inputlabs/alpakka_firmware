@@ -28,6 +28,8 @@ The intended use of the internal API is as follows:
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <pico/cyw43_arch.h>
 #include <pico/stdlib.h>
 #include <pico/time.h>
 #include <hardware/pwm.h>

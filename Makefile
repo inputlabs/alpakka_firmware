@@ -3,10 +3,14 @@
 
 default: version
 	mkdir -p build
-	cmake . -B build && cd build && make
+	cmake . -B build -DFW_DEVICE_ALPAKKA=1 && cd build && make -j10
+
+dongle: version
+	mkdir -p build
+	cmake . -B build -DFW_DEVICE_DONGLE=1 && cd build && make -j10
 
 rebuild: version
-	cd build && make
+	cd build && make -j10
 
 version:
 	sh -e scripts/version.sh
@@ -25,6 +29,9 @@ reload: rebuild load
 
 session:
 	sh -e scripts/session.sh
+
+session_dongle:
+	sh -e scripts/session_dongle.sh
 
 session_quit:
 	screen -S alpakka -X quit

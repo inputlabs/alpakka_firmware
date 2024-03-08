@@ -5,6 +5,7 @@
 #include "config.h"
 #include "ctrl.h"
 #include "hid.h"
+#include "wlan.h"
 #include "led.h"
 #include "profile.h"
 #include "xinput.h"
@@ -113,6 +114,14 @@ void hid_release(uint8_t key) {
         else if (key >= MOUSE_INDEX) synced_mouse = false;
         else synced_keyboard = false;
     }
+}
+
+void hid_press_state(uint8_t key, bool state) {
+    if (state_matrix[key] == (uint8_t)state) return;
+    state_matrix[key] = (uint8_t)state;
+    if (key >= GAMEPAD_INDEX) synced_gamepad = false;
+    else if (key >= MOUSE_INDEX) synced_mouse = false;
+    else synced_keyboard = false;
 }
 
 void hid_press_multiple(uint8_t *keys) {
@@ -259,7 +268,7 @@ void hid_gamepad_rz(double value) {
     synced_gamepad = false;
 }
 
-void hid_mouse_report() {
+void hid_mouse_report(bool wireless) {
     // Create button bitmask.
     int8_t buttons = 0;
     for(int i=0; i<5; i++) {
@@ -274,15 +283,16 @@ void hid_mouse_report() {
     state_matrix[MOUSE_SCROLL_UP] = 0;
     state_matrix[MOUSE_SCROLL_DOWN] = 0;
     // Send report.
+    if (wireless) wlan_report_mouse(buttons, report.x, report.y);
     tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
 }
 
-void hid_keyboard_report() {
-    uint8_t report[6] = {0};
+void hid_keyboard_report(bool wireless) {
+    uint8_t keys[6] = {0};
     uint8_t keys_available = 6;
     for(int i=0; i<=115; i++) {
         if (state_matrix[i] >= 1) {
-            report[keys_available - 1] = (uint8_t)i;
+            keys[keys_available - 1] = (uint8_t)i;
             keys_available--;
             if (keys_available == 0) {
                 break;
@@ -293,11 +303,8 @@ void hid_keyboard_report() {
     for(int i=0; i<8; i++) {
         modifier += !!state_matrix[MODIFIER_INDEX + i] << i;
     }
-    tud_hid_keyboard_report(
-        REPORT_KEYBOARD,
-        modifier,
-        report
-    );
+    if (wireless) wlan_report_keyboard(modifier, keys);
+    else tud_hid_keyboard_report(REPORT_KEYBOARD, modifier, keys);
 }
 
 double hid_axis(
@@ -399,6 +406,17 @@ void hid_gamepad_reset() {
     gamepad_rz = 0;
 }
 
+void hid_report_wireless_device() {
+    if (!synced_keyboard) {
+        hid_keyboard_report(true);
+        synced_keyboard = true;
+    }
+    if (!synced_mouse) {
+        hid_mouse_report(true);
+        synced_mouse = true;
+    }
+}
+
 void hid_report() {
     static bool is_tud_ready = false;
     static bool is_tud_ready_logged = false;
@@ -424,11 +442,11 @@ void hid_report() {
             webusb_read();
             webusb_flush();
             if (!synced_keyboard) {
-                hid_keyboard_report();
+                hid_keyboard_report(false);
                 synced_keyboard = true;
             }
             else if (!synced_mouse && (priority_mouse > priority_gamepad)) {
-                hid_mouse_report();
+                hid_mouse_report(false);
                 synced_mouse = true;
                 priority_mouse = 0;
             }
@@ -454,6 +472,29 @@ void hid_report() {
             is_tud_ready_logged = false;
             info("USB: tud_ready FALSE\n");
         }
+    }
+}
+
+void hid_report_direct_keyboard(int8_t modifiers, int8_t keys[6]) {
+    tud_task();
+    if (tud_ready() && tud_hid_ready()) {
+        tud_hid_keyboard_report(REPORT_KEYBOARD, modifiers, keys);
+    }
+}
+
+void hid_report_direct_mouse(uint8_t buttons, int8_t x, int8_t y, int8_t scroll) {
+    static int16_t bufx = 0;
+    static int16_t bufy = 0;
+    bufx += x;
+    bufy += y;
+    tud_task();
+    if (tud_ready() && tud_hid_ready()) {
+        hid_mouse_custom_report_t report = {buttons, bufx, bufy, scroll, 0};
+        tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
+        bufx = 0;
+        bufy = 0;
+    } else {
+        // warn("USB: Skipped\n");
     }
 }
 

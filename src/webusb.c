@@ -19,6 +19,7 @@ uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
 
+uint8_t webusb_pending_establish = 1;
 uint8_t webusb_pending_config_share = 0;
 uint8_t webusb_pending_profile_share = 0;
 uint8_t webusb_pending_section_share = 0;
@@ -44,6 +45,7 @@ bool webusb_flush() {
     // Check if there is anything to flush.
     if (
         webusb_ptr_in == 0 &&
+        !webusb_pending_establish &&
         !webusb_pending_config_share &&
         !webusb_pending_profile_share &&
         !webusb_pending_section_share
@@ -62,7 +64,10 @@ bool webusb_flush() {
     // referenced by the transfer underlying mechanisms.
     static Ctrl ctrl;
     // Generate message.
-    if (webusb_pending_config_share) {
+    if (webusb_pending_establish) {
+        ctrl = ctrl_establish_device();
+        webusb_pending_establish = 0;
+    } else if (webusb_pending_config_share) {
         ctrl = ctrl_config_share(webusb_pending_config_share);
         webusb_pending_config_share = 0;
     } else if (webusb_pending_profile_share || webusb_pending_section_share) {
@@ -90,6 +95,7 @@ void webusb_write(char *msg) {
     uint16_t len = strlen(msg);
     // If the buffer is full, ignore the latest messages.
     if (webusb_ptr_in + len >= WEBUSB_BUFFER_SIZE-64-1) {
+//        printf("Warning: WebUSB buffer is full\n");
         return;
     }
     // Add message to the buffer.
@@ -105,6 +111,14 @@ void webusb_write(char *msg) {
     } else {
         webusb_timedout = false;
     }
+}
+
+void webusb_handle_establish(uint8_t time[8]) {
+    uint64_t clock = 0;
+    for (uint8_t i=0; i<8; i++) {
+        clock += ((uint64_t)time[i]) << (8 * i);
+    }
+    set_system_clock(clock);
 }
 
 void webusb_handle_proc(uint8_t proc) {
@@ -175,6 +189,7 @@ void webusb_read() {
     usbd_edpt_xfer(0, ADDR_WEBUSB_OUT, (uint8_t*)&ctrl, 64);
     usbd_edpt_release(0, ADDR_WEBUSB_OUT);
     // Handle incomming message.
+    if (ctrl.message_type == ESTABLISH_HOST) webusb_handle_establish(ctrl.payload);
     if (ctrl.message_type == PROC) webusb_handle_proc(ctrl.payload[0]);
     if (ctrl.message_type == CONFIG_GET) webusb_handle_config_get(ctrl.payload[0]);
     if (ctrl.message_type == CONFIG_SET) {

@@ -7,6 +7,16 @@
 #include "config.h"
 #include "common.h"
 
+Ctrl ctrl_establish_device() {
+    Ctrl ctrl = {
+        .protocol_version = CTRL_PROTOCOL_VERSION,
+        .device_id = ALPAKKA,
+        .message_type = ESTABLISH_DEVICE,
+        .len=0
+    };
+    return ctrl;
+}
+
 Ctrl ctrl_log(uint8_t* offset_ptr, uint8_t len) {
     Ctrl ctrl = {
         .protocol_version = CTRL_PROTOCOL_VERSION,

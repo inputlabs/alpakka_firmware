@@ -42,5 +42,8 @@ git checkout --quiet $SDK_TAG
 
 echo "Configuring Pico C SDK..."
 git submodule update --init
+# cd "lib/btstack" && git checkout c26f2c7ba71221a2122afaf0cfbfa38f1ce5c589
+# cd "lib/btstack" && git checkout master
+cd "lib/cyw43-driver" && git checkout main
 
 echo "Dependencies installed"
