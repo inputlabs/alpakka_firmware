@@ -42,6 +42,7 @@ target_link_libraries(${PROJECT}
     pico_unique_id
     pico_bootrom
     pico_bootsel_via_double_reset
+    pico_rand
     hardware_adc
     hardware_flash
     hardware_i2c

@@ -3,6 +3,7 @@
 
 #include <pico/time.h>
 #include <pico/cyw43_arch.h>
+#include <pico/rand.h>
 #include <lwip/udp.h>
 #include <lwip/pbuf.h>
 #include "hid.h"
@@ -85,6 +86,7 @@ void wlan_host_setup() {
 void wlan_device_setup() {
     info("WLAN: Wireless device setup\n");
     cyw43_arch_init();
+    cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, 2000, 1, 1, 1);
     cyw43_arch_enable_sta_mode();
 
     ipaddr_aton(UDP_HOST_ADDR, &host_addr);
@@ -124,6 +126,8 @@ void wlan_host_task() {
     cyw43_arch_poll();
 }
 
+void wlan_report_mouse(int8_t buttons, int8_t x, int8_t y); //////
+
 void wlan_device_task() {
     if(!device_connected) {
         cyw43_arch_poll();
@@ -132,16 +136,12 @@ void wlan_device_task() {
 
     // static uint16_t i = 0;
     // i++;
-    // uint8_t s = 5; //(i%100) / 10;
-    // if (i < 100) w_report_mouse(0, s, 0);
-    // else if (i < 200) w_report_mouse(0, 0, s);
-    // else if (i < 300) w_report_mouse(0, -s, 0);
-    // else if (i < 400) w_report_mouse(0, 0, -s);
-    // else if (i < 500) w_report_mouse(0, 0, 0);
-    // else i = 0;
+    // uint8_t rx = get_rand_32() % 11 - 5;
+    // uint8_t ry = get_rand_32() % 11 - 5;
+    // wlan_report_mouse(0, rx, ry);
 
-    cyw43_arch_poll();
     hid_report_wireless_device();
+    cyw43_arch_poll();
 }
 
 void wlan_report(uint8_t *report, uint8_t len) {
@@ -157,6 +157,7 @@ void wlan_report(uint8_t *report, uint8_t len) {
     }
     else {
         printf("WLAN: UDP send error %i\n", error);
+        // printf("X");
     }
     // pbuf_free(buf);
 
