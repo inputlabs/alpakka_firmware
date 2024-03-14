@@ -53,6 +53,9 @@
 #define USB_GENERIC_VENDOR  0x0170  // Input Labs.
 #define USB_GENERIC_PRODUCT 0xA09D  // Alpakka (HID complilant gamepad)
 
+#define USB_TEST_VENDOR  0x0170  // Input Labs.
+#define USB_TEST_PRODUCT 0xFF00  // TODO
+
 #define DESCRIPTOR_DEVICE \
     0x12,    /* .bLength */\
     0x01,    /* .bDescriptorType */\

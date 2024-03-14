@@ -1,4 +1,4 @@
-build/
+build*/
 deps*/
 .vscode
 **/.DS_Store

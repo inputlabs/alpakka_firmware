@@ -4,6 +4,7 @@
 #pragma once
 #include <pico/stdlib.h>
 #include <math.h>
+#include <pico/util/queue.h>  ////////
 
 #define BIT_18 262143
 #define BIT_17 131071
@@ -60,3 +61,6 @@ uint8_t random8();
 // Input MIN: Lower part of the range, that will result in -1.
 // Input MAX: Upper part of the range, that will result in +1.
 #define ramp(x, min, max)  constrain( 2 * ((x-min) / (max-min)) - 1, -1, 1)
+
+
+queue_t* get_core_queue();    ///////////

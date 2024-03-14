@@ -24,5 +24,6 @@
 void imu_init();
 Vector imu_read_gyro();
 Vector imu_read_accel();
+Vector imu_read_gyro_bits(uint8_t cs);
 void imu_calibrate();
 

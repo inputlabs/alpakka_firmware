@@ -2,9 +2,11 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <tusb.h>
+#include <pico/util/queue.h>
 #include "config.h"
 #include "ctrl.h"
 #include "hid.h"
+#include "wireless.h"
 #include "led.h"
 #include "profile.h"
 #include "xinput.h"
@@ -259,7 +261,7 @@ void hid_gamepad_rz(double value) {
     synced_gamepad = false;
 }
 
-void hid_mouse_report() {
+void hid_mouse_report(bool wired) {
     // Create button bitmask.
     int8_t buttons = 0;
     for(int i=0; i<5; i++) {
@@ -274,15 +276,27 @@ void hid_mouse_report() {
     state_matrix[MOUSE_SCROLL_UP] = 0;
     state_matrix[MOUSE_SCROLL_DOWN] = 0;
     // Send report.
-    tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
+    if (wired) tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
+    else {
+        uint8_t wreport[32] = {
+            REPORT_MOUSE,
+            buttons,
+            report.x >> 8,
+            report.x,
+            report.y >> 8,
+            report.y
+        };
+        bool added = queue_try_add(get_core_queue(), wreport);
+        if (!added) printf("HID: Cannot add into queue\n");
+    }
 }
 
-void hid_keyboard_report() {
-    uint8_t report[6] = {0};
+void hid_keyboard_report(bool wired) {
+    uint8_t keys[6] = {0};
     uint8_t keys_available = 6;
     for(int i=0; i<=115; i++) {
         if (state_matrix[i] >= 1) {
-            report[keys_available - 1] = (uint8_t)i;
+            keys[keys_available - 1] = (uint8_t)i;
             keys_available--;
             if (keys_available == 0) {
                 break;
@@ -293,11 +307,8 @@ void hid_keyboard_report() {
     for(int i=0; i<8; i++) {
         modifier += !!state_matrix[MODIFIER_INDEX + i] << i;
     }
-    tud_hid_keyboard_report(
-        REPORT_KEYBOARD,
-        modifier,
-        report
-    );
+    if (wired) tud_hid_keyboard_report(REPORT_KEYBOARD, modifier, keys);
+    else wireless_report_keyboard(modifier, keys);
 }
 
 double hid_axis(
@@ -399,6 +410,17 @@ void hid_gamepad_reset() {
     gamepad_rz = 0;
 }
 
+void hid_report_wireless() {
+    if (!synced_keyboard) {
+        hid_keyboard_report(false);
+        synced_keyboard = true;
+    }
+    if (!synced_mouse) {
+        hid_mouse_report(false);
+        synced_mouse = true;
+    }
+}
+
 void hid_report() {
     static bool is_tud_ready = false;
     static bool is_tud_ready_logged = false;
@@ -424,11 +446,11 @@ void hid_report() {
             webusb_read();
             webusb_flush();
             if (!synced_keyboard) {
-                hid_keyboard_report();
+                hid_keyboard_report(true);
                 synced_keyboard = true;
             }
             else if (!synced_mouse && (priority_mouse > priority_gamepad)) {
-                hid_mouse_report();
+                hid_mouse_report(true);
                 synced_mouse = true;
                 priority_mouse = 0;
             }
@@ -455,6 +477,31 @@ void hid_report() {
             info("USB: tud_ready FALSE\n");
         }
     }
+}
+
+void hid_report_direct_keyboard(int8_t modifiers, int8_t keys[6]) {
+    tud_task();
+    if (tud_ready() && tud_hid_ready()) {
+        tud_hid_keyboard_report(REPORT_KEYBOARD, modifiers, keys);
+    }
+}
+
+void hid_report_direct_mouse(uint8_t buttons, int16_t x, int16_t y, int8_t scroll) {
+    static int16_t bufx = 0;
+    static int16_t bufy = 0;
+    bufx += x;
+    bufy += y;
+    tud_task();
+    if (tud_ready() && tud_hid_ready()) {
+        hid_mouse_custom_report_t report = {buttons, bufx, bufy, scroll, 0};
+        tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
+        bufx = 0;
+        bufy = 0;
+    } else {
+        // warn("USB: Skipped\n");
+        printf("U");
+    }
+    tud_task();
 }
 
 // A not-so-secret easter egg.

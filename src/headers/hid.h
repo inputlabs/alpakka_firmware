@@ -288,6 +288,9 @@ void hid_gamepad_ry(double value);
 void hid_gamepad_lz(double value);
 void hid_gamepad_rz(double value);
 void hid_report();
+void hid_report_wireless();
+void hid_report_direct_keyboard(int8_t modifiers, int8_t keys[6]);
+void hid_report_direct_mouse(uint8_t buttons, int16_t x, int16_t y, int8_t scroll);
 void hid_init();
 
 extern bool hid_allow_communication;
