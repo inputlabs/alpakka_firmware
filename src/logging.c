@@ -41,7 +41,9 @@ void write(char *msg, va_list args) {
     char formatted[256] = {0,};
     vsnprintf(formatted, 256, msg, args);
     printf(formatted);  // UART.
-    // webusb_write(formatted);  // WebUSB. // TEMPORALLY DISABLED, TODO only try if usb is init
+    #ifdef FW_DEVICE_DONGLE
+        webusb_write(formatted);  // WebUSB.
+    #endif
 }
 
 void info(char *msg, ...) {

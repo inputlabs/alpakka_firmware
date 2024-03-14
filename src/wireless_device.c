@@ -89,61 +89,56 @@ const uint8_t hid_descriptor[] = {
     0xc0                           // END_COLLECTION
 };
 
-void wireless_process_queue() {
-    uint8_t n = 0;
-    uint8_t buttons = 0;
-    int16_t x = 0;
-    int16_t y = 0;
+void wireless_queue_append(uint8_t report_type, void *report, uint8_t len) {
+    uint8_t entry[32] = {report_type};
+    memcpy(&entry[1], report, len);
+    bool added = queue_try_add(get_core_queue(), entry);
+    if (!added) printf("HID: Cannot add into queue\n");
+}
+
+void wireless_queue_process() {
+    uint8_t reporting_type = 0;
+    uint8_t mouse_reports = 0;
+    uint8_t mouse_buttons = 0;
+    int16_t mouse_x = 0;
+    int16_t mouse_y = 0;
+    uint8_t kb_reports = 0;
+    uint8_t kb_modifiers = 0;
+    uint8_t kb_keys[6] = {0,};
     while(!queue_is_empty(get_core_queue())) {
-        n++;
-        uint8_t report[32];
-        queue_remove_blocking(get_core_queue(), report);
-        if (report[0] == 2) {
-            buttons = report[1];
-            x += (report[2] << 8) + report[3];
-            y += (report[4] << 8) + report[5];
+        uint8_t entry[32];
+        queue_remove_blocking(get_core_queue(), entry);
+        uint8_t report_type = entry[0];
+        if (report_type == REPORT_KEYBOARD) {
+            if (!reporting_type || reporting_type==REPORT_KEYBOARD) {
+                reporting_type = REPORT_KEYBOARD;
+                hid_keyboard_report_temp report = *(hid_keyboard_report_temp*)&entry[1];
+                kb_modifiers = report.modifier;
+                memcpy(kb_keys, report.keycode, 6);
+                kb_reports += 1;
+            }
+        }
+        if (report_type == REPORT_MOUSE) {
+            if (!reporting_type || reporting_type==REPORT_MOUSE) {
+                reporting_type = REPORT_MOUSE;
+                hid_mouse_custom_report_temp report = *(hid_mouse_custom_report_temp*)&entry[1];
+                mouse_buttons = report.buttons;
+                mouse_x += report.x;
+                mouse_y += report.y;
+                mouse_reports += 1;
+            }
         }
     }
-    if (n>1) printf("%i ", n);
-    // if (abs(x) > 127) printf()
-    if (n) wireless_report_mouse(buttons, x, y);
-}
-
-void wireless_report_keyboard(int8_t modifiers, int8_t k[6]) {
-    uint8_t report[] = {0xa1, 0x01, modifiers, 0, k[0], k[1], k[2], k[3], k[4], k[5]};
-    hid_device_send_interrupt_message(hid_cid, &report[0], sizeof(report));
-}
-
-void wireless_report_mouse(int8_t buttons, int16_t x, int16_t y) {
-    // uint64_t rt = get_system_clock() + (time_us_32() / 1000);
-
-    // x = get_rand_32() % 21 - 10;
-    // y = get_rand_32() % 21 - 10;
-
-    // x = y = 0;
-    // static uint8_t z = 0;
-    // z += 8;
-    // if (z < 127) x = 40;
-    // else x = -40;
-
-    uint8_t report[] = {
-        0xa1,
-        0x02,
-        buttons,
-        x >> 8,
-        x,
-        y >> 8,
-        y
-        // (rt >> (8*0)) & 255,
-        // (rt >> (8*1)) & 255,
-        // (rt >> (8*2)) & 255,
-        // (rt >> (8*3)) & 255,
-        // (rt >> (8*4)) & 255,
-        // (rt >> (8*5)) & 255,
-        // (rt >> (8*6)) & 255,
-        // (rt >> (8*7)) & 255,
-    };
-    hid_device_send_interrupt_message(hid_cid, &report[0], sizeof(report));
+    if (reporting_type == REPORT_KEYBOARD) {
+        uint8_t report[10] = {0xa1, REPORT_KEYBOARD, kb_modifiers, 0};
+        memcpy(&report[4], kb_keys, 6);
+        hid_device_send_interrupt_message(hid_cid, report, sizeof(report));
+    }
+    if (reporting_type == REPORT_MOUSE) {
+        if (mouse_reports > 1) printf("%i ", mouse_reports);
+        uint8_t report[] = {0xa1, REPORT_MOUSE, mouse_buttons, mouse_x>>8, mouse_x, mouse_y>>8, mouse_y};
+        hid_device_send_interrupt_message(hid_cid, report, sizeof(report));
+    }
 }
 
 #define PERIOD 1  // ms
@@ -233,7 +228,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                         case HID_SUBEVENT_CAN_SEND_NOW:                            // 0x04
 	                        debug("HID_SUBEVENT_CAN_SEND_NOW\n");
                             // wireless_report_mouse(0, 0, 0);
-                            wireless_process_queue();
+                            wireless_queue_process();
 	                        break;
                         case HID_SUBEVENT_SNIFF_SUBRATING_PARAMS:     // 0x0E
     	                    debug("HID_SUBEVENT_SNIFF_SUBRATING_PARAMS, doing nothing\n");

@@ -9,7 +9,7 @@
 
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_HEADER 0b01010101
-#define NVM_STRUCT_VERSION 17 //16
+#define NVM_STRUCT_VERSION 18 //16
 #define NVM_CONFIG_SIZE 256
 #define NVM_PROFILE_SIZE 4096
 #define NVM_PROFILE_SLOTS 14
@@ -22,7 +22,7 @@
 
 #define CFG_TICK_FREQUENCY 250  // Hz.
 #define CFG_TICK_INTERVAL  (1000 / CFG_TICK_FREQUENCY)
-#define CFG_IMU_TICK_SAMPLES 128  // Multi-sampling per pooling cycle.
+#define CFG_IMU_TICK_SAMPLES 110  // Multi-sampling per pooling cycle.
 #define CFG_HID_REPORT_PRIORITY_RATIO 8
 
 #define CFG_CALIBRATION_SAMPLES_THUMBSTICK 100000  // Samples.

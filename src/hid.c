@@ -2,7 +2,6 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <tusb.h>
-#include <pico/util/queue.h>
 #include "config.h"
 #include "ctrl.h"
 #include "hid.h"
@@ -277,18 +276,7 @@ void hid_mouse_report(bool wired) {
     state_matrix[MOUSE_SCROLL_DOWN] = 0;
     // Send report.
     if (wired) tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
-    else {
-        uint8_t wreport[32] = {
-            REPORT_MOUSE,
-            buttons,
-            report.x >> 8,
-            report.x,
-            report.y >> 8,
-            report.y
-        };
-        bool added = queue_try_add(get_core_queue(), wreport);
-        if (!added) printf("HID: Cannot add into queue\n");
-    }
+    else wireless_queue_append(REPORT_MOUSE, &report, sizeof(report));
 }
 
 void hid_keyboard_report(bool wired) {
@@ -303,12 +291,14 @@ void hid_keyboard_report(bool wired) {
             }
         }
     }
-    uint8_t modifier = 0;
+    uint8_t modifiers = 0;
     for(int i=0; i<8; i++) {
-        modifier += !!state_matrix[MODIFIER_INDEX + i] << i;
+        modifiers += !!state_matrix[MODIFIER_INDEX + i] << i;
     }
-    if (wired) tud_hid_keyboard_report(REPORT_KEYBOARD, modifier, keys);
-    else wireless_report_keyboard(modifier, keys);
+    hid_keyboard_report_t report = {modifiers};
+    memcpy(report.keycode, keys, 6);
+    if (wired) tud_hid_report(REPORT_KEYBOARD, &report, sizeof(report));
+    else wireless_queue_append(REPORT_KEYBOARD, &report, sizeof(report));
 }
 
 double hid_axis(

@@ -3,10 +3,10 @@
 
 #include <stdio.h>
 #include <pico/stdlib.h>
-#include <pico/binary_info.h>
 #include <pico/time.h>
-#include <hardware/spi.h>
+#include <hardware/watchdog.h>
 #include <btstack.h>
+#include "tusb_config.h"
 #include "wireless.h"
 #include "hid.h"
 #include "logging.h"
@@ -27,6 +27,15 @@ static const char * remote_addr_string = "28:CD:C1:06:C5:D5";  // Alpakka
 // static const char * remote_addr_string = "DC:2C:26:AC:EA:A1";  // Uhuru
 // static const char * remote_addr_string = "28:CD:C1:06:C5:D4";  // other pico
 
+void wireless_host_connect() {
+    info("BT: Host trying to connect to %s\n", bd_addr_to_str(remote_addr));
+    uint8_t status = hid_host_connect(remote_addr, hid_host_report_mode, &hid_host_cid);
+    if (status != ERROR_CODE_SUCCESS) {
+        info("BT: Host connect failed, status 0x%02x\n", status);
+        // watchdog_enable(1, false);
+    }
+}
+
 uint16_t period = 4;  // ms
 static btstack_timer_source_t loop_timer;
 
@@ -45,53 +54,36 @@ static void loop_setup(void){
 }
 
 void subevent_report(uint8_t *packet, uint16_t size) {
+    uint32_t received = time_us_32();
+    static uint32_t last = 0;
+    static uint32_t last_print = 0;
+    static uint8_t num = 0;
+    static uint16_t max = 0;
     const uint8_t *report = hid_subevent_report_get_report(packet);
-    // if (report[1] == 0x01) {
-    //     for(uint8_t i=0; i<6; i++) {
-    //         hid_press_state(report[4+i], true);
-    //     }
-    // }
-    if (report[1] == 0x02) {
+    uint8_t report_type = report[1];
+    if (report_type == REPORT_KEYBOARD) {
+        uint8_t modifiers = report[2];
+        uint8_t keys[6];
+        memcpy(keys, &report[4], 6);
+        hid_report_direct_keyboard(modifiers, keys);
+    }
+    if (report_type == REPORT_MOUSE) {
         uint8_t buttons = report[2];
         int16_t x = (report[3] << 8) + report[4];
         int16_t y = (report[5] << 8) + report[6];
-
-        // uint32_t sent = 0;
-        // for(uint8_t i=0; i<8; i++) {
-        //     sent += (((uint64_t)report[5+i]) << (8 * i));
-        // }
-        // uint32_t received = get_system_clock() + (time_us_32() / 1000);
-        uint32_t received = time_us_32();
-
-        static uint32_t last = 0;
-        static uint32_t last_print = 0;
-        static uint8_t num = 0;
-        static uint16_t max = 0;
-
-
+        // int16_t scroll = report[7];
         uint16_t elapsed = (received-last) / 1000;
         if (elapsed > max) max = elapsed;
         num += 1;
         last = time_us_32();
-
         if(elapsed > 15) printf("%i ", elapsed);
-
         if(time_us_32()-last_print > 1000000) {
             last_print = time_us_32();
             info("num=%i max=%i\n", num, max);
-            // info("avg=%0.2f sent=%i [%i %i %i %i %i] \n", avg/num, num, p10, p15, p20, p25, p30);
-            // avg = 0;
-            num = 0;
-            max = 0;
-            // p10 = p15 = p20 = p25 = p30 = 0;
+            num = max = 0;
         }
-
-        // for(uint8_t i=0; i<6; i++) {
-        //     hid_press_state(MOUSE_1+i, buttons & (1 << i));
-        // }
         hid_report_direct_mouse(buttons, x, y, 0);
     }
-    // hid_report();
 }
 
 void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) {
@@ -104,11 +96,7 @@ void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint
         if(event == BTSTACK_EVENT_STATE) {
             uint8_t state = btstack_event_state_get_state(packet);
             if (state == HCI_STATE_WORKING) {
-                info("BT: Host trying to connect to %s\n", bd_addr_to_str(remote_addr));
-                status = hid_host_connect(remote_addr, hid_host_report_mode, &hid_host_cid);
-                if (status != ERROR_CODE_SUCCESS) {
-                    info("BT: Host connect failed, status 0x%02x\n", status);
-                }
+                wireless_host_connect();
             } else {
                 debug("BT: Undefined state: 0x%02x\n", state);
             }
@@ -125,10 +113,12 @@ void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint
                 } else {
                     hid_host_cid = 0;
                     info("BT: Host connection failed, status 0x%02x\n", status);
+                    // watchdog_enable(1, false);
                 }
             }
             else if (subevent == HID_SUBEVENT_CONNECTION_CLOSED) {
                 info("BT: Host disconnected\n");
+                // watchdog_enable(1, false);
             }
             else if (subevent == HID_SUBEVENT_DESCRIPTOR_AVAILABLE) {
                 status = hid_subevent_descriptor_available_get_status(packet);
@@ -143,6 +133,7 @@ void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint
                     subevent_report(packet, size);
                 } else {
                     info("BT: No host descriptor\n");
+                    // watchdog_enable(1, false);
                 }
             } else {
                 debug("BT: Undefined subevent: 0x%02x\n", subevent);
