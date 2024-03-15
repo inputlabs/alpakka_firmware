@@ -17,7 +17,7 @@ static uint8_t send_buffer_storage[16];
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 static uint16_t hid_cid;
 static const char hid_device_name[] = "Input Labs Miau2";
-// static btstack_ring_buffer_t send_buffer;
+static bool can_send = false;
 
 const uint8_t hid_descriptor[] = {
     // KEYBOARD
@@ -98,35 +98,32 @@ void wireless_queue_append(uint8_t report_type, void *report, uint8_t len) {
 
 void wireless_queue_process() {
     uint8_t reporting_type = 0;
-    uint8_t mouse_reports = 0;
+    uint8_t num_reports = 0;
     uint8_t mouse_buttons = 0;
     int16_t mouse_x = 0;
     int16_t mouse_y = 0;
-    uint8_t kb_reports = 0;
     uint8_t kb_modifiers = 0;
     uint8_t kb_keys[6] = {0,};
     while(!queue_is_empty(get_core_queue())) {
         uint8_t entry[32];
-        queue_remove_blocking(get_core_queue(), entry);
+        queue_peek_blocking(get_core_queue(), entry);
         uint8_t report_type = entry[0];
+        if (!reporting_type) reporting_type = report_type;
+        if (reporting_type != report_type) break;
+        queue_remove_blocking(get_core_queue(), entry);
+        num_reports += 1;
         if (report_type == REPORT_KEYBOARD) {
-            if (!reporting_type || reporting_type==REPORT_KEYBOARD) {
-                reporting_type = REPORT_KEYBOARD;
-                hid_keyboard_report_temp report = *(hid_keyboard_report_temp*)&entry[1];
-                kb_modifiers = report.modifier;
-                memcpy(kb_keys, report.keycode, 6);
-                kb_reports += 1;
-            }
+            reporting_type = REPORT_KEYBOARD;
+            hid_keyboard_report_temp report = *(hid_keyboard_report_temp*)&entry[1];
+            kb_modifiers = report.modifier;
+            memcpy(kb_keys, report.keycode, 6);
         }
         if (report_type == REPORT_MOUSE) {
-            if (!reporting_type || reporting_type==REPORT_MOUSE) {
-                reporting_type = REPORT_MOUSE;
-                hid_mouse_custom_report_temp report = *(hid_mouse_custom_report_temp*)&entry[1];
-                mouse_buttons = report.buttons;
-                mouse_x += report.x;
-                mouse_y += report.y;
-                mouse_reports += 1;
-            }
+            reporting_type = REPORT_MOUSE;
+            hid_mouse_custom_report_temp report = *(hid_mouse_custom_report_temp*)&entry[1];
+            mouse_buttons = report.buttons;
+            mouse_x += report.x;
+            mouse_y += report.y;
         }
     }
     if (reporting_type == REPORT_KEYBOARD) {
@@ -135,7 +132,7 @@ void wireless_queue_process() {
         hid_device_send_interrupt_message(hid_cid, report, sizeof(report));
     }
     if (reporting_type == REPORT_MOUSE) {
-        if (mouse_reports > 1) printf("%i ", mouse_reports);
+        if (num_reports > 1) printf("%i ", num_reports);
         uint8_t report[] = {0xa1, REPORT_MOUSE, mouse_buttons, mouse_x>>8, mouse_x, mouse_y>>8, mouse_y};
         hid_device_send_interrupt_message(hid_cid, report, sizeof(report));
     }
@@ -147,7 +144,7 @@ static btstack_timer_source_t loop_timer;
 static void loop_task(btstack_timer_source_t *ts){
     btstack_run_loop_set_timer(ts, PERIOD);
     btstack_run_loop_add_timer(ts);
-    if (hid_cid) {
+    if (hid_cid && !can_send) {
         hid_device_request_can_send_now_event(hid_cid);
     }
 }
@@ -227,8 +224,10 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                             break;
                         case HID_SUBEVENT_CAN_SEND_NOW:                            // 0x04
 	                        debug("HID_SUBEVENT_CAN_SEND_NOW\n");
+                            can_send = true;
                             // wireless_report_mouse(0, 0, 0);
                             wireless_queue_process();
+                            can_send = false;
 	                        break;
                         case HID_SUBEVENT_SNIFF_SUBRATING_PARAMS:     // 0x0E
     	                    debug("HID_SUBEVENT_SNIFF_SUBRATING_PARAMS, doing nothing\n");
@@ -254,7 +253,7 @@ void wireless_client_init() {
     gap_discoverable_control(1);
     gap_set_class_of_device(0x2580);
     gap_set_local_name("Input Labs Miau 00:00:00:00:00:00");
-    gap_set_default_link_policy_settings( LM_LINK_POLICY_ENABLE_ROLE_SWITCH | LM_LINK_POLICY_ENABLE_SNIFF_MODE );
+    gap_set_default_link_policy_settings(LM_LINK_POLICY_ENABLE_ROLE_SWITCH);
     gap_set_allow_role_switch(true);
     l2cap_init();
     sdp_init();
@@ -270,9 +269,9 @@ void wireless_client_init() {
         1,  // hid_reconnect_initiate.
         1,  // hid_normally_connectable.
         hid_boot_device,
-        4000,  // host_max_latency.
-        3000,  // host_min_timeout.
-        3000,  // supervision_timeout.
+        0,  // host_max_latency.
+        0,  // host_min_timeout.
+        0,  // supervision_timeout.
         hid_descriptor,
         sizeof(hid_descriptor),
         hid_device_name

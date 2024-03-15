@@ -76,7 +76,7 @@ void subevent_report(uint8_t *packet, uint16_t size) {
         if (elapsed > max) max = elapsed;
         num += 1;
         last = time_us_32();
-        if(elapsed > 15) printf("%i ", elapsed);
+        if(elapsed > 5) printf("%i ", elapsed);
         if(time_us_32()-last_print > 1000000) {
             last_print = time_us_32();
             info("num=%i max=%i\n", num, max);
@@ -154,10 +154,7 @@ void wireless_host_init() {
     hid_host_init(hid_descriptor_storage, sizeof(hid_descriptor_storage));
     hid_host_register_packet_handler(packet_handler);
     // Allow sniff mode requests by HID device and support role switch
-    gap_set_default_link_policy_settings(
-        LM_LINK_POLICY_ENABLE_SNIFF_MODE |
-        LM_LINK_POLICY_ENABLE_ROLE_SWITCH
-    );
+    gap_set_default_link_policy_settings(LM_LINK_POLICY_ENABLE_SNIFF_MODE);
     // try to become master on incoming connections
     hci_set_master_slave_policy(HCI_ROLE_MASTER);
     // register for HCI events
