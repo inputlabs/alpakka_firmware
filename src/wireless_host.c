@@ -56,7 +56,6 @@ uint16_t period = 4;  // ms
 static btstack_timer_source_t loop_timer;
 
 static void loop_task(btstack_timer_source_t *ts){
-    // if (get_system_clock()) return;
     btstack_run_loop_set_timer(ts, period);
     btstack_run_loop_add_timer(ts);
     wireless_led_task();
@@ -80,7 +79,7 @@ void subevent_report(uint8_t *packet, uint16_t size) {
     if (elapsed > max) max = elapsed;
     num += 1;
     last = time_us_32();
-    if(elapsed > 5) printf("%i ", elapsed);
+    if(elapsed > 6) printf("%i ", elapsed);
     if(time_us_32()-last_print > 1000000) {
         last_print = time_us_32();
         info("num=%i max=%i\n", num, max);

@@ -5,6 +5,7 @@
 #include <pico/stdlib.h>
 #include <pico/time.h>
 #include <pico/multicore.h>
+#include <pico/flash.h>
 #include <pico/util/queue.h>
 #include <tusb.h>
 #include "config.h"
@@ -50,6 +51,7 @@ void title() {
 void main_loop(); /////////
 
 void client_init() {
+    flash_safe_execute_core_init();
     // LED feedback ASAP after booting.
     led_init();
     // Init stdio and logging.
@@ -151,7 +153,7 @@ void main_loop() {
             static float max = 0;
             average += tick_completed;
             if (tick_completed > max) max = tick_completed;
-            if (!(i % 1000)) {
+            if (!(i % CFG_TICK_FREQUENCY)) {
                 info("Loop: avg=%.0f max=%.0f\n", average/1000, max);
                 average = max = 0;
             }

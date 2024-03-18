@@ -3,6 +3,7 @@
 
 #include <pico/time.h>
 #include <pico/multicore.h>
+#include <pico/flash.h>
 #include <pico/util/queue.h>
 #include <pico/rand.h>
 #include <btstack.h>
@@ -20,7 +21,8 @@ static uint8_t send_buffer_storage[16];
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 static uint16_t hid_cid;
 static const char hid_device_name[] = "Input Labs Miau2";
-// static bool can_send = false;
+// static bool stream = false;
+static btstack_timer_source_t bt_timer;
 
 const uint8_t hid_descriptor[] = {
     // KEYBOARD
@@ -92,6 +94,12 @@ const uint8_t hid_descriptor[] = {
     0xc0                           // END_COLLECTION
 };
 
+static void bt_request_can_send(btstack_timer_source_t *timer){
+    if (hid_cid) {
+        hid_device_request_can_send_now_event(hid_cid);
+    }
+}
+
 void wireless_queue_append(uint8_t report_type, void *report, uint8_t len) {
     uint8_t entry[32] = {report_type};
     memcpy(&entry[1], report, len);
@@ -100,6 +108,11 @@ void wireless_queue_append(uint8_t report_type, void *report, uint8_t len) {
 }
 
 void wireless_queue_process() {
+    static uint32_t last = 0;
+    uint32_t now = time_us_32() / 1000;
+    uint32_t elapsed = now - last;
+    last = now;
+
     uint8_t reporting_type = 0;
     uint8_t num_reports = 0;
     uint8_t mouse_buttons = 0;
@@ -129,36 +142,24 @@ void wireless_queue_process() {
             mouse_y += report.y;
         }
     }
+    if (reporting_type == 0) {
+        bt_timer.process = &bt_request_can_send;
+        btstack_run_loop_set_timer(&bt_timer, 1);
+        btstack_run_loop_add_timer(&bt_timer);
+    }
     if (reporting_type == REPORT_KEYBOARD) {
         uint8_t report[10] = {0xa1, REPORT_KEYBOARD, kb_modifiers, 0};
         memcpy(&report[4], kb_keys, 6);
         hid_device_send_interrupt_message(hid_cid, report, sizeof(report));
+        hid_device_request_can_send_now_event(hid_cid);
     }
     if (reporting_type == REPORT_MOUSE) {
-        if (num_reports > 1) printf("%i ", num_reports);
+        if (num_reports > 1) printf("%i-%lu ", elapsed, num_reports);
         uint8_t report[] = {0xa1, REPORT_MOUSE, mouse_buttons, mouse_x>>8, mouse_x, mouse_y>>8, mouse_y};
         hid_device_send_interrupt_message(hid_cid, report, sizeof(report));
-    }
-}
-
-#define PERIOD 1  // ms
-static btstack_timer_source_t loop_timer;
-
-static void loop_task(btstack_timer_source_t *ts){
-    btstack_run_loop_set_timer(ts, PERIOD);
-    btstack_run_loop_add_timer(ts);
-    if (hid_cid) {
         hid_device_request_can_send_now_event(hid_cid);
     }
 }
-
-static void loop_setup(void){
-    info("BT: Device loop setup\n");
-    loop_timer.process = &loop_task;
-    btstack_run_loop_set_timer(&loop_timer, PERIOD);
-    btstack_run_loop_add_timer(&loop_timer);
-}
-
 
 static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * packet, uint16_t packet_size){
     uint8_t   event;
@@ -221,17 +222,14 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                             gap_discoverable_control(0); // disabling to reduce latency
                             gap_connectable_control(0);  // disabling to reduce latency
                             profile_update_leds();
-                            // loop_setup();
 	                        break;
                         case HID_SUBEVENT_CONNECTION_CLOSED:                       // 0x03
 	                        debug("HID_SUBEVENT_CONNECTION_CLOSED, doing nothing\n");
                             break;
                         case HID_SUBEVENT_CAN_SEND_NOW:                            // 0x04
 	                        debug("HID_SUBEVENT_CAN_SEND_NOW\n");
-                            // can_send = true;
                             // wireless_report_mouse(0, 0, 0);
                             wireless_queue_process();
-                            // can_send = false;
 	                        break;
                         case HID_SUBEVENT_SNIFF_SUBRATING_PARAMS:     // 0x0E
     	                    debug("HID_SUBEVENT_SNIFF_SUBRATING_PARAMS, doing nothing\n");
@@ -252,7 +250,9 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
 }
 
 void wireless_client_init() {
+    info("BT: Init (core %i)\n", get_core_num());
     multicore_lockout_victim_init();
+    flash_safe_execute_core_init();
     cyw43_arch_init();
     cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, 2000, 1, 1, 1);
     gap_discoverable_control(1);
@@ -303,14 +303,12 @@ void wireless_client_init() {
 
     // btstack_ring_buffer_init(&send_buffer, send_buffer_storage, sizeof(send_buffer_storage));
 
-    info("BT: Device init completed (core %i)\n", get_core_num());
     hci_power_control(HCI_POWER_ON);
-    info("BT: Device powered on\n");
 
     led_static_mask(LED_NONE);
     led_blink_mask(LED_ALL);
     led_set_mode(LED_MODE_BLINK);
 
-    loop_setup();
+    info("BT: Loop\n");
     btstack_run_loop_execute();
 }

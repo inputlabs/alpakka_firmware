@@ -16,7 +16,6 @@ void nvm_write(uint32_t addr, uint8_t* buffer, uint32_t size) {
     flash_range_program(addr, (const uint8_t*)buffer, size);
     restore_interrupts(interrupts);
     if (lock_other_core) multicore_lockout_end_blocking();
-    printf("A5\n");
 }
 
 void nvm_read(uint32_t addr, uint8_t* buffer, uint32_t size) {
