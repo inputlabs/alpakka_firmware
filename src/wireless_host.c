@@ -23,6 +23,8 @@ static uint16_t hid_host_cid = 0;
 static bool hid_host_descriptor_available = false;
 static bd_addr_t remote_addr;
 
+static bool connected = false;
+
 static const char * remote_addr_string = "28:CD:C1:06:C5:D5";  // Alpakka
 // static const char * remote_addr_string = "DC:2C:26:AC:EA:A1";  // Uhuru
 // static const char * remote_addr_string = "28:CD:C1:06:C5:D4";  // other pico
@@ -36,6 +38,20 @@ void wireless_host_connect() {
     }
 }
 
+void wireless_led_task() {
+    static uint32_t last = 0;
+    uint32_t now = time_us_32() / 1000;
+    uint16_t interval;
+    if (connected) interval = 500;
+    else interval = 100;
+    if ((now - last) > interval) {
+        static bool x;
+        x = !x;
+        last = now;
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, x);
+    }
+}
+
 uint16_t period = 4;  // ms
 static btstack_timer_source_t loop_timer;
 
@@ -43,6 +59,7 @@ static void loop_task(btstack_timer_source_t *ts){
     // if (get_system_clock()) return;
     btstack_run_loop_set_timer(ts, period);
     btstack_run_loop_add_timer(ts);
+    wireless_led_task();
     host_task();
 }
 
@@ -57,8 +74,18 @@ void subevent_report(uint8_t *packet, uint16_t size) {
     uint32_t received = time_us_32();
     static uint32_t last = 0;
     static uint32_t last_print = 0;
-    static uint8_t num = 0;
+    static uint16_t num = 0;
     static uint16_t max = 0;
+    uint16_t elapsed = (received-last) / 1000;
+    if (elapsed > max) max = elapsed;
+    num += 1;
+    last = time_us_32();
+    if(elapsed > 5) printf("%i ", elapsed);
+    if(time_us_32()-last_print > 1000000) {
+        last_print = time_us_32();
+        info("num=%i max=%i\n", num, max);
+        num = max = 0;
+    }
     const uint8_t *report = hid_subevent_report_get_report(packet);
     uint8_t report_type = report[1];
     if (report_type == REPORT_KEYBOARD) {
@@ -72,16 +99,6 @@ void subevent_report(uint8_t *packet, uint16_t size) {
         int16_t x = (report[3] << 8) + report[4];
         int16_t y = (report[5] << 8) + report[6];
         // int16_t scroll = report[7];
-        uint16_t elapsed = (received-last) / 1000;
-        if (elapsed > max) max = elapsed;
-        num += 1;
-        last = time_us_32();
-        if(elapsed > 5) printf("%i ", elapsed);
-        if(time_us_32()-last_print > 1000000) {
-            last_print = time_us_32();
-            info("num=%i max=%i\n", num, max);
-            num = max = 0;
-        }
         hid_report_direct_mouse(buttons, x, y, 0);
     }
 }
@@ -109,7 +126,7 @@ void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint
                     hid_host_descriptor_available = false;
                     hid_host_cid = hid_subevent_connection_opened_get_hid_cid(packet);
                     info("BT: Host connected\n");
-                    // period = 4000;
+                    connected = true;
                 } else {
                     hid_host_cid = 0;
                     info("BT: Host connection failed, status 0x%02x\n", status);
@@ -118,6 +135,7 @@ void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint
             }
             else if (subevent == HID_SUBEVENT_CONNECTION_CLOSED) {
                 info("BT: Host disconnected\n");
+                connected = false;
                 // watchdog_enable(1, false);
             }
             else if (subevent == HID_SUBEVENT_DESCRIPTOR_AVAILABLE) {

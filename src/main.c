@@ -25,13 +25,10 @@
     #define VERSION "undefined"
 #endif
 
-
 uint64_t system_clock = 0;
-
 uint64_t get_system_clock() {
     return system_clock;
 }
-
 void set_system_clock(uint64_t time) {
     system_clock = time - (time_us_32() / 1000);
     info("INIT: System_clock=%llu\n", system_clock);
@@ -114,14 +111,6 @@ void host_task() {
     if (tud_ready() && tud_hid_ready()) {
         webusb_read();
         webusb_flush();
-    }
-    static uint8_t i = 0;
-    i++;
-    if (!(i % 30)) {
-        static bool x;
-        x = !x;
-        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, x);
-        i = 0;
     }
 }
 

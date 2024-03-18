@@ -5,7 +5,7 @@
 #define ENABLE_PRINTF_HEXDUMP
 // #define ENABLE_SCO_OVER_HCI
 
-#define ENABLE_L2CAP_ENHANCED_RETRANSMISSION_MODE
+// #define ENABLE_L2CAP_ENHANCED_RETRANSMISSION_MODE
 
 // BTstack configuration. buffers, sizes, ...
 #define HCI_OUTGOING_PRE_BUFFER_SIZE 4
@@ -27,8 +27,8 @@
 
 // #define MAX_NR_HFP_CONNECTIONS 1
 
-#define MAX_NR_L2CAP_CHANNELS  8
-#define MAX_NR_L2CAP_SERVICES  4
+#define MAX_NR_L2CAP_CHANNELS 8
+#define MAX_NR_L2CAP_SERVICES 3
 
 // #define MAX_NR_RFCOMM_CHANNELS 1
 // #define MAX_NR_RFCOMM_MULTIPLEXERS 1
@@ -51,8 +51,8 @@
 #define HCI_HOST_SCO_PACKET_NUM 4
 
 // Link Key DB and LE Device DB using TLV on top of Flash Sector interface
-#define NVM_NUM_DEVICE_DB_ENTRIES 16
-#define NVM_NUM_LINK_KEYS 16
+#define NVM_NUM_DEVICE_DB_ENTRIES 0
+#define NVM_NUM_LINK_KEYS 0
 
 // We don't give btstack a malloc, so use a fixed-size ATT DB.
 #define MAX_ATT_DB_SIZE 512

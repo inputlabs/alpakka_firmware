@@ -2,11 +2,14 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <pico/time.h>
+#include <pico/multicore.h>
 #include <pico/util/queue.h>
 #include <pico/rand.h>
 #include <btstack.h>
 #include "wireless.h"
 #include "hid.h"
+#include "led.h"
+#include "profile.h"
 #include "ctrl.h" // system clock
 #include "tusb_config.h"
 #include "logging.h"
@@ -17,7 +20,7 @@ static uint8_t send_buffer_storage[16];
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 static uint16_t hid_cid;
 static const char hid_device_name[] = "Input Labs Miau2";
-static bool can_send = false;
+// static bool can_send = false;
 
 const uint8_t hid_descriptor[] = {
     // KEYBOARD
@@ -144,7 +147,7 @@ static btstack_timer_source_t loop_timer;
 static void loop_task(btstack_timer_source_t *ts){
     btstack_run_loop_set_timer(ts, PERIOD);
     btstack_run_loop_add_timer(ts);
-    if (hid_cid && !can_send) {
+    if (hid_cid) {
         hid_device_request_can_send_now_event(hid_cid);
     }
 }
@@ -217,6 +220,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
 			                hid_device_request_can_send_now_event(hid_cid);
                             gap_discoverable_control(0); // disabling to reduce latency
                             gap_connectable_control(0);  // disabling to reduce latency
+                            profile_update_leds();
                             // loop_setup();
 	                        break;
                         case HID_SUBEVENT_CONNECTION_CLOSED:                       // 0x03
@@ -224,10 +228,10 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
                             break;
                         case HID_SUBEVENT_CAN_SEND_NOW:                            // 0x04
 	                        debug("HID_SUBEVENT_CAN_SEND_NOW\n");
-                            can_send = true;
+                            // can_send = true;
                             // wireless_report_mouse(0, 0, 0);
                             wireless_queue_process();
-                            can_send = false;
+                            // can_send = false;
 	                        break;
                         case HID_SUBEVENT_SNIFF_SUBRATING_PARAMS:     // 0x0E
     	                    debug("HID_SUBEVENT_SNIFF_SUBRATING_PARAMS, doing nothing\n");
@@ -248,6 +252,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t * pack
 }
 
 void wireless_client_init() {
+    multicore_lockout_victim_init();
     cyw43_arch_init();
     cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, 2000, 1, 1, 1);
     gap_discoverable_control(1);
@@ -301,6 +306,11 @@ void wireless_client_init() {
     info("BT: Device init completed (core %i)\n", get_core_num());
     hci_power_control(HCI_POWER_ON);
     info("BT: Device powered on\n");
+
+    led_static_mask(LED_NONE);
+    led_blink_mask(LED_ALL);
+    led_set_mode(LED_MODE_BLINK);
+
     loop_setup();
     btstack_run_loop_execute();
 }
