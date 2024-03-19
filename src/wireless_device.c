@@ -41,6 +41,7 @@ static void queue_process() {
     uint8_t mouse_buttons = 0;
     int16_t mouse_x = 0;
     int16_t mouse_y = 0;
+    int8_t scroll = 0;
     uint8_t kb_modifiers = 0;
     uint8_t kb_keys[6] = {0,};
     while(!queue_is_empty(get_core_queue())) {
@@ -63,6 +64,7 @@ static void queue_process() {
             mouse_buttons = report.buttons;
             mouse_x += report.x;
             mouse_y += report.y;
+            scroll = report.scroll;
         }
     }
     if (reporting_type == 0) {
@@ -78,7 +80,7 @@ static void queue_process() {
     }
     if (reporting_type == REPORT_MOUSE) {
         if (num_reports > 1) printf("%i-%lu ", elapsed, num_reports);
-        uint8_t report[] = {0xa1, REPORT_MOUSE, mouse_buttons, mouse_x>>8, mouse_x, mouse_y>>8, mouse_y};
+        uint8_t report[] = {0xa1, REPORT_MOUSE, mouse_buttons, mouse_x>>8, mouse_x, mouse_y>>8, mouse_y, scroll};
         rfcomm_send(cid, report, sizeof(report));
         rfcomm_request_can_send_now_event(cid);
     }

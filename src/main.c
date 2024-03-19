@@ -35,6 +35,8 @@ void set_system_clock(uint64_t time) {
     info("INIT: System_clock=%llu\n", system_clock);
 }
 
+# define REPORT_QUEUE_ITEM_SIZE 32
+# define REPORT_QUEUE_ITEMS 16
 queue_t core_queue;
 queue_t* get_core_queue() {
     return &core_queue;
@@ -50,7 +52,31 @@ void title() {
 
 void main_loop(); /////////
 
-void client_init() {
+void host_init() {
+    stdio_uart_init();
+    stdio_init_all();
+    logging_set_level(LOG_INFO);
+    logging_init();
+    title();
+    tusb_init();
+    wait_for_usb_init();
+    // config_init();
+    hid_init();
+    queue_init(&core_queue, REPORT_QUEUE_ITEM_SIZE, REPORT_QUEUE_ITEMS);
+    multicore_launch_core1(wireless_host_init);
+    main_loop();
+}
+
+void host_task() {
+    hid_report_direct();
+    // tud_task();
+    // if (tud_ready() && tud_hid_ready()) {
+    //     webusb_read();
+    //     webusb_flush();
+    // }
+}
+
+void device_init() {
     flash_safe_execute_core_init();
     // LED feedback ASAP after booting.
     led_init();
@@ -73,7 +99,7 @@ void client_init() {
     rotary_init();
     profile_init();
     imu_init();
-    queue_init(&core_queue, 32, 16);  // TODO magic numbers
+    queue_init(&core_queue, REPORT_QUEUE_ITEM_SIZE, REPORT_QUEUE_ITEMS);
     // MODE 0
         multicore_launch_core1(wireless_client_init);
         main_loop();
@@ -82,7 +108,7 @@ void client_init() {
         // wireless_client_init();
 }
 
-void client_task() {
+void device_task() {
     config_sync();
     profile_report_active();
     // tud_task();
@@ -92,37 +118,6 @@ void client_task() {
     // }
     hid_report_wireless();
 }
-
-void host_init() {
-    stdio_uart_init();
-    stdio_init_all();
-    logging_set_level(LOG_INFO);
-    logging_init();
-    title();
-    tusb_init();
-    wait_for_usb_init();
-    // config_init();
-    hid_init();
-    wireless_host_init();
-}
-
-void host_task() {
-    // cyw43_arch_poll();
-    // hid_report();
-    tud_task();
-    if (tud_ready() && tud_hid_ready()) {
-        webusb_read();
-        webusb_flush();
-    }
-}
-
-// void main_loop_1() {
-//     while (true) {
-//         uint64_t tick = time_us_64();
-//         host_task_1();
-//         sleep_until(tick + 4000);
-//     }
-// }
 
 void main_loop() {
     info("INIT: Main loop (core %i)\n", get_core_num());
@@ -134,11 +129,11 @@ void main_loop() {
         uint32_t tick_start = time_us_32();
 
         // Report.
-        #ifdef FW_DEVICE_ALPAKKA
-            client_task();
-        #endif
         #ifdef FW_DEVICE_DONGLE
             host_task();
+        #endif
+        #ifdef FW_DEVICE_ALPAKKA
+            device_task();
         #endif
 
         // Tick interval control.
@@ -148,7 +143,7 @@ void main_loop() {
         // Listen to incoming UART messages.
         uart_listen_char(i);
         // Timing stats.
-        if (1 || logging_get_level() >= LOG_DEBUG) {
+        if (logging_get_level() >= LOG_DEBUG) {
             static float average = 0;
             static float max = 0;
             average += tick_completed;
@@ -166,7 +161,7 @@ void main_loop() {
 
 int main() {
     #ifdef FW_DEVICE_ALPAKKA
-        client_init();
+        device_init();
     #endif
     #ifdef FW_DEVICE_DONGLE
         host_init();

@@ -22,7 +22,7 @@
 
 #define CFG_TICK_FREQUENCY 250  // Hz.
 #define CFG_TICK_INTERVAL  (1000 / CFG_TICK_FREQUENCY)
-#define CFG_IMU_TICK_SAMPLES 110  // Multi-sampling per pooling cycle.
+#define CFG_IMU_TICK_SAMPLES 100  // Multi-sampling per pooling cycle.
 #define CFG_HID_REPORT_PRIORITY_RATIO 8
 
 #define CFG_CALIBRATION_SAMPLES_THUMBSTICK 100000  // Samples.

@@ -471,27 +471,47 @@ void hid_report() {
 
 void hid_report_direct_keyboard(int8_t modifiers, int8_t keys[6]) {
     tud_task();
+    while(!tud_ready() || !tud_hid_ready()) {
+        tud_task();
+        sleep_us(10);
+    }
     if (tud_ready() && tud_hid_ready()) {
         tud_hid_keyboard_report(REPORT_KEYBOARD, modifiers, keys);
     }
 }
 
 void hid_report_direct_mouse(uint8_t buttons, int16_t x, int16_t y, int8_t scroll) {
-    static int16_t bufx = 0;
-    static int16_t bufy = 0;
-    bufx += x;
-    bufy += y;
     tud_task();
-    if (tud_ready() && tud_hid_ready()) {
-        hid_mouse_custom_report_t report = {buttons, bufx, bufy, scroll, 0};
-        tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
-        bufx = 0;
-        bufy = 0;
-    } else {
-        // warn("USB: Skipped\n");
-        printf("U");
+    while(!tud_ready() || !tud_hid_ready()) {
+        tud_task();
+        sleep_us(10);
     }
-    tud_task();
+    hid_mouse_custom_report_t report = {buttons, x, y, scroll, 0};
+    tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
+}
+
+void hid_report_direct() {
+    uint8_t entries = 0;
+    while(!queue_is_empty(get_core_queue())) {
+        entries += 1;
+        uint8_t entry[32];
+        queue_remove_blocking(get_core_queue(), entry);
+        uint8_t report_type = entry[0];
+        if (report_type == REPORT_KEYBOARD) {
+            uint8_t modifiers = entry[1];
+            uint8_t keys[6];
+            memcpy(keys, &entry[3], 6);
+            hid_report_direct_keyboard(modifiers, keys);
+        }
+        if (report_type == REPORT_MOUSE) {
+            uint8_t buttons = entry[1];
+            int16_t x = (entry[2] << 8) + entry[3];
+            int16_t y = (entry[4] << 8) + entry[5];
+            int8_t scroll = entry[6];
+            hid_report_direct_mouse(buttons, x, y, scroll);
+        }
+    }
+    // printf("%i ", entries);
 }
 
 // A not-so-secret easter egg.

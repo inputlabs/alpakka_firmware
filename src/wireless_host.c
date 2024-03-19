@@ -42,7 +42,7 @@ static void loop_task(btstack_timer_source_t *ts){
     btstack_run_loop_set_timer(ts, period);
     btstack_run_loop_add_timer(ts);
     wireless_led_task();
-    host_task();
+    // host_task();
 }
 
 static void loop_setup(void){
@@ -53,35 +53,25 @@ static void loop_setup(void){
 }
 
 void wireless_process_packet(uint8_t *packet, uint16_t size) {
-    uint32_t received = time_us_32();
-    static uint32_t last = 0;
-    static uint32_t last_print = 0;
-    static uint16_t num = 0;
-    static uint16_t max = 0;
-    uint16_t elapsed = (received-last) / 1000;
-    if (elapsed > max) max = elapsed;
-    num += 1;
-    last = time_us_32();
-    if(elapsed > 6) printf("%i ", elapsed);
-    if(time_us_32()-last_print > 1000000) {
-        last_print = time_us_32();
-        info("num=%i max=%i\n", num, max);
-        num = max = 0;
-    }
-    uint8_t report_type = packet[0];
-    if (report_type == REPORT_KEYBOARD) {
-        uint8_t modifiers = packet[1];
-        uint8_t keys[6];
-        memcpy(keys, &packet[3], 6);
-        hid_report_direct_keyboard(modifiers, keys);
-    }
-    if (report_type == REPORT_MOUSE) {
-        uint8_t buttons = packet[1];
-        int16_t x = (packet[2] << 8) + packet[3];
-        int16_t y = (packet[4] << 8) + packet[5];
-        // int16_t scroll = report[7];
-        hid_report_direct_mouse(buttons, x, y, 0);
-    }
+    // uint32_t received = time_us_32();
+    // static uint32_t last = 0;
+    // static uint32_t last_print = 0;
+    // static uint16_t num = 0;
+    // static uint16_t max = 0;
+    // uint16_t elapsed = (received-last) / 1000;
+    // if (elapsed > max) max = elapsed;
+    // num += 1;
+    // last = time_us_32();
+    // if(elapsed > 6) printf("%i ", elapsed);
+    // if(time_us_32()-last_print > 1000000) {
+    //     last_print = time_us_32();
+    //     info("num=%i max=%i\n", num, max);
+    //     num = max = 0;
+    // }
+    uint8_t entry[32] = {0,};
+    memcpy(entry, packet, size);
+    bool added = queue_try_add(get_core_queue(), entry);
+    if (!added) printf("WL: Cannot add into queue\n");
 }
 
 static void start_scan(void) {
@@ -194,7 +184,7 @@ static void sdp_query(void *context) {
 }
 
 void wireless_host_init() {
-    info("WL: Host init\n");
+    info("WL: Host init (core %i)\n", get_core_num());
     cyw43_arch_init();
     cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, 2000, 1, 1, 1);
     l2cap_init();
