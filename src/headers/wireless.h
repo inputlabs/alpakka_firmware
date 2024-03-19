@@ -6,14 +6,20 @@
 #include <pico/cyw43_arch.h>
 #include "btstack_config.h"
 
-#define REPORT_ID 0x01
+#define DEVICE_NAME "Alpakka wireless"
+#define DEVICE_NAME_AND_MAC "Alpakka wireless 00:00:00:00:00:00"
+#define CLASS_OF_DEVICE 0x1701
+#define INQUIRY_INTERVAL 5
+#define RFCOMM_CHANNEL 1
+#define OFFSTREAM_INTERVAL 1  // Milliseconds.
 
-static enum {
-    APP_BOOTING,
-    APP_NOT_CONNECTED,
-    APP_CONNECTING,
-    APP_CONNECTED
-} app_state = APP_BOOTING;
+typedef enum {
+    SCANNING,
+    SCAN_COMPLETE,
+    QUERYING,
+    CONNECTING,
+    CONNECTED,
+} host_state_t;
 
 void host_task();
 void device_task();
