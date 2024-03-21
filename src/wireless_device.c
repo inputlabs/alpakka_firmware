@@ -23,67 +23,68 @@ void wireless_queue_append(uint8_t report_type, void *report, uint8_t len) {
     uint8_t entry[32] = {report_type};
     memcpy(&entry[1], report, len);
     bool added = queue_try_add(get_core_queue(), entry);
-    if (!added) printf("WL: Cannot add into queue\n");
+    // if (!added) printf("WL: Cannot add into queue\n");
+    if (!added) printf("Q");
 }
 
 static void request_can_send(btstack_timer_source_t *timer) {
     rfcomm_request_can_send_now_event(cid);
 }
 
-static void queue_process() {
-    static uint32_t last = 0;
-    uint32_t now = time_us_32() / 1000;
-    uint32_t elapsed = now - last;
-    last = now;
+void loop() {
+    timer.process = &loop;
+    btstack_run_loop_set_timer(&timer, OFFSTREAM_INTERVAL);
+    btstack_run_loop_add_timer(&timer);
+    if (cid) rfcomm_request_can_send_now_event(cid);
+}
 
-    uint8_t reporting_type = 0;
-    uint8_t num_reports = 0;
-    uint8_t mouse_buttons = 0;
-    int16_t mouse_x = 0;
-    int16_t mouse_y = 0;
-    int8_t scroll = 0;
-    uint8_t kb_modifiers = 0;
-    uint8_t kb_keys[6] = {0,};
+static void queue_process() {
+    // static uint32_t last = 0;
+    // uint32_t now = time_us_32() / 1000;
+    // uint32_t elapsed = now - last;
+    // last = now;
+    uint8_t kb_reports = 0;
+    uint8_t m_reports = 0;
+    hid_keyboard_report_temp kb_report;
+    hid_mouse_custom_report_temp m_report;
     while(!queue_is_empty(get_core_queue())) {
         uint8_t entry[32];
-        queue_peek_blocking(get_core_queue(), entry);
-        uint8_t report_type = entry[0];
-        if (!reporting_type) reporting_type = report_type;
-        if (reporting_type != report_type) break;
         queue_remove_blocking(get_core_queue(), entry);
-        num_reports += 1;
+        uint8_t report_type = entry[0];
         if (report_type == REPORT_KEYBOARD) {
-            reporting_type = REPORT_KEYBOARD;
-            hid_keyboard_report_temp report = *(hid_keyboard_report_temp*)&entry[1];
-            kb_modifiers = report.modifier;
-            memcpy(kb_keys, report.keycode, 6);
+            kb_reports += 1;
+            kb_report = *(hid_keyboard_report_temp*)&entry[1];
         }
         if (report_type == REPORT_MOUSE) {
-            reporting_type = REPORT_MOUSE;
+            m_reports += 1;
             hid_mouse_custom_report_temp report = *(hid_mouse_custom_report_temp*)&entry[1];
-            mouse_buttons = report.buttons;
-            mouse_x += report.x;
-            mouse_y += report.y;
-            scroll = report.scroll;
+            if (m_reports == 1) {
+                m_report = report;
+            } else {
+                report.x += m_report.x;
+                report.y += m_report.y;
+                m_report = report;
+            }
         }
     }
-    if (reporting_type == 0) {
-        timer.process = &request_can_send;
-        btstack_run_loop_set_timer(&timer, OFFSTREAM_INTERVAL);
-        btstack_run_loop_add_timer(&timer);
+    if (kb_reports + m_reports == 0) return;
+    uint8_t index = 0;
+    uint8_t wl_report[40] = {0,};
+    if (kb_reports > 0) {
+        wl_report[index] = REPORT_KEYBOARD;
+        index += 1;
+        memcpy(&wl_report[index], (uint8_t*)&kb_report, sizeof(hid_keyboard_report_temp));
+        index += sizeof(hid_keyboard_report_temp);
     }
-    if (reporting_type == REPORT_KEYBOARD) {
-        uint8_t report[10] = {0xa1, REPORT_KEYBOARD, kb_modifiers, 0};
-        memcpy(&report[4], kb_keys, 6);
-        rfcomm_send(cid, report, sizeof(report));
-        rfcomm_request_can_send_now_event(cid);
+    if (m_reports > 0) {
+        wl_report[index] = REPORT_MOUSE;
+        wl_report[index+1] = m_reports;
+        index += 2;
+        memcpy(&wl_report[index], (uint8_t*)&m_report, sizeof(hid_mouse_custom_report_temp));
+        index += sizeof(hid_mouse_custom_report_temp);
+        if (m_reports > 1) printf("%i ", m_reports);
     }
-    if (reporting_type == REPORT_MOUSE) {
-        if (num_reports > 1) printf("%i-%lu ", elapsed, num_reports);
-        uint8_t report[] = {0xa1, REPORT_MOUSE, mouse_buttons, mouse_x>>8, mouse_x, mouse_y>>8, mouse_y, scroll};
-        rfcomm_send(cid, report, sizeof(report));
-        rfcomm_request_can_send_now_event(cid);
-    }
+    rfcomm_send(cid, wl_report, index);
 }
 
 static void event_handler(uint8_t *packet, uint16_t size) {
@@ -104,7 +105,7 @@ static void event_handler(uint8_t *packet, uint16_t size) {
     if (event_type == RFCOMM_EVENT_CHANNEL_OPENED) {
         uint8_t error = rfcomm_event_channel_opened_get_status(packet);
         if (!error) {
-            printf("WL: Channel open succeeded\n");
+            printf("WL: Connected\n");
             cid = rfcomm_event_channel_opened_get_rfcomm_cid(packet);
             // rfcomm_mtu = rfcomm_event_channel_opened_get_max_frame_size(packet);
             gap_discoverable_control(0);
@@ -176,5 +177,6 @@ void wireless_client_init() {
     led_set_mode(LED_MODE_BLINK);
 
     info("WL: Device loop\n");
+    loop();
     btstack_run_loop_execute();
 }

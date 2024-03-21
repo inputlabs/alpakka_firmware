@@ -65,7 +65,6 @@ void config_write() {
     info("NVM: Config write\n");
     nvm_write(NVM_CONFIG_ADDR, (uint8_t*)&config_cache, NVM_CONFIG_SIZE);
     config_cache_synced = true;
-    printf("A\n");
 }
 
 void config_profile_write(uint8_t index) {

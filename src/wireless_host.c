@@ -52,26 +52,26 @@ static void loop_setup(void){
     btstack_run_loop_add_timer(&loop_timer);
 }
 
-void wireless_process_packet(uint8_t *packet, uint16_t size) {
-    // uint32_t received = time_us_32();
-    // static uint32_t last = 0;
-    // static uint32_t last_print = 0;
-    // static uint16_t num = 0;
-    // static uint16_t max = 0;
-    // uint16_t elapsed = (received-last) / 1000;
-    // if (elapsed > max) max = elapsed;
-    // num += 1;
-    // last = time_us_32();
-    // if(elapsed > 6) printf("%i ", elapsed);
-    // if(time_us_32()-last_print > 1000000) {
-    //     last_print = time_us_32();
-    //     info("num=%i max=%i\n", num, max);
-    //     num = max = 0;
-    // }
-    uint8_t entry[32] = {0,};
-    memcpy(entry, packet, size);
-    bool added = queue_try_add(get_core_queue(), entry);
-    if (!added) printf("WL: Cannot add into queue\n");
+void process_packet(uint8_t *packet, uint16_t size) {
+    uint8_t index = 0;
+    while (index < size) {
+        uint8_t report_type = packet[index];
+        index += 1;
+        if (report_type == REPORT_KEYBOARD) {
+            uint8_t entry[32] = {report_type};
+            memcpy(&entry[1], &packet[index], sizeof(hid_keyboard_report_temp));
+            index += sizeof(hid_keyboard_report_temp);
+            bool added = queue_try_add(get_core_queue(), entry);
+            if (!added) printf("WL: Cannot add into queue\n");
+        }
+        if (report_type == REPORT_MOUSE) {
+            uint8_t entry[32] = {report_type};
+            memcpy(&entry[1], &packet[index], sizeof(hid_keyboard_report_temp) + 1);
+            index += sizeof(hid_keyboard_report_temp) + 1;
+            bool added = queue_try_add(get_core_queue(), entry);
+            if (!added) printf("WL: Cannot add into queue\n");
+        }
+    }
 }
 
 static void start_scan(void) {
@@ -128,7 +128,7 @@ static void event_handler(uint8_t *packet, uint16_t size) {
             state = CONNECTED;
             cid = rfcomm_event_channel_opened_get_rfcomm_cid(packet);
             // uint16_t rfcomm_mtu = rfcomm_event_channel_opened_get_max_frame_size(packet);
-            printf("WL: Channel open succeeded\n");
+            printf("WL: Connected\n");
             gap_discoverable_control(0);
             gap_connectable_control(0);
             rfcomm_request_can_send_now_event(cid);
@@ -148,8 +148,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packe
         event_handler(packet, size);
     }
     if (packet_type == RFCOMM_DATA_PACKET) {
-        uint8_t shift = 1;  // TODO: Better way to unwrap?
-        wireless_process_packet(&packet[shift], size-shift);
+        process_packet(packet, size);
     }
 }
 
