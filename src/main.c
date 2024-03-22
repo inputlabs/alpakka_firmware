@@ -53,6 +53,7 @@ void title() {
 void main_loop(); /////////
 
 void host_init() {
+    flash_safe_execute_core_init();
     stdio_uart_init();
     stdio_init_all();
     logging_set_level(LOG_INFO);

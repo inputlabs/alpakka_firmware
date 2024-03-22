@@ -64,3 +64,5 @@ uint8_t random8();
 
 
 queue_t* get_core_queue();    ///////////
+
+void print_array(uint8_t *array, uint8_t len);

@@ -17,3 +17,9 @@ uint32_t bin16(uint16_t k) {
 uint8_t random8() {
     return (uint8_t)to_ms_since_boot(get_absolute_time());
 }
+
+void print_array(uint8_t *array, uint8_t len) {
+    printf("[");
+    for(uint8_t i=0; i<len; i++) printf("%i ", array[i]);
+    printf("]\n");
+}

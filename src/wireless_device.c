@@ -9,6 +9,7 @@
 #include <btstack.h>
 #include "tusb_config.h"
 #include "wireless.h"
+#include "xinput.h"
 #include "hid.h"
 #include "led.h"
 #include "profile.h"
@@ -20,6 +21,7 @@ static btstack_packet_callback_registration_t hci_event_callback_registration;
 static btstack_timer_source_t timer;
 
 void wireless_queue_append(uint8_t report_type, void *report, uint8_t len) {
+    if (!cid) return;
     uint8_t entry[32] = {report_type};
     memcpy(&entry[1], report, len);
     bool added = queue_try_add(get_core_queue(), entry);
@@ -43,33 +45,39 @@ static void queue_process() {
     // uint32_t now = time_us_32() / 1000;
     // uint32_t elapsed = now - last;
     // last = now;
-    uint8_t kb_reports = 0;
-    uint8_t m_reports = 0;
+    uint8_t kb_reports = 0;  // Keyboard.
+    uint8_t m_reports = 0;  // Mouse.
+    uint8_t x_reports = 0;  // XInput.
     hid_keyboard_report_temp kb_report;
     hid_mouse_custom_report_temp m_report;
+    xinput_report x_report;
     while(!queue_is_empty(get_core_queue())) {
         uint8_t entry[32];
         queue_remove_blocking(get_core_queue(), entry);
         uint8_t report_type = entry[0];
         if (report_type == REPORT_KEYBOARD) {
             kb_reports += 1;
-            kb_report = *(hid_keyboard_report_temp*)&entry[1];
+            hid_keyboard_report_temp report = *(hid_keyboard_report_temp*)&entry[1];
+            memcpy(&kb_report, &report, sizeof(hid_keyboard_report_temp));
         }
         if (report_type == REPORT_MOUSE) {
             m_reports += 1;
             hid_mouse_custom_report_temp report = *(hid_mouse_custom_report_temp*)&entry[1];
-            if (m_reports == 1) {
-                m_report = report;
-            } else {
+            if (m_reports > 1) {
                 report.x += m_report.x;
                 report.y += m_report.y;
-                m_report = report;
             }
+            memcpy(&m_report, &report, sizeof(hid_mouse_custom_report_temp));
+        }
+        if (report_type == REPORT_XINPUT) {
+            x_reports += 1;
+            xinput_report report = *(xinput_report*)&entry[1];
+            memcpy(&x_report, &report, sizeof(xinput_report));
         }
     }
-    if (kb_reports + m_reports == 0) return;
+    if (kb_reports + m_reports + x_reports == 0) return;
     uint8_t index = 0;
-    uint8_t wl_report[40] = {0,};
+    uint8_t wl_report[48] = {0,};
     if (kb_reports > 0) {
         wl_report[index] = REPORT_KEYBOARD;
         index += 1;
@@ -83,6 +91,12 @@ static void queue_process() {
         memcpy(&wl_report[index], (uint8_t*)&m_report, sizeof(hid_mouse_custom_report_temp));
         index += sizeof(hid_mouse_custom_report_temp);
         if (m_reports > 1) printf("%i ", m_reports);
+    }
+    if (x_reports > 0) {
+        wl_report[index] = REPORT_XINPUT;
+        index += 1;
+        memcpy(&wl_report[index], (uint8_t*)&x_report, sizeof(xinput_report));
+        index += sizeof(xinput_report);
     }
     rfcomm_send(cid, wl_report, index);
 }

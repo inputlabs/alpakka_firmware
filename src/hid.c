@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #include <tusb.h>
+#include <device/usbd_pvt.h>
 #include "config.h"
 #include "ctrl.h"
 #include "hid.h"
@@ -358,7 +359,7 @@ void hid_gamepad_report() {
     tud_hid_report(REPORT_GAMEPAD, &report, sizeof(report));
 }
 
-void hid_xinput_report() {
+void hid_xinput_report(bool wired) {
     int8_t buttons_0 = 0;
     int8_t buttons_1 = 0;
     for(int i=0; i<8; i++) {
@@ -388,7 +389,8 @@ void hid_xinput_report() {
         .ry          = -ry_report,
         .reserved    = {0, 0, 0, 0, 0, 0}
     };
-    xinput_send_report(&report);
+    if (wired) xinput_send_report(&report);
+    else wireless_queue_append(REPORT_XINPUT, &report, sizeof(report));
 }
 
 void hid_gamepad_reset() {
@@ -408,6 +410,11 @@ void hid_report_wireless() {
     if (!synced_mouse) {
         hid_mouse_report(false);
         synced_mouse = true;
+    }
+    if (!synced_gamepad) {
+        hid_xinput_report(false);  // TODO: Generic gamepad support.
+        hid_gamepad_reset();
+        synced_gamepad = true;
     }
 }
 
@@ -454,7 +461,7 @@ void hid_report() {
             if (tud_suspended()) {
                 tud_remote_wakeup();
             }
-            hid_xinput_report();
+            hid_xinput_report(true);
             priority_gamepad = 0;
         }
         // Gamepad values being reset so potentially unsent values are not
@@ -469,46 +476,90 @@ void hid_report() {
     }
 }
 
-void hid_report_direct_keyboard(hid_keyboard_report_t report) {
-    tud_task();
+void hid_ready() {
+    // tud_task();
+    uint8_t tries = 0;
     while(!tud_ready() || !tud_hid_ready()) {
-        tud_task();
+        tries += 1;
+        if (tries > 10) {
+            // printf("HID: USB HID not ready\n");
+            printf("U");
+            return;
+        }
+        // tud_task();
         sleep_us(10);
     }
-    tud_hid_report(REPORT_KEYBOARD, &report, sizeof(report));
 }
 
-void hid_report_direct_mouse(hid_mouse_custom_report_t report) {
-    tud_task();
-    while(!tud_ready() || !tud_hid_ready()) {
-        tud_task();
+void hid_xinput_ready() {
+    // tud_task();
+    uint8_t tries = 0;
+    while(!tud_ready() || !usbd_edpt_busy(0, ADDR_XINPUT_IN)) {
+        tries += 1;
+        if (tries > 10) {
+            // printf("HID: USB XInput not ready\n");
+            printf("U");
+            return;
+        }
+        // tud_task();
         sleep_us(10);
     }
-    tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
 }
 
 void hid_report_direct() {
-    uint8_t entries = 0;
-    static uint8_t predictive = 0;
+    tud_task();
+    uint8_t kb_reports = 0;  // Keyboard.
+    uint8_t m_reports = 0;  // Mouse.
+    uint8_t x_reports = 0;  // XInput.
+    hid_keyboard_report_t kb_report;
+    hid_mouse_custom_report_t m_report;
+    xinput_report x_report;
     while(!queue_is_empty(get_core_queue())) {
-        entries += 1;
         uint8_t entry[32];
         queue_remove_blocking(get_core_queue(), entry);
         uint8_t report_type = entry[0];
         if (report_type == REPORT_KEYBOARD) {
+            kb_reports += 1;
             hid_keyboard_report_t report = *(hid_keyboard_report_t*)&entry[1];
-            hid_report_direct_keyboard(report);
+            memcpy(&kb_report, &report, sizeof(hid_keyboard_report_t));
         }
         if (report_type == REPORT_MOUSE) {
+            m_reports += 1;
             uint8_t combined = entry[1];
-            if (combined == 1) predictive = 1;
             // printf("%i ", combined);
             hid_mouse_custom_report_t report = *(hid_mouse_custom_report_t*)&entry[2];
-            hid_report_direct_mouse(report);
+            if (m_reports > 1) {
+                report.x += m_report.x;
+                report.y += m_report.y;
+            }
+            memcpy(&m_report, &report, sizeof(hid_mouse_custom_report_t));
         }
-        return;
+        if (report_type == REPORT_XINPUT) {
+            x_reports += 1;
+            xinput_report report = *(xinput_report*)&entry[1];
+            memcpy(&x_report, &report, sizeof(xinput_report));
+        }
     }
-    // printf("%i ", entries);
+    bool sent = false;
+    if (kb_reports > 0) {
+        // printf("K");
+        hid_ready();
+        tud_hid_report(REPORT_KEYBOARD, &kb_report, sizeof(kb_report));
+        sent = true;
+    }
+    if (m_reports > 0) {
+        // printf("M");
+        if (sent) tud_task();
+        hid_ready();
+        tud_hid_report(REPORT_MOUSE, &m_report, sizeof(m_report));
+        sent = true;
+    }
+    if (x_reports > 0) {
+        // printf("X");
+        if (sent) tud_task();
+        hid_xinput_ready();
+        xinput_send_report(&x_report);
+    }
 }
 
 // A not-so-secret easter egg.
