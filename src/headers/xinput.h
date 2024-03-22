@@ -19,5 +19,5 @@ typedef struct {
     uint8_t reserved[6];
 } __attribute__((packed)) xinput_report;
 
-void xinput_send_report(xinput_report *report);
+bool xinput_send_report(xinput_report *report);
 void xinput_receive_report();

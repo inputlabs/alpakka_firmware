@@ -476,38 +476,7 @@ void hid_report() {
     }
 }
 
-void hid_ready() {
-    // tud_task();
-    uint8_t tries = 0;
-    while(!tud_ready() || !tud_hid_ready()) {
-        tries += 1;
-        if (tries > 10) {
-            // printf("HID: USB HID not ready\n");
-            printf("U");
-            return;
-        }
-        // tud_task();
-        sleep_us(10);
-    }
-}
-
-void hid_xinput_ready() {
-    // tud_task();
-    uint8_t tries = 0;
-    while(!tud_ready() || !usbd_edpt_busy(0, ADDR_XINPUT_IN)) {
-        tries += 1;
-        if (tries > 10) {
-            // printf("HID: USB XInput not ready\n");
-            printf("U");
-            return;
-        }
-        // tud_task();
-        sleep_us(10);
-    }
-}
-
 void hid_report_direct() {
-    tud_task();
     uint8_t kb_reports = 0;  // Keyboard.
     uint8_t m_reports = 0;  // Mouse.
     uint8_t x_reports = 0;  // XInput.
@@ -540,25 +509,33 @@ void hid_report_direct() {
             memcpy(&x_report, &report, sizeof(xinput_report));
         }
     }
-    bool sent = false;
+    tud_task();
+    if (!tud_ready()) {
+        printf("T\n");
+        return;
+    }
+    bool kb_sent;
+    bool m_sent;
+    bool x_sent;
     if (kb_reports > 0) {
-        // printf("K");
-        hid_ready();
-        tud_hid_report(REPORT_KEYBOARD, &kb_report, sizeof(kb_report));
-        sent = true;
+        kb_sent = tud_hid_report(REPORT_KEYBOARD, &kb_report, sizeof(kb_report));
+        if (!kb_sent) printf("K");
     }
     if (m_reports > 0) {
-        // printf("M");
-        if (sent) tud_task();
-        hid_ready();
-        tud_hid_report(REPORT_MOUSE, &m_report, sizeof(m_report));
-        sent = true;
+        if (kb_sent) {
+            sleep_us(1000);
+            tud_task();
+        }
+        m_sent = tud_hid_report(REPORT_MOUSE, &m_report, sizeof(m_report));
+        if (!m_sent) printf("M");
     }
     if (x_reports > 0) {
-        // printf("X");
-        if (sent) tud_task();
-        hid_xinput_ready();
-        xinput_send_report(&x_report);
+        if (kb_sent || m_sent) {
+            sleep_us(1000);
+            tud_task();
+        }
+        x_sent = xinput_send_report(&x_report);
+        if (!x_sent) printf("X");
     }
 }
 
