@@ -289,7 +289,31 @@ void hid_gamepad_lz(double value);
 void hid_gamepad_rz(double value);
 void hid_report();
 void hid_report_wireless();
-void hid_report_direct();
+void hid_report_from_queue();
 void hid_init();
 
 extern bool hid_allow_communication;
+
+typedef struct {
+  uint8_t modifier;
+  uint8_t reserved;
+  uint8_t keycode[6];
+} __attribute__((packed)) KeyboardReport;
+
+typedef struct {
+  uint8_t buttons;
+  int16_t x;
+  int16_t y;
+  int8_t scroll;
+  int8_t pan;
+} __attribute__((packed)) MouseReport;
+
+typedef struct {
+  int16_t lx;
+  int16_t ly;
+  int16_t rx;
+  int16_t ry;
+  int16_t lz;
+  int16_t rz;
+  uint32_t buttons;
+} __attribute__((packed)) GamepadReport;

@@ -20,13 +20,8 @@ static uint8_t spp_service_buffer[150];
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 static btstack_timer_source_t timer;
 
-void wireless_queue_append(uint8_t report_type, void *report, uint8_t len) {
-    if (!cid) return;
-    uint8_t entry[32] = {report_type};
-    memcpy(&entry[1], report, len);
-    bool added = queue_try_add(get_core_queue(), entry);
-    // if (!added) printf("WL: Cannot add into queue\n");
-    if (!added) printf("Q");
+bool wireless_device_is_connected() {
+    return !!cid;
 }
 
 static void request_can_send(btstack_timer_source_t *timer) {
@@ -48,31 +43,31 @@ static void queue_process() {
     uint8_t kb_reports = 0;  // Keyboard.
     uint8_t m_reports = 0;  // Mouse.
     uint8_t x_reports = 0;  // XInput.
-    hid_keyboard_report_temp kb_report;
-    hid_mouse_custom_report_temp m_report;
-    xinput_report x_report;
+    KeyboardReport kb_report;
+    MouseReport m_report;
+    XInputReport x_report;
     while(!queue_is_empty(get_core_queue())) {
         uint8_t entry[32];
         queue_remove_blocking(get_core_queue(), entry);
         uint8_t report_type = entry[0];
         if (report_type == REPORT_KEYBOARD) {
             kb_reports += 1;
-            hid_keyboard_report_temp report = *(hid_keyboard_report_temp*)&entry[1];
-            memcpy(&kb_report, &report, sizeof(hid_keyboard_report_temp));
+            KeyboardReport report = *(KeyboardReport*)&entry[1];
+            memcpy(&kb_report, &report, sizeof(KeyboardReport));
         }
         if (report_type == REPORT_MOUSE) {
             m_reports += 1;
-            hid_mouse_custom_report_temp report = *(hid_mouse_custom_report_temp*)&entry[1];
+            MouseReport report = *(MouseReport*)&entry[1];
             if (m_reports > 1) {
                 report.x += m_report.x;
                 report.y += m_report.y;
             }
-            memcpy(&m_report, &report, sizeof(hid_mouse_custom_report_temp));
+            memcpy(&m_report, &report, sizeof(MouseReport));
         }
         if (report_type == REPORT_XINPUT) {
             x_reports += 1;
-            xinput_report report = *(xinput_report*)&entry[1];
-            memcpy(&x_report, &report, sizeof(xinput_report));
+            XInputReport report = *(XInputReport*)&entry[1];
+            memcpy(&x_report, &report, sizeof(XInputReport));
         }
     }
     if (kb_reports + m_reports + x_reports == 0) return;
@@ -81,22 +76,22 @@ static void queue_process() {
     if (kb_reports > 0) {
         wl_report[index] = REPORT_KEYBOARD;
         index += 1;
-        memcpy(&wl_report[index], (uint8_t*)&kb_report, sizeof(hid_keyboard_report_temp));
-        index += sizeof(hid_keyboard_report_temp);
+        memcpy(&wl_report[index], (uint8_t*)&kb_report, sizeof(KeyboardReport));
+        index += sizeof(KeyboardReport);
     }
     if (m_reports > 0) {
         wl_report[index] = REPORT_MOUSE;
         wl_report[index+1] = m_reports;
         index += 2;
-        memcpy(&wl_report[index], (uint8_t*)&m_report, sizeof(hid_mouse_custom_report_temp));
-        index += sizeof(hid_mouse_custom_report_temp);
+        memcpy(&wl_report[index], (uint8_t*)&m_report, sizeof(MouseReport));
+        index += sizeof(MouseReport);
         if (m_reports > 1) printf("%i ", m_reports);
     }
     if (x_reports > 0) {
         wl_report[index] = REPORT_XINPUT;
         index += 1;
-        memcpy(&wl_report[index], (uint8_t*)&x_report, sizeof(xinput_report));
-        index += sizeof(xinput_report);
+        memcpy(&wl_report[index], (uint8_t*)&x_report, sizeof(XInputReport));
+        index += sizeof(XInputReport);
     }
     rfcomm_send(cid, wl_report, index);
 }
@@ -150,7 +145,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packe
     }
 }
 
-void wireless_client_init() {
+void wireless_device_init() {
     info("WL: Device init (core %i)\n", get_core_num());
     multicore_lockout_victim_init();
     flash_safe_execute_core_init();

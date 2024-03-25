@@ -70,7 +70,7 @@ usbd_class_driver_t const *usbd_app_driver_get_cb(uint8_t *driver_count) {
     return &xinput_driver;
 }
 
-bool xinput_send_report(xinput_report *report) {
+bool xinput_send_report(XInputReport *report) {
     bool result = false;
     if (!usbd_edpt_busy(0, ADDR_XINPUT_IN)) {
         usbd_edpt_claim(0, ADDR_XINPUT_IN);

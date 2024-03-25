@@ -69,7 +69,7 @@ void host_init() {
 }
 
 void host_task() {
-    hid_report_direct();
+    hid_report_from_queue();
     // tud_task();
     // if (tud_ready() && tud_hid_ready()) {
     //     webusb_read();
@@ -102,11 +102,11 @@ void device_init() {
     imu_init();
     queue_init(&core_queue, REPORT_QUEUE_ITEM_SIZE, REPORT_QUEUE_ITEMS);
     // MODE 0
-        multicore_launch_core1(wireless_client_init);
+        multicore_launch_core1(wireless_device_init);
         main_loop();
     // MODE 1
         // multicore_launch_core1(main_loop);
-        // wireless_client_init();
+        // wireless_device_init();
 }
 
 void device_task() {

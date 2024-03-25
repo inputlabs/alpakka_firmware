@@ -261,6 +261,15 @@ void hid_gamepad_rz(double value) {
     synced_gamepad = false;
 }
 
+void hid_report_to_queue(uint8_t report_type, void *report, uint8_t len) {
+    if (!wireless_device_is_connected()) return;
+    uint8_t entry[32] = {report_type};
+    memcpy(&entry[1], report, len);
+    bool added = queue_try_add(get_core_queue(), entry);
+    // if (!added) printf("WL: Cannot add into queue\n");
+    if (!added) printf("Q");
+}
+
 void hid_mouse_report(bool wired) {
     // Create button bitmask.
     int8_t buttons = 0;
@@ -269,7 +278,7 @@ void hid_mouse_report(bool wired) {
     }
     uint8_t scroll = state_matrix[MOUSE_SCROLL_UP] - state_matrix[MOUSE_SCROLL_DOWN];
     // Create report.
-    hid_mouse_custom_report_t report = {buttons, mouse_x, mouse_y, scroll, 0};
+    MouseReport report = {buttons, mouse_x, mouse_y, scroll, 0};
     // Reset values.
     mouse_x = 0;
     mouse_y = 0;
@@ -277,7 +286,7 @@ void hid_mouse_report(bool wired) {
     state_matrix[MOUSE_SCROLL_DOWN] = 0;
     // Send report.
     if (wired) tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
-    else wireless_queue_append(REPORT_MOUSE, &report, sizeof(report));
+    else hid_report_to_queue(REPORT_MOUSE, &report, sizeof(report));
 }
 
 void hid_keyboard_report(bool wired) {
@@ -296,10 +305,10 @@ void hid_keyboard_report(bool wired) {
     for(int i=0; i<8; i++) {
         modifiers += !!state_matrix[MODIFIER_INDEX + i] << i;
     }
-    hid_keyboard_report_t report = {modifiers};
+    KeyboardReport report = {modifiers};
     memcpy(report.keycode, keys, 6);
     if (wired) tud_hid_report(REPORT_KEYBOARD, &report, sizeof(report));
-    else wireless_queue_append(REPORT_KEYBOARD, &report, sizeof(report));
+    else hid_report_to_queue(REPORT_KEYBOARD, &report, sizeof(report));
 }
 
 double hid_axis(
@@ -347,7 +356,7 @@ void hid_gamepad_report() {
     // inconsistencies between games (not sure if a bug in Windows' DirectInput or TinyUSB).
     int16_t lz_report = ((hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0) * 2) - 1) * BIT_15;
     int16_t rz_report = ((hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0) * 2) - 1) * BIT_15;
-    hid_gamepad_custom_report_t report = {
+    GamepadReport report = {
         lx_report,
         ly_report,
         rx_report,
@@ -376,7 +385,7 @@ void hid_xinput_report(bool wired) {
     // Adjust range from [0,1] to [0,255].
     uint16_t lz_report = hid_axis(gamepad_lz, GAMEPAD_AXIS_LZ, 0) * BIT_8;
     uint16_t rz_report = hid_axis(gamepad_rz, GAMEPAD_AXIS_RZ, 0) * BIT_8;
-    xinput_report report = {
+    XInputReport report = {
         .report_id   = 0,
         .report_size = XINPUT_REPORT_SIZE,
         .buttons_0   = buttons_0,
@@ -390,7 +399,7 @@ void hid_xinput_report(bool wired) {
         .reserved    = {0, 0, 0, 0, 0, 0}
     };
     if (wired) xinput_send_report(&report);
-    else wireless_queue_append(REPORT_XINPUT, &report, sizeof(report));
+    else hid_report_to_queue(REPORT_XINPUT, &report, sizeof(report));
 }
 
 void hid_gamepad_reset() {
@@ -476,37 +485,37 @@ void hid_report() {
     }
 }
 
-void hid_report_direct() {
+void hid_report_from_queue() {
     uint8_t kb_reports = 0;  // Keyboard.
     uint8_t m_reports = 0;  // Mouse.
     uint8_t x_reports = 0;  // XInput.
-    hid_keyboard_report_t kb_report;
-    hid_mouse_custom_report_t m_report;
-    xinput_report x_report;
+    KeyboardReport kb_report;
+    MouseReport m_report;
+    XInputReport x_report;
     while(!queue_is_empty(get_core_queue())) {
         uint8_t entry[32];
         queue_remove_blocking(get_core_queue(), entry);
         uint8_t report_type = entry[0];
         if (report_type == REPORT_KEYBOARD) {
             kb_reports += 1;
-            hid_keyboard_report_t report = *(hid_keyboard_report_t*)&entry[1];
-            memcpy(&kb_report, &report, sizeof(hid_keyboard_report_t));
+            KeyboardReport report = *(KeyboardReport*)&entry[1];
+            memcpy(&kb_report, &report, sizeof(KeyboardReport));
         }
         if (report_type == REPORT_MOUSE) {
             m_reports += 1;
             uint8_t combined = entry[1];
             // printf("%i ", combined);
-            hid_mouse_custom_report_t report = *(hid_mouse_custom_report_t*)&entry[2];
+            MouseReport report = *(MouseReport*)&entry[2];
             if (m_reports > 1) {
                 report.x += m_report.x;
                 report.y += m_report.y;
             }
-            memcpy(&m_report, &report, sizeof(hid_mouse_custom_report_t));
+            memcpy(&m_report, &report, sizeof(MouseReport));
         }
         if (report_type == REPORT_XINPUT) {
             x_reports += 1;
-            xinput_report report = *(xinput_report*)&entry[1];
-            memcpy(&x_report, &report, sizeof(xinput_report));
+            XInputReport report = *(XInputReport*)&entry[1];
+            memcpy(&x_report, &report, sizeof(XInputReport));
         }
     }
     tud_task();

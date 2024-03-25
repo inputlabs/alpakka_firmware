@@ -17,7 +17,7 @@ typedef struct {
     int16_t rx;
     int16_t ry;
     uint8_t reserved[6];
-} __attribute__((packed)) xinput_report;
+} __attribute__((packed)) XInputReport;
 
-bool xinput_send_report(xinput_report *report);
+bool xinput_send_report(XInputReport *report);
 void xinput_receive_report();
