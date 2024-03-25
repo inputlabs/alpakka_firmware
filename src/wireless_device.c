@@ -35,7 +35,46 @@ void loop() {
     if (cid) rfcomm_request_can_send_now_event(cid);
 }
 
-static void queue_process() {
+static void event_pin_code_request_cb(uint8_t *packet) {
+    bd_addr_t event_addr;
+    hci_event_pin_code_request_get_bd_addr(packet, event_addr);
+    gap_pin_code_response(event_addr, "0000");
+}
+
+static void event_incomming_connection_cb(uint8_t *packet) {
+    bd_addr_t event_addr;
+    uint8_t rfcomm_channel;
+    rfcomm_event_incoming_connection_get_bd_addr(packet, event_addr);
+    rfcomm_channel = rfcomm_event_incoming_connection_get_server_channel(packet);
+    cid = rfcomm_event_incoming_connection_get_rfcomm_cid(packet);
+    printf("WL: Channel %i requested for %s\n", rfcomm_channel, bd_addr_to_str(event_addr));
+    rfcomm_accept_connection(cid);
+}
+
+static void event_channel_opened_cb(uint8_t *packet) {
+    uint8_t error = rfcomm_event_channel_opened_get_status(packet);
+    if (error) {
+        printf("WL: Channel open failed (0x%02x)\n", error);
+        return;
+    }
+    printf("WL: Connected\n");
+    cid = rfcomm_event_channel_opened_get_rfcomm_cid(packet);
+    // rfcomm_mtu = rfcomm_event_channel_opened_get_max_frame_size(packet);
+    gap_discoverable_control(0);
+    gap_connectable_control(0);
+    rfcomm_request_can_send_now_event(cid);
+    profile_update_leds();
+}
+
+static void event_channel_closed_cb(uint8_t *packet) {
+    printf("WL: Channel closed\n");
+    cid = 0;
+    gap_discoverable_control(1);
+    gap_connectable_control(1);
+}
+
+// Queue to air.
+static void event_can_send_now_cb(uint8_t *packet) {
     // static uint32_t last = 0;
     // uint32_t now = time_us_32() / 1000;
     // uint32_t elapsed = now - last;
@@ -46,6 +85,7 @@ static void queue_process() {
     KeyboardReport kb_report;
     MouseReport m_report;
     XInputReport x_report;
+    // Merge reports by type.
     while(!queue_is_empty(get_core_queue())) {
         uint8_t entry[32];
         queue_remove_blocking(get_core_queue(), entry);
@@ -71,6 +111,7 @@ static void queue_process() {
         }
     }
     if (kb_reports + m_reports + x_reports == 0) return;
+    // Compose a combined report.
     uint8_t index = 0;
     uint8_t wl_report[48] = {0,};
     if (kb_reports > 0) {
@@ -96,53 +137,18 @@ static void queue_process() {
     rfcomm_send(cid, wl_report, index);
 }
 
-static void event_handler(uint8_t *packet, uint16_t size) {
-    bd_addr_t event_addr;
-    uint8_t rfcomm_channel;
+static void event_handler(uint8_t *packet) {
     uint8_t event_type = hci_event_packet_get_type(packet);
-    if (event_type == HCI_EVENT_PIN_CODE_REQUEST) {
-        hci_event_pin_code_request_get_bd_addr(packet, event_addr);
-        gap_pin_code_response(event_addr, "0000");
-    }
-    if (event_type == RFCOMM_EVENT_INCOMING_CONNECTION) {
-        rfcomm_event_incoming_connection_get_bd_addr(packet, event_addr);
-        rfcomm_channel = rfcomm_event_incoming_connection_get_server_channel(packet);
-        cid = rfcomm_event_incoming_connection_get_rfcomm_cid(packet);
-        printf("WL: Channel %i requested for %s\n", rfcomm_channel, bd_addr_to_str(event_addr));
-        rfcomm_accept_connection(cid);
-    }
-    if (event_type == RFCOMM_EVENT_CHANNEL_OPENED) {
-        uint8_t error = rfcomm_event_channel_opened_get_status(packet);
-        if (!error) {
-            printf("WL: Connected\n");
-            cid = rfcomm_event_channel_opened_get_rfcomm_cid(packet);
-            // rfcomm_mtu = rfcomm_event_channel_opened_get_max_frame_size(packet);
-            gap_discoverable_control(0);
-            gap_connectable_control(0);
-            rfcomm_request_can_send_now_event(cid);
-            profile_update_leds();
-        } else {
-            printf("WL: Channel open failed (0x%02x)\n", error);
-        }
-    }
-    if (event_type == RFCOMM_EVENT_CAN_SEND_NOW) {
-        queue_process();
-    }
-    if (event_type == RFCOMM_EVENT_CHANNEL_CLOSED) {
-        printf("WL: Channel closed\n");
-        cid = 0;
-        gap_discoverable_control(1);
-        gap_connectable_control(1);
-    }
+    if (event_type == HCI_EVENT_PIN_CODE_REQUEST) event_pin_code_request_cb(packet);
+    else if (event_type == RFCOMM_EVENT_INCOMING_CONNECTION) event_incomming_connection_cb(packet);
+    else if (event_type == RFCOMM_EVENT_CHANNEL_OPENED) event_channel_opened_cb(packet);
+    else if (event_type == RFCOMM_EVENT_CAN_SEND_NOW) event_can_send_now_cb(packet);
+    else if (event_type == RFCOMM_EVENT_CHANNEL_CLOSED) event_channel_opened_cb(packet);
 }
 
 static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) {
-    if (packet_type == HCI_EVENT_PACKET) {
-        event_handler(packet, size);
-    }
-    if (packet_type == RFCOMM_DATA_PACKET) {
-        // Bidirectional.
-    }
+    if (packet_type == HCI_EVENT_PACKET) event_handler(packet);
+    // if (packet_type == RFCOMM_DATA_PACKET) data_packet_cb(packet, size);
 }
 
 void wireless_device_init() {

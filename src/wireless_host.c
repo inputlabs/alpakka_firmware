@@ -53,7 +53,83 @@ static void loop_setup(void){
     btstack_run_loop_add_timer(&loop_timer);
 }
 
-void process_packet(uint8_t *packet, uint16_t size) {
+static void start_scan(void) {
+    printf("WL: Scanning...\n");
+    state = SCANNING;
+    gap_inquiry_start(INQUIRY_INTERVAL);
+}
+
+static void stop_scan(void) {
+    state = SCAN_COMPLETE;
+    gap_inquiry_stop();
+}
+
+static void event_state_cb(int8_t *packet) {
+    if (btstack_event_state_get_state(packet) != HCI_STATE_WORKING) return;
+    start_scan();
+}
+
+static void event_inquiry_result_cb(int8_t *packet) {
+    if (state != SCANNING) return;
+    bd_addr_t event_addr;
+    uint32_t class_of_device;
+    class_of_device = gap_event_inquiry_result_get_class_of_device(packet);
+    gap_event_inquiry_result_get_bd_addr(packet, event_addr);
+    if (class_of_device == CLASS_OF_DEVICE) {
+        memcpy(peer_addr, event_addr, 6);
+        printf("WL: Compatible device found: %s\n", bd_addr_to_str(peer_addr));
+        stop_scan();
+    } else {
+        printf(
+            "WL: Non-compatible device found: %s (0x%04x)\n",
+            bd_addr_to_str(event_addr),
+            (int)class_of_device
+        );
+    }
+}
+
+static void event_inquiry_complete_cb(int8_t *packet) {
+    if (state == SCANNING) {
+        printf("WL: Compatible device not found\n");
+        start_scan();
+    }
+    if (state == SCAN_COMPLETE) {
+        printf("WL: Trying to connect\n");
+        state = QUERYING;
+        sdp_query_callback_registration.callback = &sdp_query;
+        sdp_client_register_query_callback(&sdp_query_callback_registration);
+    }
+}
+
+static void event_pin_code_request_cb(int8_t *packet) {
+    bd_addr_t event_addr;
+    hci_event_pin_code_request_get_bd_addr(packet, event_addr);
+    gap_pin_code_response(event_addr, "0000");
+}
+
+static void event_channel_opened_cb(int8_t *packet) {
+    uint8_t error = rfcomm_event_channel_opened_get_status(packet);
+    if (error) {
+        printf("WL: Channel open failed (0x%02x)\n", error);
+        return;
+    }
+    state = CONNECTED;
+    cid = rfcomm_event_channel_opened_get_rfcomm_cid(packet);
+    // uint16_t rfcomm_mtu = rfcomm_event_channel_opened_get_max_frame_size(packet);
+    printf("WL: Connected\n");
+    gap_discoverable_control(0);
+    gap_connectable_control(0);
+    // rfcomm_request_can_send_now_event(cid);
+}
+
+static void event_channel_closed_cb(int8_t *packet) {
+    printf("WL: Channel closed\n");
+    cid = 0;
+    start_scan();
+}
+
+// Air to queue.
+void data_packet_cb(uint8_t *packet, uint16_t size) {
     uint8_t index = 0;
     while (index < size) {
         uint8_t report_type = packet[index];
@@ -85,82 +161,19 @@ void process_packet(uint8_t *packet, uint16_t size) {
     }
 }
 
-static void start_scan(void) {
-    printf("WL: Scanning...\n");
-    state = SCANNING;
-    gap_inquiry_start(INQUIRY_INTERVAL);
-}
-
-static void stop_scan(void) {
-    state = SCAN_COMPLETE;
-    gap_inquiry_stop();
-}
-
-static void event_handler(uint8_t *packet, uint16_t size) {
-    bd_addr_t event_addr;
-    uint8_t rfcomm_channel;
-    uint32_t class_of_device;
+static void event_handler(uint8_t *packet) {
     uint8_t event_type = hci_event_packet_get_type(packet);
-    if (event_type == BTSTACK_EVENT_STATE) {
-        if (btstack_event_state_get_state(packet) != HCI_STATE_WORKING) return;
-        start_scan();
-    }
-    if (event_type == GAP_EVENT_INQUIRY_RESULT) {
-        if (state != SCANNING) return;
-        class_of_device = gap_event_inquiry_result_get_class_of_device(packet);
-        gap_event_inquiry_result_get_bd_addr(packet, event_addr);
-        if (class_of_device == CLASS_OF_DEVICE) {
-            memcpy(peer_addr, event_addr, 6);
-            printf("WL: Compatible device found: %s\n", bd_addr_to_str(peer_addr));
-            stop_scan();
-        } else {
-            printf("WL: Device found: %s (0x%04x)\n", bd_addr_to_str(event_addr), (int)class_of_device);
-        }
-    }
-    if (event_type == GAP_EVENT_INQUIRY_COMPLETE) {
-        if (state == SCANNING) {
-            printf("WL: Compatible device not found\n");
-            start_scan();
-        }
-        if (state == SCAN_COMPLETE) {
-            printf("WL: Trying to connect\n");
-            state = QUERYING;
-            sdp_query_callback_registration.callback = &sdp_query;
-            sdp_client_register_query_callback(&sdp_query_callback_registration);
-        }
-    }
-    if (event_type == HCI_EVENT_PIN_CODE_REQUEST) {
-        hci_event_pin_code_request_get_bd_addr(packet, event_addr);
-        gap_pin_code_response(event_addr, "0000");
-    }
-    if (event_type == RFCOMM_EVENT_CHANNEL_OPENED) {
-            uint8_t error = rfcomm_event_channel_opened_get_status(packet);
-        if (!error) {
-            state = CONNECTED;
-            cid = rfcomm_event_channel_opened_get_rfcomm_cid(packet);
-            // uint16_t rfcomm_mtu = rfcomm_event_channel_opened_get_max_frame_size(packet);
-            printf("WL: Connected\n");
-            gap_discoverable_control(0);
-            gap_connectable_control(0);
-            rfcomm_request_can_send_now_event(cid);
-        } else {
-            printf("WL: Channel open failed (0x%02x)\n", error);
-        }
-    }
-    if (event_type == RFCOMM_EVENT_CHANNEL_CLOSED) {
-        printf("WL: Channel closed\n");
-        cid = 0;
-        start_scan();
-    }
+    if (event_type == BTSTACK_EVENT_STATE) event_state_cb(packet);
+    if (event_type == GAP_EVENT_INQUIRY_RESULT) event_inquiry_result_cb(packet);
+    if (event_type == GAP_EVENT_INQUIRY_COMPLETE) event_inquiry_complete_cb(packet);
+    if (event_type == HCI_EVENT_PIN_CODE_REQUEST) event_pin_code_request_cb(packet);
+    if (event_type == RFCOMM_EVENT_CHANNEL_OPENED) event_channel_opened_cb(packet);
+    if (event_type == RFCOMM_EVENT_CHANNEL_CLOSED) event_channel_closed_cb(packet);
 }
 
 static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) {
-    if (packet_type == HCI_EVENT_PACKET) {
-        event_handler(packet, size);
-    }
-    if (packet_type == RFCOMM_DATA_PACKET) {
-        process_packet(packet, size);
-    }
+    if (packet_type == HCI_EVENT_PACKET) event_handler(packet);
+    if (packet_type == RFCOMM_DATA_PACKET) data_packet_cb(packet, size);
 }
 
 static void sdp_query_hander(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) {
