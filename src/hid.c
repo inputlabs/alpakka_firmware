@@ -18,6 +18,7 @@
 bool hid_allow_communication = true;  // Extern.
 bool synced_keyboard = false;
 bool synced_mouse = false;
+bool synced_mouse_eot = false;  // End Of Transmission.
 bool synced_gamepad = false;
 uint16_t alarms = 0;
 alarm_pool_t *alarm_pool;
@@ -38,6 +39,7 @@ void hid_matrix_reset() {
     }
     synced_keyboard = false;
     synced_mouse = false;
+    synced_mouse_eot = false;
     synced_gamepad = false;
 }
 
@@ -99,7 +101,7 @@ void hid_press(uint8_t key) {
     else {
         state_matrix[key] += 1;
         if (key >= GAMEPAD_INDEX) synced_gamepad = false;
-        else if (key >= MOUSE_INDEX) synced_mouse = false;
+        else if (key >= MOUSE_INDEX) synced_mouse = synced_mouse_eot = false;
         else synced_keyboard = false;
     }
 }
@@ -112,7 +114,7 @@ void hid_release(uint8_t key) {
     else {
         state_matrix[key] -= 1;
         if (key >= GAMEPAD_INDEX) synced_gamepad = false;
-        else if (key >= MOUSE_INDEX) synced_mouse = false;
+        else if (key >= MOUSE_INDEX) synced_mouse = synced_mouse_eot = false;
         else synced_keyboard = false;
     }
 }
@@ -223,6 +225,7 @@ void hid_mouse_move(int16_t x, int16_t y) {
     mouse_x += x;
     mouse_y += y;
     synced_mouse = false;
+    synced_mouse_eot = false;
 }
 
 void hid_gamepad_lx(double value) {
@@ -412,6 +415,10 @@ void hid_gamepad_reset() {
 }
 
 void hid_report_wireless() {
+    if (synced_mouse && !synced_mouse_eot) {
+        hid_report_to_queue(REPORT_MOUSE_EOT, NULL, 0);
+        synced_mouse_eot = true;
+    }
     if (!synced_keyboard) {
         hid_keyboard_report(false);
         synced_keyboard = true;
@@ -489,6 +496,12 @@ void hid_report_from_queue() {
     uint8_t kb_reports = 0;  // Keyboard.
     uint8_t m_reports = 0;  // Mouse.
     uint8_t x_reports = 0;  // XInput.
+    uint8_t mouse_combined = 0;
+    static bool mouse_engaged = false;
+    static uint8_t predicted = 0;
+    static MouseReport mouse_last_report;
+    static int16_t mouse_predicted_x = 0;
+    static int16_t mouse_predicted_y = 0;
     KeyboardReport kb_report;
     MouseReport m_report;
     XInputReport x_report;
@@ -503,10 +516,13 @@ void hid_report_from_queue() {
         }
         if (report_type == REPORT_MOUSE) {
             m_reports += 1;
-            uint8_t combined = entry[1];
-            // printf("%i ", combined);
+            mouse_engaged = true;
+            mouse_combined += entry[1];
             MouseReport report = *(MouseReport*)&entry[2];
-            if (m_reports > 1) {
+            if (m_reports == 1) {
+                memcpy(&mouse_last_report, &report, sizeof(MouseReport));
+            }
+            else {
                 report.x += m_report.x;
                 report.y += m_report.y;
             }
@@ -516,6 +532,10 @@ void hid_report_from_queue() {
             x_reports += 1;
             XInputReport report = *(XInputReport*)&entry[1];
             memcpy(&x_report, &report, sizeof(XInputReport));
+        }
+        if (report_type == REPORT_MOUSE_EOT) {
+            // printf("E");
+            mouse_engaged = false;
         }
     }
     tud_task();
@@ -531,9 +551,22 @@ void hid_report_from_queue() {
         if (!kb_sent) printf("K");
     }
     if (m_reports > 0) {
+        // printf("%i ", mouse_combined);
         if (kb_sent) {
             sleep_us(1000);
             tud_task();
+        }
+        // Reconcile predictions.
+        if (predicted > 0 && mouse_combined > 1) {
+            // printf("R");
+            m_report.x -= mouse_predicted_x;
+            m_report.y -= mouse_predicted_y;
+            mouse_predicted_x = 0;
+            mouse_predicted_y = 0;
+            predicted -= (mouse_combined - 1);
+            if (predicted <= 0) {
+                predicted = 0;
+            }
         }
         m_sent = tud_hid_report(REPORT_MOUSE, &m_report, sizeof(m_report));
         if (!m_sent) printf("M");
@@ -545,6 +578,19 @@ void hid_report_from_queue() {
         }
         x_sent = xinput_send_report(&x_report);
         if (!x_sent) printf("X");
+    }
+    // Do prediction.
+    if (m_reports == 0 && mouse_engaged) {
+        if (kb_sent || x_sent) {
+            sleep_us(1000);
+            tud_task();
+        }
+        m_sent = tud_hid_report(REPORT_MOUSE, &mouse_last_report, sizeof(mouse_last_report));
+        if (!m_sent) printf("M");
+        predicted += 1;
+        mouse_predicted_x += mouse_last_report.x;
+        mouse_predicted_y += mouse_last_report.y;
+        // printf("P ");
     }
 }
 

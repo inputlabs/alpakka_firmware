@@ -82,6 +82,7 @@ static void event_can_send_now_cb(uint8_t *packet) {
     uint8_t kb_reports = 0;  // Keyboard.
     uint8_t m_reports = 0;  // Mouse.
     uint8_t x_reports = 0;  // XInput.
+    bool mouse_eot = false;  // Mouse End Of Transmission.
     KeyboardReport kb_report;
     MouseReport m_report;
     XInputReport x_report;
@@ -97,6 +98,7 @@ static void event_can_send_now_cb(uint8_t *packet) {
         }
         if (report_type == REPORT_MOUSE) {
             m_reports += 1;
+            mouse_eot = false;
             MouseReport report = *(MouseReport*)&entry[1];
             if (m_reports > 1) {
                 report.x += m_report.x;
@@ -109,8 +111,11 @@ static void event_can_send_now_cb(uint8_t *packet) {
             XInputReport report = *(XInputReport*)&entry[1];
             memcpy(&x_report, &report, sizeof(XInputReport));
         }
+        if (report_type == REPORT_MOUSE_EOT) {
+            mouse_eot = true;
+        }
     }
-    if (kb_reports + m_reports + x_reports == 0) return;
+    if (kb_reports + m_reports + x_reports == 0 && !mouse_eot) return;
     // Compose a combined report.
     uint8_t index = 0;
     uint8_t wl_report[48] = {0,};
@@ -133,6 +138,10 @@ static void event_can_send_now_cb(uint8_t *packet) {
         index += 1;
         memcpy(&wl_report[index], (uint8_t*)&x_report, sizeof(XInputReport));
         index += sizeof(XInputReport);
+    }
+    if (mouse_eot) {
+        wl_report[index] = REPORT_MOUSE_EOT;
+        index += 1;
     }
     rfcomm_send(cid, wl_report, index);
 }

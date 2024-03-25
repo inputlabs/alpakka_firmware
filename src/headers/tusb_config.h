@@ -36,6 +36,7 @@
 #define REPORT_GAMEPAD 3
 #define REPORT_XINPUT 4
 #define REPORT_WEBUSB 5
+#define REPORT_MOUSE_EOT 6
 
 #define STRING_VENDOR "Input Labs"
 #define STRING_PRODUCT "Alpakka"

@@ -150,6 +150,11 @@ void data_packet_cb(uint8_t *packet, uint16_t size) {
             // if (!added) printf("WL: Cannot add into queue\n");
             if (!added) printf("Q");
         }
+        if (report_type == REPORT_MOUSE_EOT) {
+            uint8_t entry[32] = {report_type};
+            bool added = queue_try_add(get_core_queue(), entry);
+            if (!added) printf("Q");
+        }
         if (report_type == REPORT_XINPUT) {
             uint8_t entry[32] = {report_type};
             memcpy(&entry[1], &packet[index], sizeof(XInputReport));
