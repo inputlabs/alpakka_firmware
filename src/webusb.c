@@ -13,6 +13,7 @@
 #include "tusb_config.h"
 #include "common.h"
 #include "logging.h"
+#include "loop.h"
 
 char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;

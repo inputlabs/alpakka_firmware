@@ -72,6 +72,7 @@ target_sources(${PROJECT} PUBLIC
     src/imu.c
     src/led.c
     src/logging.c
+    src/loop.c
     src/nvm.c
     src/profile.c
     src/profiles/console_legacy.c

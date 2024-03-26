@@ -209,7 +209,3 @@ Ctrl ctrl_establish_device();
 Ctrl ctrl_log(uint8_t* offset_ptr, uint8_t len);
 Ctrl ctrl_config_share(uint8_t index);
 Ctrl ctrl_profile_share(uint8_t profile_index, uint8_t section_index);
-
-void set_system_clock(uint64_t time);
-uint64_t get_system_clock();
-
