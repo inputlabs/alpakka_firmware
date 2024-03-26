@@ -87,9 +87,9 @@ static void event_can_send_now_cb(uint8_t *packet) {
     MouseReport m_report;
     XInputReport x_report;
     // Merge reports by type.
-    while(!queue_is_empty(get_core_queue())) {
+    while(!queue_is_empty(hid_get_queue())) {
         uint8_t entry[32];
-        queue_remove_blocking(get_core_queue(), entry);
+        queue_remove_blocking(hid_get_queue(), entry);
         uint8_t report_type = entry[0];
         if (report_type == REPORT_KEYBOARD) {
             kb_reports += 1;

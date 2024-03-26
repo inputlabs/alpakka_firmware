@@ -3,6 +3,7 @@
 
 #include <tusb.h>
 #include <device/usbd_pvt.h>
+#include <pico/util/queue.h>
 #include "config.h"
 #include "ctrl.h"
 #include "hid.h"
@@ -22,6 +23,7 @@ bool synced_mouse_eot = false;  // End Of Transmission.
 bool synced_gamepad = false;
 uint16_t alarms = 0;
 alarm_pool_t *alarm_pool;
+static queue_t report_queue;
 
 uint8_t state_matrix[256] = {0,};
 int16_t mouse_x = 0;
@@ -268,7 +270,7 @@ void hid_report_to_queue(uint8_t report_type, void *report, uint8_t len) {
     if (!wireless_device_is_connected()) return;
     uint8_t entry[32] = {report_type};
     memcpy(&entry[1], report, len);
-    bool added = queue_try_add(get_core_queue(), entry);
+    bool added = queue_try_add(hid_get_queue(), entry);
     // if (!added) printf("WL: Cannot add into queue\n");
     if (!added) printf("Q");
 }
@@ -505,9 +507,9 @@ void hid_report_from_queue() {
     KeyboardReport kb_report;
     MouseReport m_report;
     XInputReport x_report;
-    while(!queue_is_empty(get_core_queue())) {
+    while(!queue_is_empty(hid_get_queue())) {
         uint8_t entry[32];
-        queue_remove_blocking(get_core_queue(), entry);
+        queue_remove_blocking(hid_get_queue(), entry);
         uint8_t report_type = entry[0];
         if (report_type == REPORT_KEYBOARD) {
             kb_reports += 1;
@@ -623,7 +625,12 @@ void hid_thanks() {
     add_alarm_in_ms(5, (alarm_callback_t)hid_thanks_, NULL, true);
 }
 
+queue_t* hid_get_queue() {
+    return &report_queue;
+}
+
 void hid_init() {
     info("INIT: HID\n");
     alarm_pool = alarm_pool_create(2, 255);
+    queue_init(&report_queue, REPORT_QUEUE_ITEM_SIZE, REPORT_QUEUE_LEN);
 }

@@ -290,9 +290,13 @@ void hid_gamepad_rz(double value);
 void hid_report();
 void hid_report_wireless();
 void hid_report_from_queue();
+queue_t* hid_get_queue();
 void hid_init();
 
 extern bool hid_allow_communication;
+
+#define REPORT_QUEUE_ITEM_SIZE 32
+#define REPORT_QUEUE_LEN 16
 
 typedef struct {
   uint8_t modifier;

@@ -6,7 +6,6 @@
 #include <pico/time.h>
 #include <pico/multicore.h>
 #include <pico/flash.h>
-#include <pico/util/queue.h>
 #include <tusb.h>
 #include "config.h"
 #include "wireless.h"
@@ -35,12 +34,8 @@ void set_system_clock(uint64_t time) {
     info("INIT: System_clock=%llu\n", system_clock);
 }
 
-# define REPORT_QUEUE_ITEM_SIZE 32
-# define REPORT_QUEUE_ITEMS 16
-queue_t core_queue;
-queue_t* get_core_queue() {
-    return &core_queue;
-}
+
+
 
 void title() {
     info("╔====================╗\n");
@@ -63,7 +58,6 @@ void host_init() {
     wait_for_usb_init();
     // config_init();
     hid_init();
-    queue_init(&core_queue, REPORT_QUEUE_ITEM_SIZE, REPORT_QUEUE_ITEMS);
     multicore_launch_core1(wireless_host_init);
     main_loop();
 }
@@ -100,7 +94,6 @@ void device_init() {
     rotary_init();
     profile_init();
     imu_init();
-    queue_init(&core_queue, REPORT_QUEUE_ITEM_SIZE, REPORT_QUEUE_ITEMS);
     // MODE 0
         multicore_launch_core1(wireless_device_init);
         main_loop();

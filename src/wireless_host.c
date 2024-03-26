@@ -138,7 +138,7 @@ void data_packet_cb(uint8_t *packet, uint16_t size) {
             uint8_t entry[32] = {report_type};
             memcpy(&entry[1], &packet[index], sizeof(KeyboardReport));
             index += sizeof(KeyboardReport);
-            bool added = queue_try_add(get_core_queue(), entry);
+            bool added = queue_try_add(hid_get_queue(), entry);
             // if (!added) printf("WL: Cannot add into queue\n");
             if (!added) printf("Q");
         }
@@ -146,20 +146,20 @@ void data_packet_cb(uint8_t *packet, uint16_t size) {
             uint8_t entry[32] = {report_type};
             memcpy(&entry[1], &packet[index], sizeof(MouseReport) + 1);
             index += sizeof(MouseReport) + 1;
-            bool added = queue_try_add(get_core_queue(), entry);
+            bool added = queue_try_add(hid_get_queue(), entry);
             // if (!added) printf("WL: Cannot add into queue\n");
             if (!added) printf("Q");
         }
         if (report_type == REPORT_MOUSE_EOT) {
             uint8_t entry[32] = {report_type};
-            bool added = queue_try_add(get_core_queue(), entry);
+            bool added = queue_try_add(hid_get_queue(), entry);
             if (!added) printf("Q");
         }
         if (report_type == REPORT_XINPUT) {
             uint8_t entry[32] = {report_type};
             memcpy(&entry[1], &packet[index], sizeof(XInputReport));
             index += sizeof(XInputReport);
-            bool added = queue_try_add(get_core_queue(), entry);
+            bool added = queue_try_add(hid_get_queue(), entry);
             // if (!added) printf("WL: Cannot add into queue\n");
             if (!added) printf("Q");
         }

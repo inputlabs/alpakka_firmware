@@ -63,6 +63,4 @@ uint8_t random8();
 #define ramp(x, min, max)  constrain( 2 * ((x-min) / (max-min)) - 1, -1, 1)
 
 
-queue_t* get_core_queue();    ///////////
-
 void print_array(uint8_t *array, uint8_t len);
