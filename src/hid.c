@@ -436,9 +436,7 @@ void hid_report_wireless() {
     }
 }
 
-void hid_report() {
-    static bool is_tud_ready = false;
-    static bool is_tud_ready_logged = false;
+bool hid_report() {
     static uint8_t priority_mouse = 0;
     static uint8_t priority_gamepad = 0;
 
@@ -448,15 +446,9 @@ void hid_report() {
     // is a lot of mouse data being sent.
     if (!synced_mouse) priority_mouse += 1 * CFG_HID_REPORT_PRIORITY_RATIO;
     if (!synced_gamepad) priority_gamepad += 1;
-
-    if (!hid_allow_communication) return;
+    if (!hid_allow_communication) return true;
     tud_task();
     if (tud_ready()) {
-        is_tud_ready = true;
-        if (!is_tud_ready_logged) {
-            is_tud_ready_logged = true;
-            info("USB: tud_ready TRUE\n");
-        }
         if (tud_hid_ready()) {
             webusb_read();
             webusb_flush();
@@ -485,12 +477,9 @@ void hid_report() {
         // Gamepad values being reset so potentially unsent values are not
         // aggregated with the next cycle.
         hid_gamepad_reset();
+        return true;
     } else {
-        is_tud_ready = false;
-        if (is_tud_ready_logged) {
-            is_tud_ready_logged = false;
-            info("USB: tud_ready FALSE\n");
-        }
+        return false;
     }
 }
 
@@ -545,6 +534,8 @@ void hid_report_from_queue() {
         printf("T\n");
         return;
     }
+    webusb_read();
+    webusb_flush();
     bool kb_sent;
     bool m_sent;
     bool x_sent;

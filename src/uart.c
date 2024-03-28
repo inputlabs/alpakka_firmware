@@ -39,13 +39,10 @@ void uart_listen_do(bool limited) {
 }
 
 void uart_listen() {
-    static uint16_t iteration = 0;
+    static uint16_t i = 0;
+    i += 1;
     // Execute only once per second.
-    if (iteration % CFG_TICK_FREQUENCY) {
-        iteration = 0;
-        return;
-    }
-    iteration += 1;
+    if (i % CFG_TICK_FREQUENCY) return;
     uart_listen_do(false);
 }
 

@@ -21,7 +21,12 @@
 #include "version.h"
 #include "common.h"
 
+static DeviceMode device_mode = WIRED;
 static uint64_t system_clock = 0;
+
+DeviceMode loop_get_device_mode() {
+    return device_mode;
+}
 
 uint64_t get_system_clock() {
     return system_clock;
@@ -48,6 +53,18 @@ static void dongle_title() {
     info("Firmware version: %s\n", VERSION);
 }
 
+static void set_wired() {
+    info("LOOP: wired\n");
+    if (device_mode != WIRED) config_reboot();
+    device_mode = WIRED;
+}
+
+static void set_wireless() {
+    info("LOOP: wireless\n");
+    if (device_mode != WIRELESS) multicore_launch_core1(wireless_device_init);
+    device_mode = WIRELESS;
+}
+
 void loop_device_init() {
     flash_safe_execute_core_init();
     led_init();
@@ -57,8 +74,8 @@ void loop_device_init() {
     logging_init();
     device_title();
     config_init();
-    // tusb_init();
-    // wait_for_usb_init();
+    tusb_init();
+    bool usb = usb_wait_for_init(1000);
     bus_init();
     hid_init();
     thumbstick_init();
@@ -66,19 +83,30 @@ void loop_device_init() {
     rotary_init();
     profile_init();
     imu_init();
-    multicore_launch_core1(wireless_device_init);
+    if (usb) set_wired();
+    else set_wireless();
     loop_cycle();
 }
 
 void loop_device_task() {
+    // Write flash if needed.
     config_sync();
+    // Gather values for input sources.
     profile_report_active();
-    // tud_task();
-    // if (tud_ready() && tud_hid_ready()) {
-    //     webusb_read();
-    //     webusb_flush();
-    // }
-    hid_report_wireless();
+    // Report to the correct channel.
+    if (device_mode == WIRED) {
+        bool reported = hid_report();
+        // Switch to wireless if USB is disconnected.
+        if (!reported) set_wireless();
+    }
+    if (device_mode == WIRELESS) {
+        hid_report_wireless();
+        // Switch to wired if USB is connected.
+        static uint16_t i = 0;
+        i++;
+        if ((!(i % 250)) && usb_is_connected()) set_wired();
+    }
+    // Listen to UART commands.
     uart_listen();
 }
 
@@ -90,7 +118,7 @@ void loop_dongle_init() {
     logging_init();
     dongle_title();
     tusb_init();
-    wait_for_usb_init();
+    if (usb_wait_for_init(-1));  // Negative number = no timeout.
     // config_init();
     hid_init();
     multicore_launch_core1(wireless_host_init);
@@ -99,11 +127,6 @@ void loop_dongle_init() {
 
 void loop_dongle_task() {
     hid_report_from_queue();
-    // tud_task();
-    // if (tud_ready() && tud_hid_ready()) {
-    //     webusb_read();
-    //     webusb_flush();
-    // }
 }
 
 void loop_cycle() {

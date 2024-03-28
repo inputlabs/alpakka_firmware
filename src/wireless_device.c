@@ -165,6 +165,10 @@ void wireless_device_init() {
     multicore_lockout_victim_init();
     flash_safe_execute_core_init();
 
+    led_static_mask(LED_NONE);
+    led_blink_mask(LED_TRIANGLE_UP);
+    led_set_mode(LED_MODE_BLINK);
+
     cyw43_arch_init();
     cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, 2000, 1, 1, 1);
 
@@ -195,10 +199,6 @@ void wireless_device_init() {
     gap_discoverable_control(1);
 
 	hci_power_control(HCI_POWER_ON);
-
-    led_static_mask(LED_NONE);
-    led_blink_mask(LED_ALL);
-    led_set_mode(LED_MODE_BLINK);
 
     info("WL: Device loop\n");
     loop();

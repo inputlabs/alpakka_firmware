@@ -2,6 +2,7 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #pragma once
+#include <stdbool.h>
 #include <pico/time.h>
 #include "common.h"
 
@@ -287,7 +288,7 @@ void hid_gamepad_rx(double value);
 void hid_gamepad_ry(double value);
 void hid_gamepad_lz(double value);
 void hid_gamepad_rz(double value);
-void hid_report();
+bool hid_report();
 void hid_report_wireless();
 void hid_report_from_queue();
 queue_t* hid_get_queue();

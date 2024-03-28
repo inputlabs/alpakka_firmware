@@ -180,8 +180,4 @@ void led_init() {
     led_init_each(PIN_LED_RIGHT);
     led_init_each(PIN_LED_DOWN);
     led_init_each(PIN_LED_LEFT);
-    // Blink all LEDs until something else happens.
-    led_static_mask(LED_NONE);
-    led_blink_mask(LED_ALL);
-    led_set_mode(LED_MODE_BLINK);
 }

@@ -4,6 +4,7 @@
 #include <tusb_config.h>
 #include <tusb.h>
 #include "config.h"
+#include "led.h"
 #include "logging.h"
 
 static const char *const descriptor_string[] = {
@@ -168,11 +169,23 @@ void tud_resume_cb(void) {
     debug_uart("USB: tud_resume_cb\n");
 }
 
-void wait_for_usb_init() {
-    while(true) {
+bool usb_wait_for_init(int16_t timeout) {
+    led_static_mask(LED_NONE);
+    led_blink_mask(LED_ALL);
+    led_set_mode(LED_MODE_BLINK);
+    while(timeout != 0) {
         tud_task();
-        if (tud_ready()) break;
+        if (tud_ready()) {
+            debug_uart("USB: Ready\n");
+            return true;
+        }
         else sleep_ms(1);
+        if (timeout > 0) timeout -= 1;
     }
-    debug_uart("USB: Ready\n");
+    return false;
+}
+
+bool usb_is_connected() {
+    tud_task();
+    return tud_connected() && !tud_suspended();
 }

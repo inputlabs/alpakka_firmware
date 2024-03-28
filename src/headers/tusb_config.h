@@ -3,6 +3,7 @@
 
 #pragma once
 #include <stdint.h>
+#include <stdbool.h>
 
 #define BOARD_DEVICE_RHPORT_NUM 0
 #define BOARD_DEVICE_RHPORT_SPEED  OPT_MODE_FULL_SPEED
@@ -290,4 +291,5 @@
     HID_INPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
   HID_COLLECTION_END
 
-void wait_for_usb_init();
+bool usb_wait_for_init(int16_t timeout);
+bool usb_is_connected();
