@@ -6,12 +6,20 @@
 #include <pico/cyw43_arch.h>
 #include "btstack_config.h"
 
-#define DEVICE_NAME "Alpakka wireless"
-#define DEVICE_NAME_AND_MAC "Alpakka wireless 00:00:00:00:00:00"
+#define DEVICE_NAME "AE2WE2XA4T"
+#define DEVICE_NAME_AND_MAC "AE2WE2XA4T 00:00:00:00:00:00"
 #define CLASS_OF_DEVICE 0x1701
-#define INQUIRY_INTERVAL 5
 #define RFCOMM_CHANNEL 1
-#define OFFSTREAM_INTERVAL 1  // Milliseconds.
+#define PACKET_MTU 48  // Bytes.
+#define POWER_MANAGEMENT_SLEEP_TIMEOUT 2000  // Milliseconds.
+
+#define DEVICE_SPP_SERVICE_BUFFER_SIZE 150
+#define DEVICE_TASK_INTERVAL 1  // Milliseconds.
+
+#define DONGLE_INQUIRY_INTERVAL 5  // Seconds.
+#define DONGLE_TASK_INTERVAL 4  // Milliseconds.
+#define DONGLE_LED_INTERVAL_CONNECTED 500  // Milliseconds.
+#define DONGLE_LED_INTERVAL_DISCONNECTED 100  // Milliseconds.
 
 typedef enum {
     SCANNING,

@@ -76,7 +76,7 @@ void loop_device_init() {
     device_title();
     config_init();
     tusb_init();
-    bool usb = usb_wait_for_init(1000);
+    bool usb = usb_wait_for_init(USB_WAIT_FOR_INIT_MS);
     bus_init();
     hid_init();
     thumbstick_init();
@@ -96,16 +96,18 @@ void loop_device_task() {
     profile_report_active();
     // Report to the correct channel.
     if (device_mode == WIRED) {
+        // Report to USB.
         bool reported = hid_report();
         // Switch to wireless if USB is disconnected.
         if (!reported) set_wireless();
     }
     if (device_mode == WIRELESS) {
+        // Report to wireless.
         hid_report_wireless();
-        // Switch to wired if USB is connected.
+        // Switch to wired if USB is connected (check once per second).
         static uint16_t i = 0;
         i++;
-        if ((!(i % 250)) && usb_is_connected()) set_wired();
+        if ((!(i % CFG_TICK_FREQUENCY)) && usb_is_connected()) set_wired();
     }
     // Listen to UART commands.
     uart_listen();

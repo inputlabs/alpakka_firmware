@@ -18,6 +18,7 @@ static host_state_t state;
 static bd_addr_t peer_addr;
 static uint16_t cid = 0;
 static uint8_t rfcomm_server_channel;
+static btstack_timer_source_t timer;
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 static btstack_context_callback_registration_t sdp_query_callback_registration;
 
@@ -28,8 +29,8 @@ void wireless_led_task() {
     static uint32_t last = 0;
     uint32_t now = time_us_32() / 1000;
     uint16_t interval;
-    if (state == CONNECTED) interval = 500;
-    else interval = 100;
+    if (state == CONNECTED) interval = DONGLE_LED_INTERVAL_CONNECTED;
+    else interval = DONGLE_LED_INTERVAL_DISCONNECTED;
     if ((now - last) > interval) {
         x = !x;
         last = now;
@@ -37,26 +38,17 @@ void wireless_led_task() {
     }
 }
 
-uint16_t period = 4;  // ms
-static btstack_timer_source_t loop_timer;
-
-static void loop_task(btstack_timer_source_t *ts){
-    btstack_run_loop_set_timer(ts, period);
-    btstack_run_loop_add_timer(ts);
+static void secondary_loop(){
+    timer.process = &secondary_loop;
+    btstack_run_loop_set_timer(&timer, DONGLE_TASK_INTERVAL);
+    btstack_run_loop_add_timer(&timer);
     wireless_led_task();
-}
-
-static void loop_setup(void){
-    debug("RF: Host loop setup (timer)\n");
-    loop_timer.process = &loop_task;
-    btstack_run_loop_set_timer(&loop_timer, period);
-    btstack_run_loop_add_timer(&loop_timer);
 }
 
 static void start_scan(void) {
     info("RF: Scanning...\n");
     state = SCANNING;
-    gap_inquiry_start(INQUIRY_INTERVAL);
+    gap_inquiry_start(DONGLE_INQUIRY_INTERVAL);
 }
 
 static void stop_scan(void) {
@@ -141,8 +133,8 @@ void data_packet_cb(uint8_t *packet, uint16_t size) {
     while (index < size) {
         uint8_t report_type = packet[index];
         index += 1;
+        uint8_t entry[REPORT_QUEUE_ITEM_SIZE] = {report_type};
         if (report_type == REPORT_KEYBOARD) {
-            uint8_t entry[32] = {report_type};
             memcpy(&entry[1], &packet[index], sizeof(KeyboardReport));
             index += sizeof(KeyboardReport);
             bool added = queue_try_add(hid_get_queue(), entry);
@@ -150,7 +142,6 @@ void data_packet_cb(uint8_t *packet, uint16_t size) {
             if (!added) printf("Q");
         }
         if (report_type == REPORT_MOUSE) {
-            uint8_t entry[32] = {report_type};
             memcpy(&entry[1], &packet[index], sizeof(MouseReport) + 1);
             index += sizeof(MouseReport) + 1;
             bool added = queue_try_add(hid_get_queue(), entry);
@@ -158,12 +149,10 @@ void data_packet_cb(uint8_t *packet, uint16_t size) {
             if (!added) printf("Q");
         }
         if (report_type == REPORT_MOUSE_EOT) {
-            uint8_t entry[32] = {report_type};
             bool added = queue_try_add(hid_get_queue(), entry);
             if (!added) printf("Q");
         }
         if (report_type == REPORT_XINPUT) {
-            uint8_t entry[32] = {report_type};
             memcpy(&entry[1], &packet[index], sizeof(XInputReport));
             index += sizeof(XInputReport);
             bool added = queue_try_add(hid_get_queue(), entry);
@@ -226,7 +215,7 @@ void wireless_host_init() {
     info("RF: Host init (core %i)\n", get_core_num());
     flash_safe_execute_core_init();
     cyw43_arch_init();
-    cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, 2000, 1, 1, 1);
+    cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, POWER_MANAGEMENT_SLEEP_TIMEOUT, 1, 1, 1);
     l2cap_init();
     rfcomm_init();
     hci_event_callback_registration.callback = &packet_handler;
@@ -234,6 +223,6 @@ void wireless_host_init() {
     gap_ssp_set_io_capability(SSP_IO_CAPABILITY_DISPLAY_YES_NO); // ???
 	hci_power_control(HCI_POWER_ON);
     info("RF: Host loop\n");
-    loop_setup();
+    secondary_loop();
     btstack_run_loop_execute();
 }

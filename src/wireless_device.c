@@ -16,7 +16,7 @@
 #include "logging.h"
 
 static uint16_t cid;
-static uint8_t spp_service_buffer[150];
+static uint8_t spp_service_buffer[DEVICE_SPP_SERVICE_BUFFER_SIZE];
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 static btstack_timer_source_t timer;
 
@@ -28,9 +28,9 @@ static void request_can_send(btstack_timer_source_t *timer) {
     rfcomm_request_can_send_now_event(cid);
 }
 
-void loop() {
-    timer.process = &loop;
-    btstack_run_loop_set_timer(&timer, OFFSTREAM_INTERVAL);
+static void secondary_loop() {
+    timer.process = &secondary_loop;
+    btstack_run_loop_set_timer(&timer, DEVICE_TASK_INTERVAL);
     btstack_run_loop_add_timer(&timer);
     if (cid) rfcomm_request_can_send_now_event(cid);
 }
@@ -91,7 +91,7 @@ static void event_can_send_now_cb(uint8_t *packet) {
     XInputReport x_report;
     // Merge reports by type.
     while(!queue_is_empty(hid_get_queue())) {
-        uint8_t entry[32];
+        uint8_t entry[REPORT_QUEUE_ITEM_SIZE];
         queue_remove_blocking(hid_get_queue(), entry);
         uint8_t report_type = entry[0];
         if (report_type == REPORT_KEYBOARD) {
@@ -121,7 +121,7 @@ static void event_can_send_now_cb(uint8_t *packet) {
     if (kb_reports + m_reports + x_reports == 0 && !mouse_eot) return;
     // Compose a combined report.
     uint8_t index = 0;
-    uint8_t wl_report[48] = {0,};
+    uint8_t wl_report[PACKET_MTU] = {0,};
     if (kb_reports > 0) {
         wl_report[index] = REPORT_KEYBOARD;
         index += 1;
@@ -175,7 +175,7 @@ void wireless_device_init() {
     led_set_mode(LED_MODE_BLINK);
 
     cyw43_arch_init();
-    cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, 2000, 1, 1, 1);
+    cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, POWER_MANAGEMENT_SLEEP_TIMEOUT, 1, 1, 1);
 
     l2cap_init();
     rfcomm_init();
@@ -206,6 +206,6 @@ void wireless_device_init() {
 	hci_power_control(HCI_POWER_ON);
 
     info("RF: Device loop\n");
-    loop();
+    secondary_loop();
     btstack_run_loop_execute();
 }

@@ -268,7 +268,7 @@ void hid_gamepad_rz(double value) {
 
 void hid_report_to_queue(uint8_t report_type, void *report, uint8_t len) {
     if (!wireless_device_is_connected()) return;
-    uint8_t entry[32] = {report_type};
+    uint8_t entry[REPORT_QUEUE_ITEM_SIZE] = {report_type};
     memcpy(&entry[1], report, len);
     bool added = queue_try_add(hid_get_queue(), entry);
     // if (!added) printf("WL: Cannot add into queue\n");
@@ -497,7 +497,7 @@ void hid_report_from_queue() {
     MouseReport m_report;
     XInputReport x_report;
     while(!queue_is_empty(hid_get_queue())) {
-        uint8_t entry[32];
+        uint8_t entry[REPORT_QUEUE_ITEM_SIZE];
         queue_remove_blocking(hid_get_queue(), entry);
         uint8_t report_type = entry[0];
         if (report_type == REPORT_KEYBOARD) {

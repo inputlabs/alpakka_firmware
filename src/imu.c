@@ -18,6 +18,7 @@
 #include "led.h"
 #include "vector.h"
 #include "logging.h"
+#include "loop.h"
 
 double offset_gyro_0_x;
 double offset_gyro_0_y;
@@ -114,8 +115,11 @@ Vector imu_read_gyro_burst(uint8_t cs, uint8_t samples) {
 }
 
 Vector imu_read_gyro() {
-    Vector imu0 = imu_read_gyro_burst(PIN_SPI_CS0, CFG_IMU_TICK_SAMPLES/8*1);
-    Vector imu1 = imu_read_gyro_burst(PIN_SPI_CS1, CFG_IMU_TICK_SAMPLES/8*7);
+    uint8_t multisample;
+    if (loop_get_device_mode() == WIRED) multisample = CFG_IMU_SAMPLES_PER_TICK_WIRED;
+    else multisample = CFG_IMU_SAMPLES_PER_TICK_WIRELESS;
+    Vector imu0 = imu_read_gyro_burst(PIN_SPI_CS0, multisample/8*1);
+    Vector imu1 = imu_read_gyro_burst(PIN_SPI_CS1, multisample/8*7);
     double weight = max(abs(imu1.x), abs(imu1.y)) / 32768.0;
     double weight_0 = ramp_mid(weight, 0.2);
     double weight_1 = 1 - weight_0;

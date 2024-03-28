@@ -4,6 +4,8 @@
 #pragma once
 #include <stdint.h>
 
+#define USB_WAIT_FOR_INIT_MS 1000
+
 typedef enum {
     WIRED,
     WIRELESS,

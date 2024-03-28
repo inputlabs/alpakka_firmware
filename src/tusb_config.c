@@ -169,7 +169,12 @@ void tud_resume_cb(void) {
     debug_uart("USB: tud_resume_cb\n");
 }
 
+// Wait until the USB is able to send/receive data, until timeout
+// (in milliseconds) is reached.
+// Negative timeout means no timeout.
+// Returns boolean depending on if it was able to send data.
 bool usb_wait_for_init(int16_t timeout) {
+    debug_uart("USB: usb_wait_for_init\n");
     led_static_mask(LED_NONE);
     led_blink_mask(LED_ALL);
     led_set_mode(LED_MODE_BLINK);
