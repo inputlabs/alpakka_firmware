@@ -36,28 +36,31 @@ void loop() {
 }
 
 static void event_pin_code_request_cb(uint8_t *packet) {
+    debug("RF: event_pin_code_request_cb\n");
     bd_addr_t event_addr;
     hci_event_pin_code_request_get_bd_addr(packet, event_addr);
     gap_pin_code_response(event_addr, "0000");
 }
 
 static void event_incomming_connection_cb(uint8_t *packet) {
+    debug("RF: event_incomming_connection_cb\n");
     bd_addr_t event_addr;
     uint8_t rfcomm_channel;
     rfcomm_event_incoming_connection_get_bd_addr(packet, event_addr);
     rfcomm_channel = rfcomm_event_incoming_connection_get_server_channel(packet);
     cid = rfcomm_event_incoming_connection_get_rfcomm_cid(packet);
-    printf("WL: Channel %i requested for %s\n", rfcomm_channel, bd_addr_to_str(event_addr));
+    info("RF: Channel %i requested for %s\n", rfcomm_channel, bd_addr_to_str(event_addr));
     rfcomm_accept_connection(cid);
 }
 
 static void event_channel_opened_cb(uint8_t *packet) {
+    debug("RF: event_channel_opened_cb\n");
     uint8_t error = rfcomm_event_channel_opened_get_status(packet);
     if (error) {
-        printf("WL: Channel open failed (0x%02x)\n", error);
+        info("RF: Channel open failed (0x%02x)\n", error);
         return;
     }
-    printf("WL: Connected\n");
+    info("RF: Connected\n");
     cid = rfcomm_event_channel_opened_get_rfcomm_cid(packet);
     // rfcomm_mtu = rfcomm_event_channel_opened_get_max_frame_size(packet);
     gap_discoverable_control(0);
@@ -67,7 +70,7 @@ static void event_channel_opened_cb(uint8_t *packet) {
 }
 
 static void event_channel_closed_cb(uint8_t *packet) {
-    printf("WL: Channel closed\n");
+    info("RF: Channel closed\n");
     cid = 0;
     gap_discoverable_control(1);
     gap_connectable_control(1);
@@ -147,6 +150,7 @@ static void event_can_send_now_cb(uint8_t *packet) {
 }
 
 static void event_handler(uint8_t *packet) {
+    // debug("RF: event_handler\n");
     uint8_t event_type = hci_event_packet_get_type(packet);
     if (event_type == HCI_EVENT_PIN_CODE_REQUEST) event_pin_code_request_cb(packet);
     else if (event_type == RFCOMM_EVENT_INCOMING_CONNECTION) event_incomming_connection_cb(packet);
@@ -156,12 +160,13 @@ static void event_handler(uint8_t *packet) {
 }
 
 static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) {
+    // debug("RF: packet_handler\n");
     if (packet_type == HCI_EVENT_PACKET) event_handler(packet);
     // if (packet_type == RFCOMM_DATA_PACKET) data_packet_cb(packet, size);
 }
 
 void wireless_device_init() {
-    info("WL: Device init (core %i)\n", get_core_num());
+    info("RF: Device init (core %i)\n", get_core_num());
     multicore_lockout_victim_init();
     flash_safe_execute_core_init();
 
@@ -200,7 +205,7 @@ void wireless_device_init() {
 
 	hci_power_control(HCI_POWER_ON);
 
-    info("WL: Device loop\n");
+    info("RF: Device loop\n");
     loop();
     btstack_run_loop_execute();
 }

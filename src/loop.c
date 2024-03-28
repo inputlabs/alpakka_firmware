@@ -34,7 +34,7 @@ uint64_t get_system_clock() {
 
 void set_system_clock(uint64_t time) {
     system_clock = time - (time_us_32() / 1000);
-    info("INIT: System_clock=%llu\n", system_clock);
+    info("LOOP: System_clock=%llu\n", system_clock);
 }
 
 static void device_title() {
@@ -54,18 +54,19 @@ static void dongle_title() {
 }
 
 static void set_wired() {
-    info("LOOP: wired\n");
+    info("LOOP: Wired\n");
     if (device_mode != WIRED) config_reboot();
     device_mode = WIRED;
 }
 
 static void set_wireless() {
-    info("LOOP: wireless\n");
+    info("LOOP: Wireless\n");
     if (device_mode != WIRELESS) multicore_launch_core1(wireless_device_init);
     device_mode = WIRELESS;
 }
 
 void loop_device_init() {
+    debug("LOOP: loop_device_init\n");
     flash_safe_execute_core_init();
     led_init();
     stdio_uart_init();
@@ -111,6 +112,7 @@ void loop_device_task() {
 }
 
 void loop_dongle_init() {
+    debug("LOOP: loop_dongle_init\n");
     flash_safe_execute_core_init();
     stdio_uart_init();
     stdio_init_all();
@@ -130,7 +132,7 @@ void loop_dongle_task() {
 }
 
 void loop_cycle() {
-    info("INIT: Main loop (core %i)\n", get_core_num());
+    info("LOOP: Main loop start (core %i)\n", get_core_num());
     uint16_t i = 0;
     logging_set_onloop(true);
     while (true) {
