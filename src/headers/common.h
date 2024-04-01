@@ -60,3 +60,5 @@ uint8_t random8();
 // Input MIN: Lower part of the range, that will result in -1.
 // Input MAX: Upper part of the range, that will result in +1.
 #define ramp(x, min, max)  constrain( 2 * ((x-min) / (max-min)) - 1, -1, 1)
+
+void print_array(uint8_t *array, uint8_t len);

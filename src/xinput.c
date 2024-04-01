@@ -70,12 +70,14 @@ usbd_class_driver_t const *usbd_app_driver_get_cb(uint8_t *driver_count) {
     return &xinput_driver;
 }
 
-void xinput_send_report(xinput_report *report) {
+bool xinput_send_report(XInputReport *report) {
+    bool result = false;
     if (!usbd_edpt_busy(0, ADDR_XINPUT_IN)) {
         usbd_edpt_claim(0, ADDR_XINPUT_IN);
-        usbd_edpt_xfer(0, ADDR_XINPUT_IN, (uint8_t*)report, XINPUT_REPORT_SIZE);
+        result = usbd_edpt_xfer(0, ADDR_XINPUT_IN, (uint8_t*)report, XINPUT_REPORT_SIZE);
         usbd_edpt_release(0, ADDR_XINPUT_IN);
     }
+    return result;
 }
 
 // void xinput_receive_report() {

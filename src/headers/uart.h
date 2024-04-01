@@ -3,5 +3,5 @@
 
 #pragma once
 
-void uart_listen_char(uint16_t loop_index);
+void uart_listen();
 void uart_listen_char_limited();

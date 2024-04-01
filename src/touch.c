@@ -111,11 +111,11 @@ bool touch_status() {
 
 void touch_log_baseline() {
     uint8_t t0 = touch_get_elapsed();
-    sleep_ms(CFG_TICK_INTERVAL);
+    sleep_ms(CFG_TICK_INTERVAL_IN_MS);
     uint8_t t1 = touch_get_elapsed();
-    sleep_ms(CFG_TICK_INTERVAL);
+    sleep_ms(CFG_TICK_INTERVAL_IN_MS);
     uint8_t t2 = touch_get_elapsed();
-    sleep_ms(CFG_TICK_INTERVAL);
+    sleep_ms(CFG_TICK_INTERVAL_IN_MS);
     uint8_t t3 = touch_get_elapsed();
     info("  Touch readings: %ius %ius %ius %ius\n", t0, t1, t2, t3);
 }

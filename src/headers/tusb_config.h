@@ -3,6 +3,7 @@
 
 #pragma once
 #include <stdint.h>
+#include <stdbool.h>
 
 #define BOARD_DEVICE_RHPORT_NUM 0
 #define BOARD_DEVICE_RHPORT_SPEED  OPT_MODE_FULL_SPEED
@@ -31,10 +32,6 @@
 #define ADDR_XINPUT_IN 0x81
 #define ADDR_XINPUT_OUT 0x02
 
-#define REPORT_KEYBOARD 1
-#define REPORT_MOUSE 2
-#define REPORT_GAMEPAD 3
-
 #define STRING_VENDOR "Input Labs"
 #define STRING_PRODUCT "Alpakka"
 #define STRING_DEVICE_VERSION "1.1"
@@ -52,6 +49,9 @@
 
 #define USB_GENERIC_VENDOR  0x0170  // Input Labs.
 #define USB_GENERIC_PRODUCT 0xA09D  // Alpakka (HID complilant gamepad)
+
+#define USB_TEST_VENDOR  0x0170  // Input Labs.
+#define USB_TEST_PRODUCT 0xFF00  // Test.
 
 #define DESCRIPTOR_DEVICE \
     0x12,    /* .bLength */\
@@ -284,22 +284,5 @@
     HID_INPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
   HID_COLLECTION_END
 
-typedef struct {
-  uint8_t buttons;
-  int16_t x;
-  int16_t y;
-  int8_t scroll;
-  int8_t pan;
-} __attribute__((packed)) hid_mouse_custom_report_t;
-
-typedef struct {
-  int16_t lx;
-  int16_t ly;
-  int16_t rx;
-  int16_t ry;
-  int16_t lz;
-  int16_t rz;
-  uint32_t buttons;
-} __attribute__((packed)) hid_gamepad_custom_report_t;
-
-void wait_for_usb_init();
+bool usb_wait_for_init(int16_t timeout);
+bool usb_is_connected();

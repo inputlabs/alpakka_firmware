@@ -4,6 +4,8 @@
 #include <tusb_config.h>
 #include <tusb.h>
 #include "config.h"
+#include "hid.h"
+#include "led.h"
 #include "logging.h"
 
 static const char *const descriptor_string[] = {
@@ -43,6 +45,10 @@ uint8_t descriptor_configuration_xinput[] = {
 uint8_t const *tud_descriptor_device_cb() {
     debug_uart("USB: tud_descriptor_device_cb\n");
     static tusb_desc_device_t descriptor_device = {DESCRIPTOR_DEVICE};
+    #ifdef FW_DEVICE_ALPAKKA
+        descriptor_device.idVendor = USB_TEST_VENDOR;
+        descriptor_device.idProduct = USB_TEST_PRODUCT;
+    #else
     if (config_get_protocol() == PROTOCOL_XINPUT_WIN) {
         descriptor_device.idVendor = USB_WIN_VENDOR;
         descriptor_device.idProduct = USB_WIN_PRODUCT;
@@ -55,6 +61,7 @@ uint8_t const *tud_descriptor_device_cb() {
         descriptor_device.idVendor = USB_GENERIC_VENDOR;
         descriptor_device.idProduct = USB_GENERIC_PRODUCT;
     }
+    #endif
     return (uint8_t const *) &descriptor_device;
 }
 
@@ -168,11 +175,29 @@ void tud_resume_cb(void) {
     debug_uart("USB: tud_resume_cb\n");
 }
 
-void wait_for_usb_init() {
-    while(true) {
+// Wait until the USB is able to send/receive data, until timeout
+// (in milliseconds) is reached.
+// Negative timeout means no timeout.
+// Returns boolean depending on if it was able to send data.
+bool usb_wait_for_init(int16_t timeout) {
+    info("USB: Waiting for USB\n");
+    led_static_mask(LED_NONE);
+    led_blink_mask(LED_ALL);
+    led_set_mode(LED_MODE_BLINK);
+    while(timeout != 0) {
         tud_task();
-        if (tud_ready()) break;
+        if (tud_ready()) {
+            info("USB: Ready\n");
+            return true;
+        }
         else sleep_ms(1);
+        if (timeout > 0) timeout -= 1;
     }
-    debug_uart("USB: Ready\n");
+    warn("USB: Timeout\n");
+    return false;
+}
+
+bool usb_is_connected() {
+    tud_task();
+    return tud_connected() && !tud_suspended();
 }

@@ -2,8 +2,11 @@
 // Copyright (C) 2022, Input Labs Oy.
 
 #pragma once
+#include <stdbool.h>
 #include <pico/time.h>
+#include <pico/util/queue.h>
 #include "common.h"
+#include "xinput.h"
 
 #define MODIFIER_INDEX 154
 #define MOUSE_INDEX 162
@@ -287,7 +290,58 @@ void hid_gamepad_rx(double value);
 void hid_gamepad_ry(double value);
 void hid_gamepad_lz(double value);
 void hid_gamepad_rz(double value);
-void hid_report();
+bool hid_report();
+void hid_report_wireless();
+void hid_report_from_queue();
+queue_t* hid_get_queue();
 void hid_init();
 
 extern bool hid_allow_communication;
+
+#define REPORT_KEYBOARD 1
+#define REPORT_MOUSE 2
+#define REPORT_GAMEPAD 3
+#define REPORT_XINPUT 4
+#define REPORT_WEBUSB 5
+#define REPORT_MOUSE_EOT 6
+#define REPORT_TIMESTAMP 7
+
+#define REPORT_QUEUE_ITEM_SIZE 32
+#define REPORT_QUEUE_LEN 16
+
+typedef struct _KeyboardReport {
+    uint8_t modifier;
+    uint8_t reserved;
+    uint8_t keycode[6];
+} __attribute__((packed)) KeyboardReport;
+
+typedef struct _MouseReport {
+    uint8_t buttons;
+    int16_t x;
+    int16_t y;
+    int8_t scroll;
+    int8_t pan;
+} __attribute__((packed)) MouseReport;
+
+typedef struct _GamepadReport {
+    int16_t lx;
+    int16_t ly;
+    int16_t rx;
+    int16_t ry;
+    int16_t lz;
+    int16_t rz;
+    uint32_t buttons;
+} __attribute__((packed)) GamepadReport;
+
+// typedef struct _MetaReport {
+//     KeyboardReport kb_report;
+//     MouseReport m_report;
+//     XInputReport x_report;
+//     uint8_t kb_reports;
+//     uint8_t m_reports;
+//     uint8_t x_reports;
+//     bool mouse_eot;  // Mouse End Of Transmission.
+// } __attribute__((packed)) MetaReport;
+
+
+void hid_report_mouse_direct(MouseReport report); // DELETE

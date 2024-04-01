@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include "logging.h"
+#include "loop.h"
 #include "webusb.h"
 #include "common.h"
 
@@ -41,7 +42,7 @@ void write(char *msg, va_list args) {
     char formatted[256] = {0,};
     vsnprintf(formatted, 256, msg, args);
     printf(formatted);  // UART.
-    webusb_write(formatted);  // WebUSB.
+    if (loop_get_device_mode() == WIRED) webusb_write(formatted);  // WebUSB.
 }
 
 void info(char *msg, ...) {
