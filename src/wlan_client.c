@@ -10,6 +10,8 @@
 #include "hid.h"
 #include "logging.h"
 #include "loop.h"
+#include "led.h"
+#include "profile.h"
 
 static bool device_connected = false;
 static struct tcp_pcb *tcp;
@@ -26,6 +28,7 @@ static err_t tcp_client_connected(void *arg, struct tcp_pcb *tcparg, err_t error
         return error;
     } else {
         device_connected = true;
+        profile_update_leds();
         info("WLAN: TCP connected\n");
         return ERR_OK;
     }
@@ -41,6 +44,10 @@ void wlan_client_init() {
     cyw43_arch_init();
     cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, 2000, 1, 1, 1);
     cyw43_arch_enable_sta_mode();
+
+    led_static_mask(LED_NONE);
+    led_blink_mask(LED_TRIANGLE_UP);
+    led_set_mode(LED_MODE_BLINK);
 
     ipaddr_aton(HOST_ADDR, &host_addr);
     ipaddr_aton(DEVICE_ADDR, &device_addr);

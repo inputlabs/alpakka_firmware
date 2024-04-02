@@ -6,7 +6,7 @@
 #define NO_SYS                      1
 #define LWIP_SOCKET                 0
 
-#define MEM_LIBC_MALLOC             0
+#define MEM_LIBC_MALLOC             1
 #define MEM_ALIGNMENT               4
 #define MEM_SIZE                    4000
 #define MEMP_NUM_TCP_SEG            32
@@ -34,10 +34,10 @@
 #define LWIP_DHCP_DOES_ACD_CHECK    0
 
 // #define ETH_PAD_SIZE                2
-// #define TCP_WND                     (8 * TCP_MSS)
-// #define TCP_MSS                     1460
-// #define TCP_SND_BUF                 (8 * TCP_MSS)
-// #define TCP_SND_QUEUELEN            ((4 * (TCP_SND_BUF) + (TCP_MSS - 1)) / (TCP_MSS))
+#define TCP_MSS                     1460
+#define TCP_WND                     (8 * TCP_MSS)
+#define TCP_SND_BUF                 (8 * TCP_MSS)
+#define TCP_SND_QUEUELEN            ((4 * (TCP_SND_BUF) + (TCP_MSS - 1)) / (TCP_MSS))
 
 #define MEM_STATS                   0
 #define SYS_STATS                   0

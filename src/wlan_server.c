@@ -49,12 +49,12 @@ static err_t tcp_server_receive(void *arg, struct tcp_pcb *tcparg, struct pbuf *
         //     printf("%llu ", now-ts);
         // }
         if (report_type == REPORT_KEYBOARD) {
-            memcpy(entry, payload, sizeof(KeyboardReport) + 1);
-            queue_try_add(hid_get_queue(), entry);
+            memcpy(entry, &payload[1], sizeof(KeyboardReport));
+            queue_try_add(hid_get_kb_queue(), entry);
         }
         if (report_type == REPORT_MOUSE) {
-            memcpy(entry, payload, sizeof(MouseReport) + 1);
-            queue_try_add(hid_get_queue(), entry);
+            memcpy(entry, &payload[1], sizeof(MouseReport));
+            queue_try_add(hid_get_mouse_queue(), entry);
         }
     }
     pbuf_free(buf);

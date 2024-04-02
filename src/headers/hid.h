@@ -266,8 +266,11 @@
 #define PROC_ADZ    PROC_INDEX + 40
 #define PROC_ADZN   PROC_INDEX + 41
 
+void hid_init();
 void hid_thanks();
 void hid_matrix_reset();
+
+// Keys.
 void hid_press(uint8_t key);
 void hid_release(uint8_t key);
 void hid_press_multiple(uint8_t *keys);
@@ -281,20 +284,28 @@ void hid_release_later_callback(alarm_id_t alarm, uint8_t key);
 void hid_press_multiple_later_callback(alarm_id_t alarm, uint8_t *keys);
 void hid_release_multiple_later_callback(alarm_id_t alarm, uint8_t *keys);
 void hid_macro(uint8_t index);
-bool hid_is_axis(uint8_t key);
+
+// Mouse axis.
 void hid_mouse_move(int16_t x, int16_t y);
 void hid_mouse_wheel(int8_t z);
+
+// Gamepad.
+bool hid_is_axis(uint8_t key);
 void hid_gamepad_lx(double value);
 void hid_gamepad_ly(double value);
 void hid_gamepad_rx(double value);
 void hid_gamepad_ry(double value);
 void hid_gamepad_lz(double value);
 void hid_gamepad_rz(double value);
+
+// Report.
 bool hid_report();
 void hid_report_wireless();
-void hid_report_from_queue();
-queue_t* hid_get_queue();
-void hid_init();
+
+// Queue.
+void hid_report_from_queue(bool alternate);
+queue_t* hid_get_kb_queue();
+queue_t* hid_get_mouse_queue();
 
 extern bool hid_allow_communication;
 
@@ -306,7 +317,7 @@ extern bool hid_allow_communication;
 #define REPORT_MOUSE_EOT 6
 #define REPORT_TIMESTAMP 7
 
-#define REPORT_QUEUE_ITEM_SIZE 32
+#define REPORT_QUEUE_ITEM_SIZE 20
 #define REPORT_QUEUE_LEN 16
 
 typedef struct _KeyboardReport {
@@ -333,15 +344,15 @@ typedef struct _GamepadReport {
     uint32_t buttons;
 } __attribute__((packed)) GamepadReport;
 
-// typedef struct _MetaReport {
-//     KeyboardReport kb_report;
-//     MouseReport m_report;
-//     XInputReport x_report;
-//     uint8_t kb_reports;
-//     uint8_t m_reports;
-//     uint8_t x_reports;
-//     bool mouse_eot;  // Mouse End Of Transmission.
-// } __attribute__((packed)) MetaReport;
+typedef struct _MetaReport {
+    KeyboardReport kb_report;
+    MouseReport m_report;
+    XInputReport x_report;
+    uint8_t kb_reports;
+    uint8_t m_reports;
+    uint8_t x_reports;
+    bool mouse_eot;  // Mouse End Of Transmission.
+} __attribute__((packed)) MetaReport;
 
 
 void hid_report_mouse_direct(MouseReport report); // DELETE

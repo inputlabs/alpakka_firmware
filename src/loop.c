@@ -154,9 +154,9 @@ void loop_host_init() {
     loop_cycle();
 }
 
-void loop_host_task() {
+void loop_host_task(uint16_t i) {
     wlan_server_task();
-    hid_report_from_queue();
+    hid_report_from_queue(i % 2);
     tud_task();
     if (tud_ready()) {
         webusb_read();
@@ -177,7 +177,7 @@ void loop_cycle() {
             loop_device_task();
         #endif
         #ifdef FW_DEVICE_DONGLE
-            loop_host_task();
+            loop_host_task(i);
         #endif
         // Calculate used time.
         uint32_t used = time_us_32() - start;

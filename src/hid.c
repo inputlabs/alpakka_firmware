@@ -23,7 +23,8 @@ bool synced_mouse_eot = false;  // End Of Transmission.
 bool synced_gamepad = false;
 uint16_t alarms = 0;
 alarm_pool_t *alarm_pool;
-static queue_t report_queue;
+static queue_t kb_queue;
+static queue_t mouse_queue;
 
 uint8_t state_matrix[256] = {0,};
 int16_t mouse_x = 0;
@@ -474,32 +475,34 @@ bool hid_report() {
     }
 }
 
-void hid_report_from_queue() {
-    while(!queue_is_empty(hid_get_queue())) {
+void hid_report_from_queue_mouse() {
+    MouseReport combined = {0,};
+    uint8_t num = 0;
+    while(!queue_is_empty(hid_get_mouse_queue())) {
+        num += 1;
         uint8_t entry[REPORT_QUEUE_ITEM_SIZE];
-        queue_peek_blocking(hid_get_queue(), entry);
-        uint8_t report_type = entry[0];
-        if (report_type == REPORT_KEYBOARD) {
-            tud_task();
-            if (tud_ready() && tud_hid_ready()) {
-                bool sent = tud_hid_report(REPORT_KEYBOARD, &entry[1], sizeof(KeyboardReport));
-                if (sent) queue_remove_blocking(hid_get_queue(), entry);
-                else break;
-            } else {
-                break;
-            }
+        queue_remove_blocking(hid_get_mouse_queue(), entry);
+        MouseReport report = *(MouseReport*)entry;
+        if (num > 1) {
+            report.x += combined.x;
+            report.y += combined.y;
         }
-        if (report_type == REPORT_MOUSE) {
-            tud_task();
-            if (tud_ready() && tud_hid_ready()) {
-                bool sent = tud_hid_report(REPORT_MOUSE, &entry[1], sizeof(MouseReport));
-                if (sent) queue_remove_blocking(hid_get_queue(), entry);
-                else break;
-            } else {
-                break;
-            }
+        memcpy(&combined, &report, sizeof(MouseReport));
+    }
+    if (num > 1) printf("%i ", num);
+    if (num > 0) {
+        tud_task();
+        if (tud_ready() && tud_hid_ready()) {
+            tud_hid_report(REPORT_MOUSE, &combined, sizeof(MouseReport));
+        } else {
+            printf("M");
         }
     }
+}
+
+void hid_report_from_queue(bool alternate) {
+    if (alternate) return;
+    else hid_report_from_queue_mouse();
 }
 
 // A not-so-secret easter egg.
@@ -531,12 +534,17 @@ void hid_thanks() {
     add_alarm_in_ms(5, (alarm_callback_t)hid_thanks_, NULL, true);
 }
 
-queue_t* hid_get_queue() {
-    return &report_queue;
+queue_t* hid_get_kb_queue() {
+    return &kb_queue;
+}
+
+queue_t* hid_get_mouse_queue() {
+    return &mouse_queue;
 }
 
 void hid_init() {
     info("INIT: HID\n");
     alarm_pool = alarm_pool_create(2, 255);
-    queue_init(&report_queue, REPORT_QUEUE_ITEM_SIZE, REPORT_QUEUE_LEN);
+    queue_init(&kb_queue, REPORT_QUEUE_ITEM_SIZE, REPORT_QUEUE_LEN);
+    queue_init(&mouse_queue, REPORT_QUEUE_ITEM_SIZE, REPORT_QUEUE_LEN);
 }
