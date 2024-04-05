@@ -4,6 +4,7 @@
 #include <pico/time.h>
 #include <pico/cyw43_arch.h>
 #include <pico/rand.h>
+#include <lwip/udp.h>
 #include <lwip/tcp.h>
 #include <lwip/pbuf.h>
 #include "wlan.h"
@@ -13,10 +14,11 @@
 #include "led.h"
 #include "profile.h"
 
-static bool device_connected = false;
 static struct tcp_pcb *tcp;
+static struct udp_pcb *udp;
 static ip_addr_t host_addr;
 static ip_addr_t device_addr;
+static bool device_connected = false;
 
 static void tcp_error(void *arg, err_t error) {
     warn("WLAN: tcp_client_error %i\n", error);
@@ -34,16 +36,21 @@ static err_t tcp_client_connected(void *arg, struct tcp_pcb *tcparg, err_t error
     }
 }
 
+static err_t tcp_polled(void *arg, struct tcp_pcb *tpcarg) {
+    // printf("POLL\n");
+    return ERR_OK;
+}
+
 static err_t tcp_client_sent(void *arg, struct tcp_pcb *tcparg, u16_t len) {
-    // printf("tcp_client_sent %u\n", len);
+    // printf("\nSENT=%u\n", len);
     return ERR_OK;
 }
 
 void wlan_client_init() {
     info("WLAN: Device init\n");
-    cyw43_arch_init();
-    cyw43_pm_value(CYW43_NO_POWERSAVE_MODE, 2000, 1, 1, 1);
+    cyw43_arch_init_with_country(CYW43_COUNTRY_GERMANY);
     cyw43_arch_enable_sta_mode();
+    cyw43_wifi_pm(&cyw43_state, CYW43_NO_POWERSAVE_MODE, 20, 0, 0, 0));
 
     led_static_mask(LED_NONE);
     led_blink_mask(LED_TRIANGLE_UP);
@@ -67,31 +74,47 @@ void wlan_client_init() {
         return;
     }
 
-    // udp = udp_new();
-    // bufd = pbuf_alloc(PBUF_TRANSPORT, UDP_PACKET_LEN+1, PBUF_RAM);
+    udp = udp_new();
 
-    info("Connecting to TCP server %s:%u\n", HOST_ADDR, HOST_PORT);
-    tcp = tcp_new_ip_type(IPADDR_TYPE_ANY);
-    tcp_nagle_disable(tcp);
-    tcp_err(tcp, tcp_error);
-    tcp_sent(tcp, tcp_client_sent);
-    tcp_connect(tcp, &host_addr, HOST_PORT, tcp_client_connected);
+    // info("Connecting to TCP server %s:%u\n", HOST_ADDR, HOST_PORT);
+    // tcp = tcp_new_ip_type(IPADDR_TYPE_ANY);
+    // tcp_nagle_disable(tcp);
+    // tcp_err(tcp, tcp_error);
+    // tcp_poll(tcp, tcp_polled, 1);
+    // tcp_sent(tcp, tcp_client_sent);
+    // tcp_connect(tcp, &host_addr, HOST_PORT, tcp_client_connected);
 }
 
 void wlan_client_task() {
+    // static uint8_t i = 0;
+    // i++;
+    // if (!i) {
+    //     int32_t db;
+    //     cyw43_wifi_get_rssi(&cyw43_state, &db);
+    //     printf("%li db\n", db);
+    //     // printf("Q=%i\n", tcp_sndqueuelen(tcp));
+    // }
+    // err_t error = tcp_output(tcp);
+    // if (error) warn("loop tcp_output error  %i\n", error);
     cyw43_arch_poll();
 }
 
 void wlan_send(uint8_t report_id, void *report, uint8_t len) {
-    // struct pbuf *buf = pbuf_alloc(PBUF_TRANSPORT, UDP_PACKET_LEN+1, PBUF_RAM);
-    // uint8_t *payload = (uint8_t *)bufd->payload;
-    // memset(payload, 0, PACKET_LEN+1);
-    // memcpy(payload, packet, len);
+    static uint8_t id = 0;
+    id += 1;
 
-    // int8_t error = udp_sendto(udp, bufd, &host_addr, UDP_HOST_PORT);
+    struct pbuf *buf = pbuf_alloc(PBUF_TRANSPORT, len+2, PBUF_RAM);
+    uint8_t *payload = (uint8_t *)buf->payload;
+    memset(payload, 0, len+2);
+    payload[0] = id;
+    payload[1] = report_id;
+    memcpy(&payload[2], report, len);
+
+    int8_t error = udp_sendto(udp, buf, &host_addr, HOST_PORT);
+    if (error) printf("E", error);
+    pbuf_free(buf);
 
 
-    uint8_t packet[32] = {0,};
     // packet[0] = REPORT_TIMESTAMP;
     // uint64_t now = get_system_clock();
     // for (uint8_t i=0; i<8; i++) {
@@ -99,11 +122,18 @@ void wlan_send(uint8_t report_id, void *report, uint8_t len) {
     // }
     // print_array(&packet[1], 8);
 
-    packet[0] = report_id;
-    memcpy(&packet[1], report, len);
+    // struct pbuf *buf = pbuf_alloc(PBUF_TRANSPORT, len+1, PBUF_RAM);
+    // uint8_t *payload = (uint8_t *)buf->payload;
+    // payload[0] = report_id;
+    // memcpy(&payload[1], report, len);
 
-    err_t error = tcp_write(tcp, packet, len+1, TCP_WRITE_FLAG_COPY);
-    if (error) warn("WLAN: tcp_write error %i\n", error);
-    error = tcp_output(tcp);
-    if (error) warn("WLAN: tcp_output error %i\n", error);
+    // // printf("F=%i\n", tcp_sndbuf(tcp));
+    // // printf("%i ", tcp_sndqueuelen(tcp));
+
+    // err_t error = tcp_write(tcp, buf->payload, len+1, TCP_WRITE_FLAG_COPY);
+    // if (error) warn("WLAN: tcp_write error %i\n", error);
+    // error = tcp_output(tcp);
+    // if (error) warn("WLAN: tcp_output error %i\n", error);
+
+    // pbuf_free(buf);
 }
