@@ -24,10 +24,7 @@ load:
 reload: rebuild load
 
 session:
-	sh -e scripts/session.sh
-
-session_quit:
-	screen -S alpakka -X quit
+	python3 scripts/session.py
 
 restart:
 	screen -S alpakka -X stuff R
