@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2022, Input Labs Oy.
 
+#include <stdint.h>
+
 // A not-so-secret easter egg.
 // You make this possible, thanks.
 uint8_t thanks_len = 10;
