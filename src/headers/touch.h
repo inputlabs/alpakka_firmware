@@ -20,6 +20,9 @@
 #define TOUCH_AUTO_RATIO 1.5  // Should be configurable?
 #define TOUCH_AUTO_SMOOTH  (CFG_TICK_FREQUENCY)  // 1 second.
 
+// Debounce.
+#define TOUCH_DEBOUNCE 100  // Milliseconds.
+
 // Debug.
 #define TOUCH_DEBUG_FREQ 1000  // Milliseconds.
 

@@ -263,7 +263,7 @@
 
 
 void hid_thanks();
-void hid_matrix_reset(uint8_t exclude);
+void hid_matrix_reset(uint8_t keep);
 void hid_press(uint8_t key);
 void hid_release(uint8_t key);
 void hid_press_multiple(uint8_t *keys);

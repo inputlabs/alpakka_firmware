@@ -16,12 +16,12 @@
 #include "logging.h"
 #include "common.h"
 
-Profile profiles[16];
+Profile profiles[PROFILE_SLOTS];
 uint8_t profile_active_index = -1;
 bool profile_led_lock = false;  // Extern.
 bool profile_pending_reboot = false;  // Extern.
 bool pending_reset = false;
-uint8_t pending_reset_exclude;
+uint8_t pending_reset_keep;  // Action that must be kept between resets.
 bool home_is_active = false;
 bool home_gamepad_is_active = false;
 bool enabled_all = true;
@@ -219,7 +219,7 @@ Profile Profile_ () {
 // ============================================================================
 // Independent functions.
 
-void profile_reset_all() {
+void profile_reset_all_profiles() {
     config_tune_set_mode(0);
     for(uint8_t i=0; i<PROFILE_SLOTS; i++) {
         profiles[i].reset(&profiles[i]);
@@ -260,19 +260,19 @@ void profile_update_leds() {
     }
 }
 
-// Check if profile has been requested to be reset (usually after profile change).
-void profile_check_reset() {
-    if (pending_reset) {
-        hid_matrix_reset(pending_reset_exclude);
-        profile_reset_all();
-        pending_reset = false;
-        pending_reset_exclude = 0;
-    }
+void profile_reset_all() {
+    // Reset HID state matrix. Optionally keep certain actions.
+    hid_matrix_reset(pending_reset_keep);
+    // Reset all profiles runtimes.
+    profile_reset_all_profiles();
+    // Reset flags.
+    pending_reset = false;
+    pending_reset_keep = 0;
 }
 
 void profile_report_active() {
     if (profile_pending_reboot && !home_is_active) config_reboot();
-    profile_check_reset();
+    if (pending_reset) profile_reset_all();
     Profile* profile = profile_get_active(false);
     profile->report(profile);
 }
@@ -294,12 +294,11 @@ void profile_set_home_gamepad(bool state) {
     if (state) {
         led_static_mask(LED_NONE);
         led_set_mode(LED_MODE_ENGAGE);
-        home_is_active = false;  // Force normal home profile off.
     } else {
         profile_update_leds();
     }
     pending_reset = true;
-    pending_reset_exclude = GAMEPAD_HOME;  // Do not reset held gamepad home.
+    pending_reset_keep = GAMEPAD_HOME;  // Do not reset held gamepad home.
 }
 
 void profile_set_active(uint8_t index) {

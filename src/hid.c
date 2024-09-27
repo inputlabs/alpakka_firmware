@@ -1,6 +1,34 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2022, Input Labs Oy.
 
+/*
+HID layer is responsible for managing all the outputs that are sent to the
+operating system (via USB or wireless), by keeping a register of all the active
+actions (requested by the current profile) and syncing its state with the
+available interfaces (keyboard, mouse, gamepad...).
+
+Physical controller --> Profile --> [HID layer] --> HID keyboard
+                    --> Profile -->             --> HID mouse
+                    --> Profile -->             --> XInput gamepad
+                    --> Profile -->             --> Internal procedures
+
+At the end of each cycle (determined by the polling rate) the HID layer checks
+if the potential new report is different from the last report sent to the
+interfaces (USB keyboard, USB mouse, gamepad...), and sends the report if
+required.
+
+The state matrix is a representation of all the actions that could be sent
+(output) and internal operations (procedures) requested by the user. It keep
+track of how many references to these actions are active.
+As a simplification: Button presses increase the counter by one, and button
+releases decrease the counter by one.
+
+To avoid orphan references, the state matrix is usually re-initialized (reset)
+to zeros when the user changes the active profile, otherwise the disabled
+profile won't ever trigger the corresponding counter decrease of held buttons
+during the profile change.
+*/
+
 #include <tusb.h>
 #include "config.h"
 #include "ctrl.h"
@@ -20,7 +48,7 @@ bool synced_gamepad = false;
 uint16_t alarms = 0;
 alarm_pool_t *alarm_pool;
 
-int8_t state_matrix[256] = {0,};
+uint8_t state_matrix[256] = {0,};
 int16_t mouse_x = 0;
 int16_t mouse_y = 0;
 double gamepad_lx = 0;
@@ -30,10 +58,10 @@ double gamepad_ry = 0;
 double gamepad_lz = 0;
 double gamepad_rz = 0;
 
-void hid_matrix_reset(uint8_t exclude) {
-    for(uint8_t i=0; i<255; i++) {
-        if (i == exclude) continue;  // Exclude action that must be retained after profile changes.
-        state_matrix[i] = 0;
+void hid_matrix_reset(uint8_t keep) {
+    for(uint8_t action=0; action<255; action++) {
+        if (action == keep) continue;  // Optionally do not reset specific actions.
+        state_matrix[action] = 0;
     }
     synced_keyboard = false;
     synced_mouse = false;
@@ -106,10 +134,12 @@ void hid_release(uint8_t key) {
     else if (key == MOUSE_SCROLL_DOWN) return;
     else if (key >= PROC_INDEX) hid_procedure_release(key);
     else {
-        state_matrix[key] = max(0, state_matrix[key] - 1);  // Guard values do not go negative.
-        if (key >= GAMEPAD_INDEX) synced_gamepad = false;
-        else if (key >= MOUSE_INDEX) synced_mouse = false;
-        else synced_keyboard = false;
+        if (state_matrix[key] > 0) {  // Do not allow to wrap / go negative.
+            state_matrix[key] -= 1;
+            if (key >= GAMEPAD_INDEX) synced_gamepad = false;
+            else if (key >= MOUSE_INDEX) synced_mouse = false;
+            else synced_keyboard = false;
+        }
     }
 }
 
