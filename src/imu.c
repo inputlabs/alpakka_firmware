@@ -57,21 +57,9 @@ void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
 void imu_init() {
     info("INIT: IMU\n");
     imu_channel_select();
+    imu_load_calibration();
     imu_init_single(IMU0, IMU_CTRL2_G_500);
     imu_init_single(IMU1, IMU_CTRL2_G_125);
-    Config *config = config_read();
-    offset_gyro_0_x = config->offset_gyro_0_x;
-    offset_gyro_0_y = config->offset_gyro_0_y;
-    offset_gyro_0_z = config->offset_gyro_0_z;
-    offset_gyro_1_x = config->offset_gyro_1_x;
-    offset_gyro_1_y = config->offset_gyro_1_y;
-    offset_gyro_1_z = config->offset_gyro_1_z;
-    offset_accel_0_x = config->offset_accel_0_x;
-    offset_accel_0_y = config->offset_accel_0_y;
-    offset_accel_0_z = config->offset_accel_0_z;
-    offset_accel_1_x = config->offset_accel_1_x;
-    offset_accel_1_y = config->offset_accel_1_y;
-    offset_accel_1_z = config->offset_accel_1_z;
 }
 
 Vector imu_read_gyro_bits(uint8_t cs) {
@@ -147,42 +135,72 @@ Vector imu_read_accel() {
 Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double* z) {
     char *mode_str = mode ? "accel" : "gyro";
     info("IMU: cs=%i calibrating %s...\n", cs, mode_str);
-    *x = 0;
-    *y = 0;
-    *z = 0;
-    double tx = 0;
-    double ty = 0;
-    double tz = 0;
+    double sum_x = 0;
+    double sum_y = 0;
+    double sum_z = 0;
     // Determine number of samples.
-    uint32_t samples;
+    uint32_t nsamples;
     if (mode==1) {
-        samples = CFG_CALIBRATION_SAMPLES_ACCEL;
+        nsamples = CFG_CALIBRATION_SAMPLES_ACCEL;
     } else {
-        samples = CFG_CALIBRATION_SAMPLES_GYRO;
+        nsamples = CFG_CALIBRATION_SAMPLES_GYRO;
         Config *config = config_read();
         if (config->long_calibration) {
-            samples *= CFG_CALIBRATION_LONG_FACTOR;
+            nsamples *= CFG_CALIBRATION_LONG_FACTOR;
         }
     }
     // Sampling.
     uint32_t i = 0;
-    while(i < samples) {
+    while(i < nsamples) {
         Vector sample = mode ? imu_read_accel_bits(cs) : imu_read_gyro_bits(cs);
-        tx += sample.x;
-        ty += sample.y;
-        tz += sample.z;
+        sum_x += sample.x;
+        sum_y += sample.y;
+        sum_z += sample.z;
         i++;
     }
-    *x = tx / samples;
-    *y = ty / samples;
-    *z = tz / samples;
+    // Average.
+    *x = sum_x / nsamples;
+    *y = sum_y / nsamples;
+    *z = sum_z / nsamples;
     // Assuming the resting state of the controller is having a vector of 1G
     // pointing down. (Newton's fault for inventing the gravity /jk).
     if (mode==1) *z -= BIT_14;
     info("IMU: cs=%i %s calibration x=%f y=%f z=%f\n", cs, mode_str, *x, *y, *z);
 }
 
+void imu_load_calibration() {
+    Config *config = config_read();
+    offset_gyro_0_x = config->offset_gyro_0_x;
+    offset_gyro_0_y = config->offset_gyro_0_y;
+    offset_gyro_0_z = config->offset_gyro_0_z;
+    offset_gyro_1_x = config->offset_gyro_1_x;
+    offset_gyro_1_y = config->offset_gyro_1_y;
+    offset_gyro_1_z = config->offset_gyro_1_z;
+    offset_accel_0_x = config->offset_accel_0_x;
+    offset_accel_0_y = config->offset_accel_0_y;
+    offset_accel_0_z = config->offset_accel_0_z;
+    offset_accel_1_x = config->offset_accel_1_x;
+    offset_accel_1_y = config->offset_accel_1_y;
+    offset_accel_1_z = config->offset_accel_1_z;
+}
+
+void imu_reset_calibration() {
+    offset_gyro_0_x = 0;
+    offset_gyro_0_y = 0;
+    offset_gyro_0_z = 0;
+    offset_gyro_1_x = 0;
+    offset_gyro_1_y = 0;
+    offset_gyro_1_z = 0;
+    offset_accel_0_x = 0;
+    offset_accel_0_y = 0;
+    offset_accel_0_z = 0;
+    offset_accel_1_x = 0;
+    offset_accel_1_y = 0;
+    offset_accel_1_z = 0;
+}
+
 void imu_calibrate() {
+    imu_reset_calibration();
     imu_calibrate_single(PIN_SPI_CS0, 0, &offset_gyro_0_x, &offset_gyro_0_y, &offset_gyro_0_z);
     imu_calibrate_single(PIN_SPI_CS1, 0, &offset_gyro_1_x, &offset_gyro_1_y, &offset_gyro_1_z);
     imu_calibrate_single(PIN_SPI_CS0, 1, &offset_accel_0_x, &offset_accel_0_y, &offset_accel_0_z);
@@ -203,4 +221,5 @@ void imu_calibrate() {
         offset_accel_1_y,
         offset_accel_1_z
     );
+    imu_load_calibration();
 }

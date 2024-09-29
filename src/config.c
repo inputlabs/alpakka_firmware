@@ -504,7 +504,6 @@ void config_set_touch_invert_polarity(bool value) {
     touch_load_from_config();
 }
 
-
 void config_set_problem_calibration(bool state) {
     problem_calibration = state;
     led_show();
