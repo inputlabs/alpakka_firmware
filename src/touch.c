@@ -47,15 +47,21 @@ There are 2 modes of operation:
 #include "common.h"
 #include "logging.h"
 
-uint8_t sens_from_config = 0;
+uint8_t polarity_mode = 0;
+int8_t sens_from_config = 0;
 float threshold_ratio = 0;
 float baseline = 0;
 
-// Load/update fixed threshold from config.
-void touch_update_threshold() {
+void touch_load_from_config() {
+    // Load sensitivity presets.
     uint8_t preset = config_get_touch_sens_preset();
     sens_from_config = config_get_touch_sens_value(preset);
-    threshold_ratio = TOUCH_AUTO_RATIO;
+    if (sens_from_config == -1) threshold_ratio = TOUCH_AUTO_RATIO_PRESET1;
+    if (sens_from_config == -2) threshold_ratio = TOUCH_AUTO_RATIO_PRESET2;
+    if (sens_from_config == -3) threshold_ratio = TOUCH_AUTO_RATIO_PRESET3;
+    // Load polarity.
+    Config *config = config_read();
+    polarity_mode = !config->touch_invert_polarity;
     // Reset to initial baseline.
     baseline = (
         config_get_pcb_gen() == 0 ?
@@ -69,8 +75,8 @@ uint8_t touch_get_elapsed() {
     bool timedout = false;
     // Make sure it is settled.
     uint32_t timer_start = time_us_32();
-    gpio_put(PIN_TOUCH_OUT, TOUCH_SETTLED_STATE);
-    while(gpio_get(PIN_TOUCH_IN) != TOUCH_SETTLED_STATE) {
+    gpio_put(PIN_TOUCH_OUT, polarity_mode);
+    while(gpio_get(PIN_TOUCH_IN) != polarity_mode) {
         if ((time_us_32() - timer_start) > TOUCH_TIMEOUT) {
             timedout = true;
             break;
@@ -78,15 +84,15 @@ uint8_t touch_get_elapsed() {
     }
     // Request change and measure.
     uint32_t timer_settled = time_us_32();
-    gpio_put(PIN_TOUCH_OUT, !TOUCH_SETTLED_STATE);
-    while(gpio_get(PIN_TOUCH_IN) == TOUCH_SETTLED_STATE) {
+    gpio_put(PIN_TOUCH_OUT, !polarity_mode);
+    while(gpio_get(PIN_TOUCH_IN) == polarity_mode) {
         if ((time_us_32() - timer_start) > TOUCH_TIMEOUT) {
             timedout = true;
             break;
         }
     };
     // Request settle for next cycle.
-    gpio_put(PIN_TOUCH_OUT, TOUCH_SETTLED_STATE);
+    gpio_put(PIN_TOUCH_OUT, polarity_mode);
     // Calculate elapsed (ignore settling time).
     uint32_t elapsed;
     if (!timedout) elapsed = time_us_32() - timer_settled;
@@ -133,7 +139,7 @@ bool touch_status() {
     // Determine threshold.
     float threshold = (
         sens_from_config > 0 ?
-        sens_from_config :
+        sens_from_config / 10.0 :
         touch_get_auto_threshold(smoothed)
     );
     // Determine if the surface is considered engaged.
@@ -189,6 +195,6 @@ void touch_init() {
     gpio_init(PIN_TOUCH_IN);
     gpio_set_dir(PIN_TOUCH_IN, GPIO_IN);
     gpio_set_pulls(PIN_TOUCH_IN, false, false);
-    touch_update_threshold();
+    touch_load_from_config();
     touch_log_probe();
 }

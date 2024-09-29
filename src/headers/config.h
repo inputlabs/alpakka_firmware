@@ -6,11 +6,12 @@
 #include <math.h>
 #include <stdbool.h>
 #include "ctrl.h"
+#include "logging.h"
 
 #define NVM_CONTROL_BYTE 0b01010101
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_SIZE 256
-#define NVM_CONFIG_VERSION 96000
+#define NVM_CONFIG_VERSION 97000
 #define NVM_PROFILE_VERSION 96000
 #define NVM_PROFILE_SIZE 4096
 #define NVM_PROFILE_SLOTS 14
@@ -31,7 +32,7 @@
 #define CFG_CALIBRATION_SAMPLES_THUMBSTICK 100000  // Samples.
 #define CFG_CALIBRATION_SAMPLES_GYRO 200000  // Samples.
 #define CFG_CALIBRATION_SAMPLES_ACCEL 100000  // Samples.
-#define CFG_CALIBRATION_BLINK_FREQ 50000  // Ticks.
+#define CFG_CALIBRATION_LONG_FACTOR 8
 
 #define CFG_GYRO_SENSITIVITY  pow(2, -9) * 1.45
 #define CFG_GYRO_SENSITIVITY_X  CFG_GYRO_SENSITIVITY * 1
@@ -52,7 +53,7 @@
 
 #define CFG_DHAT_DEBOUNCE_TIME 100  // Milliseconds.
 
-typedef struct Config_struct {
+typedef struct __packed _Config {
     uint8_t header;
     uint32_t config_version;
     uint8_t profile;
@@ -62,7 +63,7 @@ typedef struct Config_struct {
     int8_t deadzone;
     int8_t vibration;
     double sens_mouse_values[3];
-    uint8_t sens_touch_values[5];
+    int8_t sens_touch_values[5];
     float deadzone_values[3];
     float offset_ts_x;
     float offset_ts_y;
@@ -78,6 +79,11 @@ typedef struct Config_struct {
     double offset_accel_1_x;
     double offset_accel_1_y;
     double offset_accel_1_z;
+    uint8_t log_level;
+    uint8_t log_mask;
+    bool long_calibration;
+    bool swap_gyros;
+    bool touch_invert_polarity;
     uint8_t padding[256]; // Guarantee block is at least 256 bytes or more.
 } Config;
 
@@ -120,6 +126,12 @@ float config_get_deadzone_value(uint8_t index);
 void config_set_touch_sens_values(uint8_t* values);
 void config_set_mouse_sens_values(double* values);
 void config_set_deadzone_values(float* values);
+
+void config_set_log_level(LogLevel log_level);
+void config_set_log_mask(LogMask log_mask);
+void config_set_long_calibration(bool value);
+void config_set_swap_gyros(bool value);
+void config_set_touch_invert_polarity(bool value);
 
 // Profiles.
 uint8_t config_get_profile();

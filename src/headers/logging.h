@@ -28,6 +28,7 @@ bool logging_has_mask(LogMask mask);
 LogMask logging_get_mask();
 
 void logging_init();
+void logging_load_from_config();
 void info(char *msg, ...);
 void warn(char *msg, ...);
 void error(char *msg, ...);

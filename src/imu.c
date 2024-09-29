@@ -19,6 +19,8 @@
 #include "vector.h"
 #include "logging.h"
 
+uint8_t IMU0 = 0;
+uint8_t IMU1 = 0;
 double offset_gyro_0_x;
 double offset_gyro_0_y;
 double offset_gyro_0_z;
@@ -31,6 +33,12 @@ double offset_accel_0_z;
 double offset_accel_1_x;
 double offset_accel_1_y;
 double offset_accel_1_z;
+
+void imu_channel_select() {
+    Config *config = config_read();
+    IMU0 = config->swap_gyros ? PIN_SPI_CS1 : PIN_SPI_CS0;
+    IMU1 = config->swap_gyros ? PIN_SPI_CS0 : PIN_SPI_CS1;
+}
 
 void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     uint8_t id = bus_spi_read_one(cs, IMU_WHO_AM_I);
@@ -48,8 +56,9 @@ void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
 
 void imu_init() {
     info("INIT: IMU\n");
-    imu_init_single(PIN_SPI_CS0, IMU_CTRL2_G_500);
-    imu_init_single(PIN_SPI_CS1, IMU_CTRL2_G_125);
+    imu_channel_select();
+    imu_init_single(IMU0, IMU_CTRL2_G_500);
+    imu_init_single(IMU1, IMU_CTRL2_G_125);
     Config *config = config_read();
     offset_gyro_0_x = config->offset_gyro_0_x;
     offset_gyro_0_y = config->offset_gyro_0_y;
@@ -114,20 +123,20 @@ Vector imu_read_gyro_burst(uint8_t cs, uint8_t samples) {
 }
 
 Vector imu_read_gyro() {
-    Vector imu0 = imu_read_gyro_burst(PIN_SPI_CS0, CFG_IMU_TICK_SAMPLES/8*1);
-    Vector imu1 = imu_read_gyro_burst(PIN_SPI_CS1, CFG_IMU_TICK_SAMPLES/8*7);
-    double weight = max(abs(imu1.x), abs(imu1.y)) / 32768.0;
+    Vector gyro0 = imu_read_gyro_burst(IMU0, CFG_IMU_TICK_SAMPLES/8*1);
+    Vector gyro1 = imu_read_gyro_burst(IMU1, CFG_IMU_TICK_SAMPLES/8*7);
+    double weight = max(abs(gyro1.x), abs(gyro1.y)) / 32768.0;
     double weight_0 = ramp_mid(weight, 0.2);
     double weight_1 = 1 - weight_0;
-    double x = (imu0.x * weight_0) + (imu1.x * weight_1 / 4);
-    double y = (imu0.y * weight_0) + (imu1.y * weight_1 / 4);
-    double z = (imu0.z * weight_0) + (imu1.z * weight_1 / 4);
+    double x = (gyro0.x * weight_0) + (gyro1.x * weight_1 / 4);
+    double y = (gyro0.y * weight_0) + (gyro1.y * weight_1 / 4);
+    double z = (gyro0.z * weight_0) + (gyro1.z * weight_1 / 4);
     return (Vector){x, y, z};
 }
 
 Vector imu_read_accel() {
-    Vector accel0 = imu_read_accel_bits(PIN_SPI_CS0);
-    Vector accel1 = imu_read_accel_bits(PIN_SPI_CS1);
+    Vector accel0 = imu_read_accel_bits(IMU0);
+    Vector accel1 = imu_read_accel_bits(IMU1);
     return (Vector){
         (accel0.x + accel1.x) / 2,
         (accel0.y + accel1.y) / 2,
@@ -144,14 +153,20 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
     double tx = 0;
     double ty = 0;
     double tz = 0;
+    // Determine number of samples.
+    uint32_t samples;
+    if (mode==1) {
+        samples = CFG_CALIBRATION_SAMPLES_ACCEL;
+    } else {
+        samples = CFG_CALIBRATION_SAMPLES_GYRO;
+        Config *config = config_read();
+        if (config->long_calibration) {
+            samples *= CFG_CALIBRATION_LONG_FACTOR;
+        }
+    }
+    // Sampling.
     uint32_t i = 0;
-    uint32_t samples = (
-        mode ?
-        CFG_CALIBRATION_SAMPLES_ACCEL :
-        CFG_CALIBRATION_SAMPLES_GYRO
-    );
     while(i < samples) {
-        if (!(i % CFG_CALIBRATION_BLINK_FREQ)) led_show_cycle_step();
         Vector sample = mode ? imu_read_accel_bits(cs) : imu_read_gyro_bits(cs);
         tx += sample.x;
         ty += sample.y;

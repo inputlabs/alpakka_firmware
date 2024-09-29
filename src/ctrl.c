@@ -9,6 +9,7 @@
 #include "config.h"
 #include "common.h"
 #include "version.h"
+#include "logging.h"
 
 Ctrl ctrl_empty() {
     // For some reason, the very first USB message goes to "waste" and ignored
@@ -55,7 +56,50 @@ Ctrl ctrl_status_share() {
     return ctrl;
 }
 
+void ctrl_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[5]) {
+    if (key == PROTOCOL) config_set_protocol(preset);
+    else if (key == SENS_TOUCH) {
+        config_set_touch_sens_values(values);
+        config_set_touch_sens_preset(preset, false);
+    }
+    else if (key == SENS_MOUSE) {
+        // Scaled by 10 since the USB communication works with integers.
+        double values_fmt[] = {
+            values[0] / 10.0,
+            values[1] / 10.0,
+            values[2] / 10.0
+            // Indexes 3 and 4 are ignored.
+        };
+        config_set_mouse_sens_values(values_fmt);
+        config_set_mouse_sens_preset(preset, false);
+    }
+    else if (key == DEADZONE) {
+        // Scaled by 100 so the USB communication works with integers.
+        float values_fmt[] = {
+            values[0] / 100.0,
+            values[1] / 100.0,
+            values[2] / 100.0
+            // Indexes 3 and 4 are ignored.
+        };
+        config_set_deadzone_values(values_fmt);
+        config_set_deadzone_preset(preset, false);
+    }
+    else if (key == LOG_MASK) {
+        logging_set_mask(preset);
+    }
+    else if (key == LONG_CALIBRATION) {
+        config_set_long_calibration(preset);
+    }
+    else if (key == SWAP_GYROS) {
+        config_set_swap_gyros(preset);
+    }
+    else if (key == TOUCH_INVERT_POLARITY) {
+        config_set_touch_invert_polarity(preset);
+    }
+}
+
 Ctrl ctrl_config_share(uint8_t index) {
+    Config *config = config_read();
     Ctrl ctrl = {
         .protocol_version = CTRL_PROTOCOL_VERSION,
         .device_id = ALPAKKA,
@@ -69,7 +113,7 @@ Ctrl ctrl_config_share(uint8_t index) {
     }
     else if (index == SENS_TOUCH) {
         ctrl.payload[1] = config_get_touch_sens_preset();
-        ctrl.payload[2] = 0;  // Auto.
+        ctrl.payload[2] = config_get_touch_sens_value(0);
         ctrl.payload[3] = config_get_touch_sens_value(1);
         ctrl.payload[4] = config_get_touch_sens_value(2);
         ctrl.payload[5] = config_get_touch_sens_value(3);
@@ -86,6 +130,18 @@ Ctrl ctrl_config_share(uint8_t index) {
         ctrl.payload[2] = config_get_deadzone_value(0) * 100;
         ctrl.payload[3] = config_get_deadzone_value(1) * 100;
         ctrl.payload[4] = config_get_deadzone_value(2) * 100;
+    }
+    else if (index == LOG_MASK) {
+        ctrl.payload[1] = config->log_mask;
+    }
+    else if (index == LONG_CALIBRATION) {
+        ctrl.payload[1] = config->long_calibration;
+    }
+    else if (index == SWAP_GYROS) {
+        ctrl.payload[1] = config->swap_gyros;
+    }
+    else if (index == TOUCH_INVERT_POLARITY) {
+        ctrl.payload[1] = config->touch_invert_polarity;
     }
     return ctrl;
 }

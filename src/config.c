@@ -130,7 +130,7 @@ void config_write_init() {
         .profile = 1,
         .protocol = 0,
         .sens_mouse = 0,
-        .sens_touch = 0,
+        .sens_touch = 1,
         .deadzone = 0,
         .vibration = 0,
         .offset_ts_x = 0,
@@ -146,7 +146,12 @@ void config_write_init() {
         .offset_accel_0_z = 0,
         .offset_accel_1_x = 0,
         .offset_accel_1_y = 0,
-        .offset_accel_1_z = 0
+        .offset_accel_1_z = 0,
+        .log_level = 0,
+        .log_mask = 0,
+        .long_calibration = 0,
+        .swap_gyros = 0,
+        .touch_invert_polarity = 0,
     };
     config_cache.sens_mouse_values[0] = 1.0,
     config_cache.sens_mouse_values[1] = 1.5,
@@ -154,7 +159,11 @@ void config_write_init() {
     config_cache.deadzone_values[0] = 0.08,
     config_cache.deadzone_values[1] = 0.12,
     config_cache.deadzone_values[2] = 0.20,
-    // Touch sens values are initialized elsewhere after determining the PCB gen.
+    config_cache.sens_touch_values[0] = -1;  // Auto preset 1.
+    config_cache.sens_touch_values[1] = -2;  // Auto preset 2.
+    config_cache.sens_touch_values[2] = -3;  // Auto preset 3.
+    config_cache.sens_touch_values[3] = 100;  // 10.0
+    config_cache.sens_touch_values[4] = 50;  // 5.0
     config_write();
 }
 
@@ -177,12 +186,13 @@ void config_print() {
         config_cache.sens_mouse_values[1],
         config_cache.sens_mouse_values[2]
     );
-    info("  sens_touch: preset=%i (auto, %i, %i, %i, %i) \n",
+    info("  sens_touch: preset=%i (%i, %i, %i, %.1f, %.1f) \n",
         config_cache.sens_touch,
+        config_cache.sens_touch_values[0],
         config_cache.sens_touch_values[1],
         config_cache.sens_touch_values[2],
-        config_cache.sens_touch_values[3],
-        config_cache.sens_touch_values[4]
+        config_cache.sens_touch_values[3] / 10.0,
+        config_cache.sens_touch_values[4] / 10.0
     );
     info("  deadzone: preset=%i (%.2f, %.2f, %.2f)\n",
         config_cache.deadzone,
@@ -192,6 +202,10 @@ void config_print() {
     );
     info("  vibration=%i\n", config_cache.vibration);
     info("  profile=%i\n", config_cache.profile);
+    info("  log_modes level=%i mask=%i\n", config_cache.log_level, config_cache.log_mask);
+    info("  long_calibration=%i\n", config_cache.long_calibration);
+    info("  swap_gyros=%i\n", config_cache.swap_gyros);
+    info("  touch_invert_polarity=%i\n", config_cache.touch_invert_polarity);
     info("  offset_thumbstick x=%.4f y=%.4f\n",
         config_cache.offset_ts_x,
         config_cache.offset_ts_y
@@ -216,11 +230,6 @@ void config_print() {
         config_cache.offset_accel_1_y,
         config_cache.offset_accel_1_z
     );
-    if (config_cache.offset_ts_x == 0 && config_cache.offset_ts_y == 0) {
-        warn("The controller is not calibrated\n");
-        warn("Please run calibration\n");
-        config_set_problem_calibration(true);
-    }
 }
 
 void config_set_profile(uint8_t profile) {
@@ -373,16 +382,6 @@ void config_calibrate() {
 
 void config_set_pcb_gen(uint8_t gen) {
     pcb_gen = gen;
-    // If touch sens presets were never initialized before.
-    if (config_get_touch_sens_value(1) == 0) {
-        if (gen == 0) {
-            uint8_t values[] = {0, 8, 5, 3, 2};
-            config_set_touch_sens_values(values);
-        } else {
-            uint8_t values[] = {0, 40, 25, 15, 10};
-            config_set_touch_sens_values(values);
-        }
-    }
 }
 
 uint8_t config_get_pcb_gen() {
@@ -420,7 +419,7 @@ void config_set_protocol(uint8_t preset) {
 
 void config_set_touch_sens_preset(uint8_t preset, bool notify_webusb) {
     config_cache.sens_touch = preset;
-    touch_update_threshold();
+    touch_load_from_config();
     if (notify_webusb) webusb_set_pending_config_share(SENS_TOUCH);
     info("Config: Touch sensitivity preset %i\n", preset);
 }
@@ -473,6 +472,39 @@ void config_set_deadzone_values(float* values) {
     config_cache_synced = false;
 }
 
+void config_set_log_level(LogLevel log_level) {
+    info("Config: log_level=%i\n", log_level);
+    config_cache.log_level = log_level;
+    config_cache_synced = false;
+}
+
+void config_set_log_mask(LogMask log_mask) {
+    info("Config: log_mask=%i\n", log_mask);
+    config_cache.log_mask = log_mask;
+    config_cache_synced = false;
+}
+
+void config_set_long_calibration(bool value) {
+    info("Config: long_calibration=%i\n", value);
+    config_cache.long_calibration = value;
+    config_cache_synced = false;
+}
+
+void config_set_swap_gyros(bool value) {
+    info("Config: swap_gyros=%i\n", value);
+    config_cache.swap_gyros = value;
+    config_cache_synced = false;
+    imu_init();
+}
+
+void config_set_touch_invert_polarity(bool value) {
+    info("Config: touch_invert_polarity=%i\n", value);
+    config_cache.touch_invert_polarity = value;
+    config_cache_synced = false;
+    touch_load_from_config();
+}
+
+
 void config_set_problem_calibration(bool state) {
     problem_calibration = state;
     led_show();
@@ -493,6 +525,14 @@ void config_ignore_problems() {
 
 bool config_problems_are_pending() {
     return problem_calibration || problem_gyro;
+}
+
+void config_alert_if_not_calibrated() {
+    if (config_cache.offset_ts_x == 0 && config_cache.offset_ts_y == 0) {
+        warn("The controller is not calibrated\n");
+        warn("Please run calibration\n");
+        config_set_problem_calibration(true);
+    }
 }
 
 void config_profile_default(uint8_t indexTo, int8_t indexFrom) {
@@ -574,6 +614,8 @@ void config_init() {
     }
     config_init_profiles_from_nvm();
     config_print();
+    config_alert_if_not_calibrated();
+    logging_load_from_config();
 }
 
 

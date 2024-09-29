@@ -157,38 +157,6 @@ void webusb_handle_section_get(uint8_t profile, uint8_t section) {
     webusb_pending_section_share = section;
 }
 
-void webusb_handle_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[5]) {
-    if (key > 4) return;
-    webusb_pending_config_share = key;
-    if (key == PROTOCOL) config_set_protocol(preset);
-    else if (key == SENS_TOUCH) {
-        config_set_touch_sens_values(values);
-        config_set_touch_sens_preset(preset, false);
-    }
-    else if (key == SENS_MOUSE) {
-        // Scaled by 10 since the USB communication works with integers.
-        double values_fmt[] = {
-            values[0] / 10.0,
-            values[1] / 10.0,
-            values[2] / 10.0
-            // Indexes 3 and 4 are ignored.
-        };
-        config_set_mouse_sens_values(values_fmt);
-        config_set_mouse_sens_preset(preset, false);
-    }
-    else if (key == DEADZONE) {
-        // Scaled by 100 so the USB communication works with integers.
-        float values_fmt[] = {
-            values[0] / 100.0,
-            values[1] / 100.0,
-            values[2] / 100.0
-            // Indexes 3 and 4 are ignored.
-        };
-        config_set_deadzone_values(values_fmt);
-        config_set_deadzone_preset(preset, false);
-    }
-}
-
 void webusb_handle_section_set(uint8_t profileIndex, uint8_t sectionIndex, uint8_t section[58]) {
     debug("WebUSB: Handle profile SET %i %i\n", profileIndex, sectionIndex);
     // Update profile in config.
@@ -218,7 +186,8 @@ void webusb_read() {
     if (ctrl.message_type == STATUS_SET) webusb_handle_status_set(ctrl.payload);
     if (ctrl.message_type == CONFIG_GET) webusb_handle_config_get(ctrl.payload[0]);
     if (ctrl.message_type == CONFIG_SET) {
-        webusb_handle_config_set(
+        webusb_pending_config_share = ctrl.payload[0];  // Echo / confirmation.
+        ctrl_config_set(
             ctrl.payload[0],  // Config index.
             ctrl.payload[1],  // Preset index.
             &ctrl.payload[2]  // Preset values. (Reference to sub-array).
