@@ -17,6 +17,12 @@ set(PROJECT alpakka)
 project(${PROJECT} C CXX ASM)
 pico_sdk_init()
 
+add_library(zigpakka STATIC IMPORTED)
+set_property(
+    TARGET zigpakka
+    PROPERTY IMPORTED_LOCATION ../zig-out/lib/libzigpakka.a
+)
+
 add_executable(${PROJECT}
     src/main.c
 )
@@ -36,6 +42,7 @@ target_link_libraries(${PROJECT}
     hardware_sync
     hardware_timer
     tinyusb_device
+    zigpakka
 )
 
 target_include_directories(${PROJECT} PUBLIC

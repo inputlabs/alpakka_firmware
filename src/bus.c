@@ -20,10 +20,11 @@ int8_t bus_i2c_acknowledge(uint8_t device) {
     return i2c_read_blocking(i2c1, device, &buf, 1, false);
 }
 
-void bus_i2c_read(uint8_t device, uint8_t reg, uint8_t *buf, uint8_t len) {
-    i2c_write_blocking(i2c1, device, &reg, 1, true);
-    i2c_read_blocking(i2c1, device, buf, len, false);
-}
+void *_i2c1 = i2c1;
+// void bus_i2c_read(uint8_t device, uint8_t reg, uint8_t *buf, uint8_t len) {
+//     i2c_write_blocking(i2c1, device, &reg, 1, true);
+//     i2c_read_blocking(i2c1, device, buf, len, false);
+// }
 
 uint8_t bus_i2c_read_one(uint8_t device, uint8_t reg) {
     uint8_t buf[1] = {0};

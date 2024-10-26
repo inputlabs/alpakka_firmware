@@ -29,7 +29,7 @@ void bus_init();
 // I2C.
 int8_t bus_i2c_acknowledge(uint8_t device);
 void bus_i2c_write(uint8_t device, uint8_t reg, uint8_t value);
-void bus_i2c_read(uint8_t device, uint8_t reg, uint8_t *buf, uint8_t len);
+extern void bus_i2c_read(uint8_t device, uint8_t reg, uint8_t *buf, uint8_t len);
 uint8_t bus_i2c_read_one(uint8_t device, uint8_t reg);
 uint16_t bus_i2c_read_two(uint8_t device, uint8_t reg);
 // IO expanders.

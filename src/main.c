@@ -24,12 +24,22 @@
     #define VERSION "undefined"
 #endif
 
+extern void zighello();
+extern int8_t zigadd(int8_t a, int8_t b);
+
 void title() {
     info("╔====================╗\n");
     info("║ Input Labs Oy.     ║\n");
     info("║ Alpakka controller ║\n");
     info("╚====================╝\n");
     info("Firmware version: %s\n", VERSION);
+
+    const uint8_t zignum = zigadd(10, 7);
+    info("\n****************************\n");
+    info("This bit is running from ZIG\n");
+    zighello();
+    info("add(10, 7) => %i\n", zignum);
+    info("****************************\n\n");
 }
 
 void main_init() {
