@@ -132,7 +132,7 @@ Vector imu_read_accel() {
     };
 }
 
-Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double* z) {
+void imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double* z) {
     char *mode_str = mode ? "accel" : "gyro";
     info("IMU: cs=%i calibrating %s...\n", cs, mode_str);
     double sum_x = 0;
@@ -151,13 +151,16 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
     }
     // Sampling.
     uint32_t i = 0;
+    info("| 0%%%*s100%% |\n", CFG_CALIBRATION_PROGRESS_BAR - 10, "");
     while(i < nsamples) {
         Vector sample = mode ? imu_read_accel_bits(cs) : imu_read_gyro_bits(cs);
         sum_x += sample.x;
         sum_y += sample.y;
         sum_z += sample.z;
         i++;
+        if (!(i % (nsamples / CFG_CALIBRATION_PROGRESS_BAR))) info("=");
     }
+    info("\n");
     // Average.
     *x = sum_x / nsamples;
     *y = sum_y / nsamples;
@@ -165,7 +168,7 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
     // Assuming the resting state of the controller is having a vector of 1G
     // pointing down. (Newton's fault for inventing the gravity /jk).
     if (mode==1) *z -= BIT_14;
-    info("IMU: cs=%i %s calibration x=%f y=%f z=%f\n", cs, mode_str, *x, *y, *z);
+    info("IMU: cs=%i %s calibrated x=%.2f y=%.2f z=%.2f\n", cs, mode_str, *x, *y, *z);
 }
 
 void imu_load_calibration() {
