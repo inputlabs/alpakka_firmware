@@ -49,3 +49,6 @@ reset_profiles:
 
 test:
 	screen -S alpakka -X stuff T
+
+include_checker:
+	python3 scripts/include_checker.py
