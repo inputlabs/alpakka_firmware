@@ -22,9 +22,9 @@ void power_gpio_init() {
         gpio_init(PIN_BATT_STAT_1);
         gpio_pull_up(PIN_BATT_STAT_1);
         gpio_set_dir(PIN_BATT_STAT_1, GPIO_IN);
-        gpio_init(PIN_DC_POWER_SAVE);
-        gpio_set_dir(PIN_DC_POWER_SAVE, GPIO_OUT);
-        gpio_put(PIN_DC_POWER_SAVE, true);  // Power saving disabled by default.
+        // gpio_init(PIN_DC_POWER_SAVE);
+        // gpio_set_dir(PIN_DC_POWER_SAVE, GPIO_OUT);
+        // gpio_put(PIN_DC_POWER_SAVE, true);  // Power saving disabled by default.
     #endif
 }
 
@@ -45,7 +45,7 @@ void power_bootsel() {
 
 void power_dc_power_save(bool value) {
     #ifdef DEVICE_HAS_MARMOTA
-        gpio_put(PIN_DC_POWER_SAVE, !value);  // down = power saving ON.
+        // gpio_put(PIN_DC_POWER_SAVE, !value);  // down = power saving ON.
     #endif
 }
 

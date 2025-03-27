@@ -74,18 +74,18 @@ Pin numbers from 200 to 215 are IO Expander 2, from pin 0 to pin 15.
 #ifdef DEVICE_HAS_MARMOTA
     #define PIN_FUNC 2
     #define PIN_LED_BOARD 3
-    #define PIN_SPI_CS1 4       //  5 (rc1)
-    #define PIN_SPI_CS0 5       //  6 (rc1)
-    #define PIN_LED_LEFT 6      //  7 (rc1)
-    #define PIN_LED_DOWN 7      //  8 (rc1)
-    #define PIN_LED_RIGHT 8     //  9 (rc1)
-    #define PIN_LED_UP 9        // 10 (rc1)
-    #define PIN_ROTARY_B 10     // 11 (rc1)
-    #define PIN_ROTARY_A 11     // 12 (rc1)
-    #define PIN_TOUCH_IN 12     // 13 (rc1)
-    #define PIN_TOUCH_OUT 13    //  4 (rc1)
-    #define PIN_BATT_STAT_1 14  // 15 (rc1)
-    #define PIN_DC_POWER_SAVE 15
+    #define PIN_SPI_CS1 5       //  5 (rc1)
+    #define PIN_SPI_CS0 6       //  6 (rc1)
+    #define PIN_LED_LEFT 7      //  7 (rc1)
+    #define PIN_LED_DOWN 8      //  8 (rc1)
+    #define PIN_LED_RIGHT 9     //  9 (rc1)
+    #define PIN_LED_UP 10        // 10 (rc1)
+    #define PIN_ROTARY_B 11     // 11 (rc1)
+    #define PIN_ROTARY_A 12     // 12 (rc1)
+    #define PIN_TOUCH_IN 13     // 13 (rc1)
+    #define PIN_TOUCH_OUT 4    //  4 (rc1)
+    #define PIN_BATT_STAT_1 15  // 15 (rc1)
+    #define PIN_DC_POWER_SAVE 14 //// ref
     #define PIN_SPI_RX 16
     #define PIN_ESP_BOOT 17
     #define PIN_SPI_CK 18
