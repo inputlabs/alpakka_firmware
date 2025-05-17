@@ -166,9 +166,7 @@ void Button__handle_double(Button *self) {
 
 void Button__handle_hold_double(Button *self) {
     bool immediate = self->mode & IMMEDIATE;
-    uint64_t hold_time = CFG_HOLD_TIME;
-    if (self->mode & LONG) hold_time = CFG_HOLD_LONG_TIME;
-    else if (self->pin == PIN_HOME) hold_time = CFG_HOLD_SUPERLONG_TIME;  // Special case for home super long press.
+    uint64_t hold_time = (self->mode & LONG) ? CFG_HOLD_LONG_TIME : CFG_HOLD_TIME;
     uint16_t double_time = CFG_DOUBLE_PRESS_TIME;
     bool pressed = self->is_pressed(self);
     if (pressed && !self->timestamps_updated) {
