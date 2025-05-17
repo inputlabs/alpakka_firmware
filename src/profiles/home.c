@@ -75,12 +75,12 @@ void config_profile_default_home(CtrlProfile *profile){
     profile->sections[SECTION_START_1].button = (CtrlButton){
         .mode=HOLD|LONG,
         .actions={KEY_F10},
-        .actions_secondary={PROC_SLEEP},
+        .actions_secondary={KEY_CONTROL_LEFT, KEY_ALT_LEFT, KEY_DELETE},
     };
     profile->sections[SECTION_SELECT_2].button = (CtrlButton){
         .mode=HOLD|LONG,
         .actions={KEY_F11},
-        .actions_secondary={KEY_CONTROL_LEFT, KEY_ALT_LEFT, KEY_DELETE},
+        .actions_secondary={PROC_PAIR},
     };
     profile->sections[SECTION_START_2].button = (CtrlButton){
         .mode=HOLD|LONG,

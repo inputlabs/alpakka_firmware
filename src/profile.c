@@ -304,9 +304,9 @@ void profile_init() {
     info("INIT: Profiles\n");
     // Home button setup.
     Actions actions = {PROC_HOME};
-    Actions actions_secondary = {0, 0, 0, 0};
+    Actions actions_secondary = {PROC_SLEEP, 0, 0, 0};
     Actions actions_terciary = {GAMEPAD_HOME, PROC_HOME_GAMEPAD, PROC_IGNORE_LED_WARNINGS};
-    home = Button_(PIN_HOME, DOUBLE|IMMEDIATE, actions, actions_secondary, actions_terciary);
+    home = Button_(PIN_HOME, HOLD|DOUBLE|IMMEDIATE, actions, actions_secondary, actions_terciary);
     // Profiles setup.
     for(uint8_t i=0; i<PROFILE_SLOTS; i++) {
         profiles[i] = Profile_();
