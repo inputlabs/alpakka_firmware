@@ -314,21 +314,21 @@ GamepadReport hid_get_gamepad_report() {
     // Sorted so the most common assigned buttons are lower and easier to
     // identify in-game.
     int32_t buttons = (
-        (state_matrix[GAMEPAD_A]      <<  0) +
-        (state_matrix[GAMEPAD_B]      <<  1) +
-        (state_matrix[GAMEPAD_X]      <<  2) +
-        (state_matrix[GAMEPAD_Y]      <<  3) +
-        (state_matrix[GAMEPAD_L1]     <<  4) +
-        (state_matrix[GAMEPAD_R1]     <<  5) +
-        (state_matrix[GAMEPAD_L3]     <<  6) +
-        (state_matrix[GAMEPAD_R3]     <<  7) +
-        (state_matrix[GAMEPAD_LEFT]   <<  8) +
-        (state_matrix[GAMEPAD_RIGHT]  <<  9) +
-        (state_matrix[GAMEPAD_UP]     << 10) +
-        (state_matrix[GAMEPAD_DOWN]   << 11) +
-        (state_matrix[GAMEPAD_SELECT] << 12) +
-        (state_matrix[GAMEPAD_START]  << 13) +
-        (state_matrix[GAMEPAD_HOME]   << 14)
+        ((!!state_matrix[GAMEPAD_A])      <<  0) +
+        ((!!state_matrix[GAMEPAD_B])      <<  1) +
+        ((!!state_matrix[GAMEPAD_X])      <<  2) +
+        ((!!state_matrix[GAMEPAD_Y])      <<  3) +
+        ((!!state_matrix[GAMEPAD_L1])     <<  4) +
+        ((!!state_matrix[GAMEPAD_R1])     <<  5) +
+        ((!!state_matrix[GAMEPAD_L3])     <<  6) +
+        ((!!state_matrix[GAMEPAD_R3])     <<  7) +
+        ((!!state_matrix[GAMEPAD_LEFT])   <<  8) +
+        ((!!state_matrix[GAMEPAD_RIGHT])  <<  9) +
+        ((!!state_matrix[GAMEPAD_UP])     << 10) +
+        ((!!state_matrix[GAMEPAD_DOWN])   << 11) +
+        ((!!state_matrix[GAMEPAD_SELECT]) << 12) +
+        ((!!state_matrix[GAMEPAD_START])  << 13) +
+        ((!!state_matrix[GAMEPAD_HOME])   << 14)
     );
     // Adjust range from [-1,1] to [-32767,32767].
     int16_t lx_report = hid_axis(gamepad_axis[LX], GAMEPAD_AXIS_LX, GAMEPAD_AXIS_LX_NEG) * BIT_15;
@@ -355,11 +355,12 @@ GamepadReport hid_get_gamepad_report() {
 XInputReport hid_get_xinput_report() {
     int8_t buttons_0 = 0;
     int8_t buttons_1 = 0;
+    // Button bitmask.
     for(int i=0; i<8; i++) {
-        buttons_0 += state_matrix[GAMEPAD_INDEX + i] << i;
+        buttons_0 += (!!state_matrix[GAMEPAD_INDEX + i]) << i;
     }
     for(int i=0; i<8; i++) {
-        buttons_1 += state_matrix[GAMEPAD_INDEX + i + 8] << i;
+        buttons_1 += (!!state_matrix[GAMEPAD_INDEX + i + 8]) << i;
     }
     // Adjust range from [-1,1] to [-32767,32767].
     int16_t lx_report = hid_axis(gamepad_axis[LX], GAMEPAD_AXIS_LX, GAMEPAD_AXIS_LX_NEG) * BIT_15;
