@@ -60,18 +60,18 @@ void gyro_absolute_output(float value, uint8_t *actions, bool *pressed) {
         uint8_t action = actions[i];
         if (hid_is_axis(action)) {
             value = fabs(value);
-            if      (action == GAMEPAD_AXIS_LX)     hid_gamepad_lx( value);
-            else if (action == GAMEPAD_AXIS_LY)     hid_gamepad_ly( value);
-            else if (action == GAMEPAD_AXIS_LZ)     hid_gamepad_lz( value);
-            else if (action == GAMEPAD_AXIS_RX)     hid_gamepad_rx( value);
-            else if (action == GAMEPAD_AXIS_RY)     hid_gamepad_ry( value);
-            else if (action == GAMEPAD_AXIS_RZ)     hid_gamepad_rz( value);
-            else if (action == GAMEPAD_AXIS_LX_NEG) hid_gamepad_lx(-value);
-            else if (action == GAMEPAD_AXIS_LY_NEG) hid_gamepad_ly(-value);
-            else if (action == GAMEPAD_AXIS_LZ_NEG) hid_gamepad_lz(-value);
-            else if (action == GAMEPAD_AXIS_RX_NEG) hid_gamepad_rx(-value);
-            else if (action == GAMEPAD_AXIS_RY_NEG) hid_gamepad_ry(-value);
-            else if (action == GAMEPAD_AXIS_RZ_NEG) hid_gamepad_rz(-value);
+            if      (action == GAMEPAD_AXIS_LX)     hid_gamepad_axis(LX,  value);
+            else if (action == GAMEPAD_AXIS_LY)     hid_gamepad_axis(LY,  value);
+            else if (action == GAMEPAD_AXIS_LZ)     hid_gamepad_axis(LZ,  value);
+            else if (action == GAMEPAD_AXIS_RX)     hid_gamepad_axis(RX,  value);
+            else if (action == GAMEPAD_AXIS_RY)     hid_gamepad_axis(RY,  value);
+            else if (action == GAMEPAD_AXIS_RZ)     hid_gamepad_axis(RZ,  value);
+            else if (action == GAMEPAD_AXIS_LX_NEG) hid_gamepad_axis(LX, -value);
+            else if (action == GAMEPAD_AXIS_LY_NEG) hid_gamepad_axis(LY, -value);
+            else if (action == GAMEPAD_AXIS_LZ_NEG) hid_gamepad_axis(LZ, -value);
+            else if (action == GAMEPAD_AXIS_RX_NEG) hid_gamepad_axis(RX, -value);
+            else if (action == GAMEPAD_AXIS_RY_NEG) hid_gamepad_axis(RY, -value);
+            else if (action == GAMEPAD_AXIS_RZ_NEG) hid_gamepad_axis(RZ, -value);
         } else {
             if (!(*pressed) && value >= 0.5) {
                 hid_press(action);
@@ -127,10 +127,10 @@ void Gyro__report_absolute(Gyro *self) {
     // Debug.
     bool debug = 0;
     if (debug) {
-        hid_gamepad_lx(world_top.x);
-        hid_gamepad_ly(-world_top.y);
-        hid_gamepad_rx(world_fw.x);
-        hid_gamepad_ry(-world_fw.y);
+        hid_gamepad_axis(LX, world_top.x);
+        hid_gamepad_axis(LY, -world_top.y);
+        hid_gamepad_axis(RX, world_fw.x);
+        hid_gamepad_axis(RY, -world_fw.y);
         return;
     }
     // Output calculation.

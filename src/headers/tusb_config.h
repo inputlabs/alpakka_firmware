@@ -3,6 +3,7 @@
 
 #pragma once
 #include <stdint.h>
+#include <stdbool.h>
 
 #define BOARD_DEVICE_RHPORT_NUM 0
 #define BOARD_DEVICE_RHPORT_SPEED  OPT_MODE_FULL_SPEED
@@ -31,13 +32,15 @@
 #define ADDR_XINPUT_IN 0x81
 #define ADDR_XINPUT_OUT 0x02
 
-#define REPORT_KEYBOARD 1
-#define REPORT_MOUSE 2
-#define REPORT_GAMEPAD 3
-
 #define STRING_VENDOR "Input Labs"
-#define STRING_PRODUCT "Alpakka"
-#define STRING_DEVICE_VERSION "1.1"
+
+#define STRING_PRODUCT_ALPAKKA "Alpakka"
+#define STRING_PRODUCT_DONGLE "Dongle"
+
+#define STRING_VERSION_ALPAKKA_V0 "v0"
+#define STRING_VERSION_ALPAKKA_V1 "v1"
+#define STRING_VERSION_DONGLE_V1 "v1"
+
 #define STRING_HID "HID"
 #define STRING_WEBUSB "WEBUSB"
 #define STRING_XINPUT "XINPUT_GENERIC_CONTROLLER"
@@ -45,13 +48,26 @@
 #define MS_OS_VENDOR 0x17
 
 #define USB_WIN_VENDOR  0x0170  // Input Labs.
-#define USB_WIN_PRODUCT 0xA09C  // Alpakka (Xinput)
+#define USB_WIN_PRODUCT_ALPAKKA 0xAA80  // Alpakka (Xinput)
+#define USB_WIN_PRODUCT_DONGLE  0xDA80  // Dongle (Xinput)
 
 #define USB_UNIX_VENDOR  0x045E  // 360 controller vendor.
 #define USB_UNIX_PRODUCT 0x028E  // 360 controller product.
 
 #define USB_GENERIC_VENDOR  0x0170  // Input Labs.
-#define USB_GENERIC_PRODUCT 0xA09D  // Alpakka (HID complilant gamepad)
+#define USB_GENERIC_PRODUCT_ALPAKKA 0xAC80  // Alpakka (HID complilant gamepad)
+#define USB_GENERIC_PRODUCT_DONGLE  0xDC80  // Dongle (HID complilant gamepad)
+
+#define USB_TEST_VENDOR  0x0170  // Input Labs.
+#define USB_TEST_PRODUCT 0xFF00  // Test.
+
+#ifdef DEVICE_IS_ALPAKKA
+    #define WEBUSB_ID  'A', 0, '0', 0, '0', 0, '8', 0, '0', 0
+#elif defined DEVICE_DONGLE
+    #define WEBUSB_ID  'D', 0, '0', 0, '0', 0, '8', 0, '0', 0
+#else
+    #define WEBUSB_ID  'X', 0, '0', 0, '0', 0, '8', 0, '0', 0
+#endif
 
 #define DESCRIPTOR_DEVICE \
     0x12,    /* .bLength */\
@@ -198,7 +214,8 @@
     'A', 0, '-', 0, '8', 0, '8', 0, 'A', 0, '4', 0, '-', 0, '4', 0, \
     '7', 0, 'E', 0, 'E', 0, '-', 0, 'A', 0, '7', 0, '5', 0, '2', 0, \
     '-', 0, 'F', 0, 'B', 0, 'C', 0, '4', 0, '2', 0, '2', 0, '5', 0, \
-    '8', 0, '6', 0, '6', 0, 'A', 0, '1', 0, '}', 0,  0 , 0
+    WEBUSB_ID, \
+    '}', 0,  0,  0
 
 // Mouse HID definition that differs from the default implementation included
 // in TinyUSB. (Custom 16bit deltas).
@@ -284,22 +301,5 @@
     HID_INPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
   HID_COLLECTION_END
 
-typedef struct {
-  uint8_t buttons;
-  int16_t x;
-  int16_t y;
-  int8_t scroll;
-  int8_t pan;
-} __attribute__((packed)) hid_mouse_custom_report_t;
-
-typedef struct {
-  int16_t lx;
-  int16_t ly;
-  int16_t rx;
-  int16_t ry;
-  int16_t lz;
-  int16_t rz;
-  uint32_t buttons;
-} __attribute__((packed)) hid_gamepad_custom_report_t;
-
-void wait_for_usb_init();
+bool usb_wait_for_init(int16_t timeout);
+bool usb_is_connected();

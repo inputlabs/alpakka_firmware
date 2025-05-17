@@ -19,6 +19,15 @@
 #define I2C_IO_REG_PULL 0x46
 #define I2C_IO_REG_PULL_DIR 0x48
 
+// Bus channels.
+#if defined DEVICE_ALPAKKA_V0
+    #define I2C_CHANNEL i2c1
+    #define SPI_CHANNEL spi1
+#elif defined DEVICE_HAS_MARMOTA
+    #define I2C_CHANNEL i2c1
+    #define SPI_CHANNEL spi0
+#endif
+
 typedef enum Tristate_enum {
     TRIESTATE_FLOAT,
     TRIESTATE_DOWN,
@@ -26,17 +35,21 @@ typedef enum Tristate_enum {
 } Tristate;
 
 void bus_init();
+
 // I2C.
 int8_t bus_i2c_acknowledge(uint8_t device);
 void bus_i2c_write(uint8_t device, uint8_t reg, uint8_t value);
 void bus_i2c_read(uint8_t device, uint8_t reg, uint8_t *buf, uint8_t len);
 uint8_t bus_i2c_read_one(uint8_t device, uint8_t reg);
 uint16_t bus_i2c_read_two(uint8_t device, uint8_t reg);
+
 // IO expanders.
 void bus_i2c_io_cache_update();
 bool bus_i2c_io_cache_read(uint8_t device_index, uint8_t bit_index);
 bool bus_i2c_io_read(uint8_t device_id, uint8_t bit_index);
+
 // SPI.
-void bus_spi_write(uint8_t cs, uint8_t reg, uint8_t value);
 void bus_spi_read(uint8_t cs, uint8_t reg, uint8_t *buf, uint8_t size);
+void bus_spi_write_32(uint8_t cs, uint8_t reg, uint8_t buf[32]);
 uint8_t bus_spi_read_one(uint8_t cs, uint8_t reg);
+void bus_spi_write(uint8_t cs, uint8_t reg, uint8_t value);

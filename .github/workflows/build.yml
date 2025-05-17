@@ -29,7 +29,7 @@ jobs:
         with:
           path: deps/
           # Unique identifier by concatenation.
-          key: pico-sdk_${{ env.SDK_TAG }}_${{ env.ARM_FILENAME_LINUX_X86_64 }}
+          key: pico-sdk_${{ env.SDK_TAG }}_${{ env.ARM_FILENAME_LINUX_X86_64 }}_v4
 
       - name: Dependencies from internet
         if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -37,13 +37,27 @@ jobs:
 
       - name: Build
         run: |
-          make
           VERSION=$(echo ${GITHUB_REF} | sed 's|refs/tags/||; s|refs/heads/||; s|[.-]|_|g')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION=$VERSION"
-          mv build/alpakka.uf2 alpakka_${VERSION}.uf2
+
+          make clean
+          DEVICE=alpakka_v0 make
+          mv build/alpakka.uf2 alpakka_pico_${VERSION}.uf2
+
+          make clean
+          DEVICE=alpakka_v1 make
+          mv build/alpakka.uf2 alpakka_marmota_${VERSION}.uf2
+
+          make clean
+          DEVICE=dongle make
+          mv build/alpakka.uf2 dongle_marmota_${VERSION}.uf2
+
           ls -l
-          shasum alpakka_${VERSION}.uf2
+          shasum alpakka_pico_${VERSION}.uf2
+          shasum alpakka_marmota_${VERSION}.uf2
+          shasum dongle_marmota_${VERSION}.uf2
+
           echo -e "\
           =================================
           This firmware build was automated
@@ -55,9 +69,13 @@ jobs:
           Commit:
           ${GITHUB_SHA}
 
-          Checksum:
-          \$ shasum alpakka_${VERSION}.uf2
-          $(cat alpakka_${VERSION}.uf2 | shasum | head -c 40)
+          Checksums:
+          \$ shasum alpakka_pico_${VERSION}.uf2
+          $(cat alpakka_pico_${VERSION}.uf2 | shasum | head -c 40)
+          \$ shasum alpakka_marmota_${VERSION}.uf2
+          $(cat alpakka_marmota_${VERSION}.uf2 | shasum | head -c 40)
+          \$ shasum dongle_marmota_${VERSION}.uf2
+          $(cat dongle_marmota_${VERSION}.uf2 | shasum | head -c 40)
 
           Job:
           ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
@@ -68,5 +86,7 @@ jobs:
         with:
           name: alpakka_artifacts
           path: |
-            alpakka_${{env.VERSION}}.uf2
+            alpakka_pico_${{env.VERSION}}.uf2
+            alpakka_marmota_${{env.VERSION}}.uf2
+            dongle_marmota_${{env.VERSION}}.uf2
             metadata.txt

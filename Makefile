@@ -3,10 +3,10 @@
 
 default: version
 	mkdir -p build
-	cmake . -B build && cd build && make
+	cmake . -B build -DDEVICE=${DEVICE} && cd build && make -j16
 
 rebuild: version
-	cd build && make
+	cd build && make -j16
 
 version:
 	sh -e scripts/version.sh

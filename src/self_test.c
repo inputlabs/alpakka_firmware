@@ -13,7 +13,7 @@
 void self_test_button_press(const char *buttonName, Button* button) {
     info("Press button '%s': WAITING", buttonName);
     while (!button->is_pressed(button)) {
-        uart_listen_char_limited();
+        uart_listen_serial_limited();
         bus_i2c_io_cache_update();
         sleep_ms(1);
     }
@@ -49,7 +49,7 @@ void self_test_buttons(Profile* profile) {
 void self_test_thumbstick_direction(const char *buttonName, Button* button, Thumbstick* thumbstick) {
     info("Move thumbstick %s: WAITING", buttonName);
     while (!button->virtual_press) {
-        uart_listen_char_limited();
+        uart_listen_serial_limited();
         thumbstick->report(thumbstick);
         sleep_ms(1);
     }
@@ -68,7 +68,7 @@ void self_test_thumbstick(Thumbstick* thumbstick) {
 void self_test_dhat_press(Dhat* dhat, const char *buttonName, Button* button) {
     info("Press DHat '%s': WAITING", buttonName);
     while (!button->is_pressed(button)) {
-        uart_listen_char_limited();
+        uart_listen_serial_limited();
         bus_i2c_io_cache_update();
         dhat->update(dhat);
         sleep_ms(1);
@@ -88,7 +88,7 @@ void self_test_rotary_direction(Rotary* rotary, const char *name, int8_t directi
     rotary->increment = 0;
     info("Scroll %s: WAITING", name);
     while (rotary->increment != direction) {
-        uart_listen_char_limited();
+        uart_listen_serial_limited();
         sleep_ms(1);
     }
     info("\rScroll %s: OK     \n", name);
@@ -106,8 +106,12 @@ void self_test() {
     info("===========\n");
     Profile* profile = profile_get_active(true);
     self_test_buttons(profile);
-    self_test_thumbstick(&(profile->thumbstick));
-    self_test_dhat(&(profile->dhat));
+    self_test_thumbstick(&(profile->left_thumbstick));
+    #if defined DEVICE_ALPAKKA_V0
+        self_test_dhat(&(profile->dhat));
+    #elif defined DEVICE_ALPAKKA_V1
+        self_test_thumbstick(&(profile->right_thumbstick));
+    #endif
     self_test_rotary(&(profile->rotary));
     info("Tests done\n");
     info("==========\n");

@@ -4,12 +4,16 @@
 #pragma once
 #include "common.h"
 
-#define CTRL_PROTOCOL_VERSION 1
 #define CTRL_MSG_SIZE 64
 #define CTRL_NON_PAYLOAD_SIZE 4
 #define CTRL_MAX_PAYLOAD_SIZE (CTRL_MSG_SIZE - CTRL_NON_PAYLOAD_SIZE)
 
-typedef enum Ctrl_device_enum {
+typedef enum _Ctrl_protocol_flags {
+    CTRL_FLAG_NONE = 1,
+    CTRL_FLAG_WIRELESS,
+} Ctrl_protocol_flags;
+
+typedef enum _Ctrl_device {
     ALPAKKA = 1,
     KAPYBARA,
 } Ctrl_device;
@@ -38,9 +42,11 @@ typedef enum Ctrl_cfg_type_enum {
     LONG_CALIBRATION,
     SWAP_GYROS,
     TOUCH_INVERT_POLARITY,
+    GYRO_USER_OFFSET,
 } Ctrl_cfg_type;
 
 typedef enum CtrlSectionType_enum {
+    // Unsorted indexes to keep backwards compatibility.
     SECTION_META = 1,
     SECTION_A,
     SECTION_B,
@@ -60,26 +66,33 @@ typedef enum CtrlSectionType_enum {
     SECTION_R2,
     SECTION_L4,
     SECTION_R4,
-    SECTION_DHAT_LEFT,
-    SECTION_DHAT_RIGHT,
-    SECTION_DHAT_UP,
-    SECTION_DHAT_DOWN,
-    SECTION_DHAT_UL,
-    SECTION_DHAT_UR,
-    SECTION_DHAT_DL,
-    SECTION_DHAT_DR,
-    SECTION_DHAT_PUSH,
-    SECTION_ROTARY_UP,
+    SECTION_ROTARY_UP = 29,
     SECTION_ROTARY_DOWN,
-    SECTION_THUMBSTICK,
-    SECTION_THUMBSTICK_LEFT,
-    SECTION_THUMBSTICK_RIGHT,
-    SECTION_THUMBSTICK_UP,
-    SECTION_THUMBSTICK_DOWN,
-    SECTION_THUMBSTICK_PUSH,
-    SECTION_THUMBSTICK_INNER,
-    SECTION_THUMBSTICK_OUTER,
-    SECTION_GLYPHS_0,
+    SECTION_LSTICK_SETTINGS = 31,
+    SECTION_LSTICK_LEFT,
+    SECTION_LSTICK_RIGHT,
+    SECTION_LSTICK_UP,
+    SECTION_LSTICK_DOWN,
+    SECTION_LSTICK_UL = 55,
+    SECTION_LSTICK_UR,
+    SECTION_LSTICK_DL,
+    SECTION_LSTICK_DR,
+    SECTION_LSTICK_PUSH = 36,
+    SECTION_LSTICK_INNER,
+    SECTION_LSTICK_OUTER,
+    SECTION_RSTICK_SETTINGS = 59,
+    SECTION_RSTICK_LEFT = 20,
+    SECTION_RSTICK_RIGHT,
+    SECTION_RSTICK_UP,
+    SECTION_RSTICK_DOWN,
+    SECTION_RSTICK_UL,
+    SECTION_RSTICK_UR,
+    SECTION_RSTICK_DL,
+    SECTION_RSTICK_DR,
+    SECTION_RSTICK_PUSH,
+    SECTION_RSTICK_INNER = 60,
+    SECTION_RSTICK_OUTER,
+    SECTION_GLYPHS_0 = 39,
     SECTION_GLYPHS_1,
     SECTION_GLYPHS_2,
     SECTION_GLYPHS_3,
@@ -87,7 +100,7 @@ typedef enum CtrlSectionType_enum {
     SECTION_DAISY_1,
     SECTION_DAISY_2,
     SECTION_DAISY_3,
-    SECTION_GYRO,
+    SECTION_GYRO_SETTINGS,
     SECTION_GYRO_X,
     SECTION_GYRO_Y,
     SECTION_GYRO_Z,
@@ -98,8 +111,8 @@ typedef enum CtrlSectionType_enum {
 } CtrlSectionType;
 
 typedef struct _Ctrl {
-    uint8_t protocol_version;
-    uint8_t device_id;
+    Ctrl_protocol_flags protocol_flags;
+    Ctrl_device device_id;
     Ctrl_msg_type message_type;
     uint8_t len;
     uint8_t payload[CTRL_MAX_PAYLOAD_SIZE];
@@ -149,6 +162,7 @@ typedef struct __packed _CtrlThumbstick {
     uint8_t overlap;
     uint8_t deadzone_override;
     uint8_t antideadzone;
+    uint8_t saturation;
     uint8_t _padding[52];
 } CtrlThumbstick;
 

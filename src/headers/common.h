@@ -10,6 +10,7 @@
 #define BIT_16 65535
 #define BIT_15 32767
 #define BIT_14 16383
+#define BIT_12 4095
 #define BIT_11 2047
 #define BIT_10 1023
 #define BIT_8 255
@@ -61,3 +62,5 @@ void print_array(uint8_t *array, uint8_t len);
 // Input MIN: Lower part of the range, that will result in -1.
 // Input MAX: Upper part of the range, that will result in +1.
 #define ramp(x, min, max)  constrain( 2 * ((x-min) / (max-min)) - 1, -1, 1)
+
+void print_array(uint8_t *array, uint8_t len);

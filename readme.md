@@ -21,8 +21,19 @@ With `apt`, `rpm`, `pacman`, `brew`, or the equivalent package manager of your s
 ## Project dependencies
 - `make install`: Download and configure dependencies automatically.
 
+## Compilation targets
+- `alpakka_v0`: Alpakka v0.x.x with Raspberry Pico.
+- `alpakka_v1`: Alpakka v1.x.x with Marmota module.
+- `dongle`: Wireless dongle.
+- `llama`: ESP wireless module flasher (ESP-LLAMA repository).
+
+Example usage:
+```
+DEVICE=alpakka_v1 make
+```
+
 ## Development commands
-- `make`: Build compilation environment and build executables.
+- `DEVICE=<device> make`: Build compilation environment and build executables.
 - `make rebuild`: Build executables again using cache (faster).
 - `make load`: Load built .uf2 file into the Pico (requires bootsel mode or active session).
 - `make reload`: Do both `rebuild` and `load` commands (for dev convenience).

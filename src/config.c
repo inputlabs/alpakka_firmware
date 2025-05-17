@@ -5,12 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <hardware/sync.h>
-#include <hardware/watchdog.h>
-#include <pico/bootrom.h>
 #include <pico/unique_id.h>
 #include "config.h"
 #include "nvm.h"
 #include "led.h"
+#include "pin.h"
 #include "hid.h"
 #include "imu.h"
 #include "thumbstick.h"
@@ -19,6 +18,7 @@
 #include "webusb.h"
 #include "common.h"
 #include "logging.h"
+#include "power.h"
 
 // Config values.
 Config config_cache;
@@ -35,6 +35,7 @@ uint8_t pcb_gen = 255;
 // Problems.
 bool problem_calibration = false;
 bool problem_gyro = false;
+bool problem_battery_low = false;
 
 
 void config_load() {
@@ -115,11 +116,13 @@ void config_sync() {
         config_write();
     }
     // Sync profiles.
-    for(uint8_t i=0; i<NVM_PROFILE_SLOTS; i++) {
-        if (!config_profile_cache_synced[i]) {
-            config_profile_write(i);
+    #ifdef DEVICE_IS_ALPAKKA
+        for(uint8_t i=0; i<NVM_PROFILE_SLOTS; i++) {
+            if (!config_profile_cache_synced[i]) {
+                config_profile_write(i);
+            }
         }
-    }
+    #endif
 }
 
 void config_write_init() {
@@ -131,10 +134,12 @@ void config_write_init() {
         .protocol = 0,
         .sens_mouse = 0,
         .sens_touch = 1,
-        .deadzone = 0,
+        .deadzone = 1,
         .vibration = 0,
-        .offset_ts_x = 0,
-        .offset_ts_y = 0,
+        .offset_ts_lx = 0,
+        .offset_ts_ly = 0,
+        .offset_ts_rx = 0,
+        .offset_ts_ry = 0,
         .offset_gyro_0_x = 0,
         .offset_gyro_0_y = 0,
         .offset_gyro_0_z = 0,
@@ -162,8 +167,8 @@ void config_write_init() {
     config_cache.sens_touch_values[0] = -1;  // Auto preset 1.
     config_cache.sens_touch_values[1] = -2;  // Auto preset 2.
     config_cache.sens_touch_values[2] = -3;  // Auto preset 3.
-    config_cache.sens_touch_values[3] = 100;  // 10.0
-    config_cache.sens_touch_values[4] = 50;  // 5.0
+    config_cache.sens_touch_values[3] = 120;  // 12.0
+    config_cache.sens_touch_values[4] = 60;  // 6.0
     config_write();
 }
 
@@ -206,9 +211,13 @@ void config_print() {
     info("  long_calibration=%i\n", config_cache.long_calibration);
     info("  swap_gyros=%i\n", config_cache.swap_gyros);
     info("  touch_invert_polarity=%i\n", config_cache.touch_invert_polarity);
-    info("  offset_thumbstick x=%.4f y=%.4f\n",
-        config_cache.offset_ts_x,
-        config_cache.offset_ts_y
+    info("  offset_thumbstick_0 x=%.4f y=%.4f\n",
+        config_cache.offset_ts_lx,
+        config_cache.offset_ts_ly
+    );
+    info("  offset_thumbstick_1 x=%.4f y=%.4f\n",
+        config_cache.offset_ts_rx,
+        config_cache.offset_ts_ry
     );
     info("  offset_gyro_0  x=%8.2f y=%8.2f z=%8.2f\n",
         config_cache.offset_gyro_0_x,
@@ -232,6 +241,13 @@ void config_print() {
     );
 }
 
+void config_print_minimal() {
+    info("NVM: dump\n");
+    info("  config_version=%i\n", config_cache.config_version);
+    info("  protocol=%i\n", config_cache.protocol);
+    info("  log_modes level=%i mask=%i\n", config_cache.log_level, config_cache.log_mask);
+}
+
 void config_set_profile(uint8_t profile) {
     if (profile == config_cache.profile) return;
     config_cache.profile = profile;
@@ -242,9 +258,11 @@ uint8_t config_get_profile() {
     return config_cache.profile;
 }
 
-void config_set_thumbstick_offset(float x, float y) {
-    config_cache.offset_ts_x = x;
-    config_cache.offset_ts_y = y;
+void config_set_thumbstick_offset(float lx, float ly, float rx, float ry) {
+    config_cache.offset_ts_lx = lx;
+    config_cache.offset_ts_ly = ly;
+    config_cache.offset_ts_rx = rx;
+    config_cache.offset_ts_ry = ry;
     config_cache_synced = false;
 }
 
@@ -294,10 +312,10 @@ void config_tune_update_leds() {
     if (config_tune_mode == PROC_TUNE_TOUCH_SENS) {
         led_static_mask(LED_RIGHT);
         if (config_cache.sens_touch == 0) led_blink_mask(LED_DOWN);
-        if (config_cache.sens_touch == 1) led_blink_mask(LED_DOWN + LED_LEFT);
-        if (config_cache.sens_touch == 2) led_blink_mask(LED_LEFT);
-        if (config_cache.sens_touch == 3) led_blink_mask(LED_LEFT + LED_UP);
-        if (config_cache.sens_touch == 4) led_blink_mask(LED_UP);
+        if (config_cache.sens_touch == 1) led_blink_mask(LED_LEFT);
+        if (config_cache.sens_touch == 2) led_blink_mask(LED_UP);
+        if (config_cache.sens_touch == 3) led_blink_mask(LED_LEFT + LED_DOWN);
+        if (config_cache.sens_touch == 4) led_blink_mask(LED_LEFT + LED_UP);
         led_set_mode(LED_MODE_BLINK);
     }
 }
@@ -322,35 +340,27 @@ void config_tune(bool direction) {
     else if (config_tune_mode == PROC_TUNE_TOUCH_SENS) {
         config_set_touch_sens_preset(constrain(config_cache.sens_touch + value, 0, 4), true);
     }
+    config_cache_synced = false;
     config_tune_update_leds();
-}
-
-void config_reboot() {
-    watchdog_enable(1, false);  // Reboot after 1 millisecond.
-    sleep_ms(10);  // Stall the exexution to avoid resetting the timer.
-}
-
-void config_bootsel() {
-    reset_usb_boot(0, 0);
 }
 
 void config_reset_factory() {
     info("NVM: Reset to factory defaults\n");
     config_profile_default_all();
     config_delete();
-    config_reboot();
+    power_restart();
 }
 
 void config_reset_config() {
     info("NVM: Reset config\n");
     config_delete();
-    config_reboot();
+    power_restart();
 }
 
 void config_reset_profiles() {
     info("NVM: Reset profiles\n");
     config_profile_default_all();
-    config_reboot();
+    power_restart();
 }
 
 void config_calibrate_execute() {
@@ -504,6 +514,16 @@ void config_set_touch_invert_polarity(bool value) {
     touch_load_from_config();
 }
 
+void config_set_gyro_user_offset(int8_t x, int8_t y, int8_t z) {
+    float f = 0.01;
+    info("Config: offset_gyro_user x=%.2f y=%.2f z=%.2f\n", x*f, y*f, z*f);
+    config_cache.offset_gyro_user_x = x;
+    config_cache.offset_gyro_user_y = y;
+    config_cache.offset_gyro_user_z = z;
+    config_cache_synced = false;
+    imu_load_calibration();
+}
+
 void config_set_problem_calibration(bool state) {
     problem_calibration = state;
     led_show();
@@ -514,20 +534,31 @@ void config_set_problem_gyro(bool state) {
     led_show();
 }
 
+void config_set_problem_battery_low(bool state) {
+    if (state == problem_battery_low) return;
+    problem_battery_low = state;
+    led_show();
+}
+
 void config_ignore_problems() {
     if (!config_problems_are_pending()) return;
     warn("User requested to ignore problems\n");
     problem_calibration = false;
     problem_gyro = false;
+    problem_battery_low = false;
     led_show();
 }
 
 bool config_problems_are_pending() {
-    return problem_calibration || problem_gyro;
+    return (
+        problem_calibration ||
+        problem_gyro ||
+        problem_battery_low
+    );
 }
 
 void config_alert_if_not_calibrated() {
-    if (config_cache.offset_ts_x == 0 && config_cache.offset_ts_y == 0) {
+    if (config_cache.offset_ts_lx == 0 && config_cache.offset_ts_ly == 0) {
         warn("The controller is not calibrated\n");
         warn("Please run calibration\n");
         config_set_problem_calibration(true);
@@ -599,9 +630,9 @@ void config_init_profiles_from_nvm() {
 }
 
 void config_init() {
-    char pico_id[64];
-    pico_get_unique_board_id_string(pico_id, 64);
-    info("Pico UID: %s\n", pico_id);
+    char board_id[64];
+    pico_get_unique_board_id_string(board_id, 64);
+    info("Board UID: %s\n", board_id);
     info("INIT: Config\n");
     config_load();
     if (
@@ -611,9 +642,13 @@ void config_init() {
         warn("NVM config not found or incompatible, writing default instead\n");
         config_write_init();
     }
-    config_init_profiles_from_nvm();
-    config_print();
-    config_alert_if_not_calibrated();
+    #ifdef DEVICE_IS_ALPAKKA
+        config_init_profiles_from_nvm();
+        config_print();
+        config_alert_if_not_calibrated();
+    #else
+        config_print_minimal();
+    #endif
     logging_load_from_config();
 }
 

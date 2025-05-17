@@ -120,40 +120,85 @@ void config_profile_default_fps_fusion(CtrlProfile *profile){
         .hint_secondary="Prone",
     };
 
-    // DHat.
-    profile->sections[SECTION_DHAT_LEFT].button = (CtrlButton){
+    // Thumbstick (left).
+    profile->sections[SECTION_LSTICK_SETTINGS].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_4DIR,
+        .saturation=100,
+        .overlap=50,
+    };
+    profile->sections[SECTION_LSTICK_LEFT].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_LX_NEG},
+    };
+    profile->sections[SECTION_LSTICK_RIGHT].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_LX},
+    };
+    profile->sections[SECTION_LSTICK_UP].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_LY_NEG},
+    };
+    profile->sections[SECTION_LSTICK_DOWN].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_LY},
+    };
+    profile->sections[SECTION_LSTICK_PUSH].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={KEY_SHIFT_LEFT},
+        .hint="Sprint",
+    };
+    profile->sections[SECTION_LSTICK_INNER].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={KEY_BRACKET_LEFT},
+        .hint="Walk",
+    };
+    profile->sections[SECTION_LSTICK_OUTER].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={KEY_BRACKET_RIGHT},
+        .hint="Run",
+    };
+
+    // Thumbstick (right) / DHat.
+    profile->sections[SECTION_RSTICK_SETTINGS].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_8DIR,
+        .saturation=70,
+        .overlap=50,
+        .deadzone_override=true,
+        .deadzone=60,
+    };
+    profile->sections[SECTION_RSTICK_LEFT].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_1},
     };
-    profile->sections[SECTION_DHAT_RIGHT].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_RIGHT].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_3},
     };
-    profile->sections[SECTION_DHAT_UP].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_UP].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_4},
     };
-    profile->sections[SECTION_DHAT_DOWN].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_DOWN].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_2},
     };
-    profile->sections[SECTION_DHAT_UL].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_UL].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_8},
     };
-    profile->sections[SECTION_DHAT_UR].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_UR].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_7},
     };
-    profile->sections[SECTION_DHAT_DL].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_DL].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_5},
     };
-    profile->sections[SECTION_DHAT_DR].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_DR].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_6},
     };
-    profile->sections[SECTION_DHAT_PUSH].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_PUSH].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_0},
         .hint="Weapons",
@@ -169,45 +214,8 @@ void config_profile_default_fps_fusion(CtrlProfile *profile){
         .hint_0="Next / Zoom-",
     };
 
-    // Thumbstick.
-    profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
-        .mode=THUMBSTICK_MODE_4DIR,
-        .overlap=50,
-    };
-    profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={GAMEPAD_AXIS_LX_NEG},
-    };
-    profile->sections[SECTION_THUMBSTICK_RIGHT].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={GAMEPAD_AXIS_LX},
-    };
-    profile->sections[SECTION_THUMBSTICK_UP].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={GAMEPAD_AXIS_LY_NEG},
-    };
-    profile->sections[SECTION_THUMBSTICK_DOWN].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={GAMEPAD_AXIS_LY},
-    };
-    profile->sections[SECTION_THUMBSTICK_PUSH].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={KEY_SHIFT_LEFT},
-        .hint="Sprint",
-    };
-    profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={KEY_BRACKET_LEFT},
-        .hint="Walk",
-    };
-    profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={KEY_BRACKET_RIGHT},
-        .hint="Run",
-    };
-
     // Gyro.
-    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+    profile->sections[SECTION_GYRO_SETTINGS].gyro = (CtrlGyro){
         .mode=GYRO_MODE_TOUCH_ON,
         .engage=PIN_TOUCH_IN,
     };

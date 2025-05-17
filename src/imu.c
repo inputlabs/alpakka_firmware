@@ -41,12 +41,12 @@ void imu_channel_select() {
 }
 
 void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
-    uint8_t id = bus_spi_read_one(cs, IMU_WHO_AM_I);
+    uint8_t id = bus_spi_read_one(cs, IMU_READ | IMU_WHO_AM_I);
     bus_spi_write(cs, IMU_CTRL1_XL, IMU_CTRL1_XL_2G);
     bus_spi_write(cs, IMU_CTRL8_XL, IMU_CTRL8_XL_LP);
     bus_spi_write(cs, IMU_CTRL2_G, gyro_conf);
-    uint8_t xl = bus_spi_read_one(cs, IMU_CTRL1_XL);
-    uint8_t g = bus_spi_read_one(cs, IMU_CTRL2_G);
+    uint8_t xl = bus_spi_read_one(cs, IMU_READ | IMU_CTRL1_XL);
+    uint8_t g = bus_spi_read_one(cs, IMU_READ | IMU_CTRL2_G);
     info("  IMU cs=%i id=0x%02x xl=0b%08i g=0b%08i\n", cs, id, bin(xl), bin(g));
     if (id == 0x00) {
         warn("Gyro was not able to initialize\n");
@@ -62,36 +62,65 @@ void imu_init() {
     imu_init_single(IMU1, IMU_CTRL2_G_125);
 }
 
+void imu_power_off_single(uint8_t cs) {
+    bus_spi_write(cs, IMU_CTRL1_XL, IMU_CTRL1_XL_OFF);
+    bus_spi_write(cs, IMU_CTRL2_G, IMU_CTRL2_G_OFF);
+    uint8_t xl = bus_spi_read_one(cs, IMU_READ | IMU_CTRL1_XL);
+    uint8_t g = bus_spi_read_one(cs, IMU_READ | IMU_CTRL2_G);
+    info("IMU cs=%i xl=0b%08i g=0b%08i\n", cs, bin(xl), bin(g));
+}
+
+void imu_power_off() {
+    imu_power_off_single(IMU0);
+    imu_power_off_single(IMU1);
+}
+
 Vector imu_read_gyro_bits(uint8_t cs) {
     uint8_t buf[6];
-    bus_spi_read(cs, IMU_OUTX_L_G, buf, 6);
+    bus_spi_read(cs, IMU_READ | IMU_OUTX_L_G, buf, 6);
     int16_t y =  (((int8_t)buf[1] << 8) + (int8_t)buf[0]);
     int16_t z =  (((int8_t)buf[3] << 8) + (int8_t)buf[2]);
     int16_t x = -(((int8_t)buf[5] << 8) + (int8_t)buf[4]);
     double offset_x = (cs==PIN_SPI_CS0) ? offset_gyro_0_x : offset_gyro_1_x;
     double offset_y = (cs==PIN_SPI_CS0) ? offset_gyro_0_y : offset_gyro_1_y;
     double offset_z = (cs==PIN_SPI_CS0) ? offset_gyro_0_z : offset_gyro_1_z;
-    return (Vector){
-        (double)x - offset_x,
-        (double)y - offset_y,
-        (double)z - offset_z,
-    };
+    #ifdef DEVICE_ALPAKKA_V0
+        return (Vector){
+            (double)x - offset_x,
+            (double)y - offset_y,
+            (double)z - offset_z,
+        };
+    #else /* DEVICE_ALPAKKA_V1 */
+        return (Vector){
+            (double)x - offset_x,
+            -(double)y - offset_y,
+            -(double)z - offset_z,
+        };
+    #endif
 }
 
 Vector imu_read_accel_bits(uint8_t cs) {
     uint8_t buf[6];
-    bus_spi_read(cs, IMU_OUTX_L_XL, buf, 6);
+    bus_spi_read(cs, IMU_READ | IMU_OUTX_L_XL, buf, 6);
     int16_t x =  (((int8_t)buf[1] << 8) + (int8_t)buf[0]);
     int16_t y =  (((int8_t)buf[3] << 8) + (int8_t)buf[2]);
     int16_t z =  (((int8_t)buf[5] << 8) + (int8_t)buf[4]);
     double offset_x = (cs==PIN_SPI_CS0) ? offset_accel_0_x : offset_accel_1_x;
     double offset_y = (cs==PIN_SPI_CS0) ? offset_accel_0_y : offset_accel_1_y;
     double offset_z = (cs==PIN_SPI_CS0) ? offset_accel_0_z : offset_accel_1_z;
-    return (Vector){
-        (double)x - offset_x,
-        (double)y - offset_y,
-        (double)z - offset_z,
-    };
+    #ifdef DEVICE_ALPAKKA_V0
+        return (Vector){
+            (double)x - offset_x,
+            (double)y - offset_y,
+            (double)z - offset_z,
+        };
+    #else /* DEVICE_ALPAKKA_V1 */
+        return (Vector){
+            -(double)x - offset_x,
+            -(double)y - offset_y,
+            (double)z - offset_z,
+        };
+    #endif
 }
 
 Vector imu_read_gyro_burst(uint8_t cs, uint8_t samples) {
@@ -132,7 +161,7 @@ Vector imu_read_accel() {
     };
 }
 
-Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double* z) {
+void imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double* z) {
     char *mode_str = mode ? "accel" : "gyro";
     info("IMU: cs=%i calibrating %s...\n", cs, mode_str);
     double sum_x = 0;
@@ -151,12 +180,14 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
     }
     // Sampling.
     uint32_t i = 0;
+    info("| 0%%%*s100%% |\n", CFG_CALIBRATION_PROGRESS_BAR - 10, "");
     while(i < nsamples) {
         Vector sample = mode ? imu_read_accel_bits(cs) : imu_read_gyro_bits(cs);
         sum_x += sample.x;
         sum_y += sample.y;
         sum_z += sample.z;
         i++;
+        if (!(i % (nsamples / CFG_CALIBRATION_PROGRESS_BAR))) info("=");
     }
     // Average.
     *x = sum_x / nsamples;
@@ -165,17 +196,17 @@ Vector imu_calibrate_single(uint8_t cs, bool mode, double* x, double* y, double*
     // Assuming the resting state of the controller is having a vector of 1G
     // pointing down. (Newton's fault for inventing the gravity /jk).
     if (mode==1) *z -= BIT_14;
-    info("IMU: cs=%i %s calibration x=%f y=%f z=%f\n", cs, mode_str, *x, *y, *z);
+    info("\nIMU: cs=%i %s calibrated x=%.02f y=%.02f z=%.02f\n", cs, mode_str, *x, *y, *z);
 }
 
 void imu_load_calibration() {
     Config *config = config_read();
-    offset_gyro_0_x = config->offset_gyro_0_x;
-    offset_gyro_0_y = config->offset_gyro_0_y;
-    offset_gyro_0_z = config->offset_gyro_0_z;
-    offset_gyro_1_x = config->offset_gyro_1_x;
-    offset_gyro_1_y = config->offset_gyro_1_y;
-    offset_gyro_1_z = config->offset_gyro_1_z;
+    offset_gyro_0_x = config->offset_gyro_0_x - (config->offset_gyro_user_x * GYRO_USER_OFFSET_FACTOR);
+    offset_gyro_0_y = config->offset_gyro_0_y - (config->offset_gyro_user_y * GYRO_USER_OFFSET_FACTOR);
+    offset_gyro_0_z = config->offset_gyro_0_z - (config->offset_gyro_user_z * GYRO_USER_OFFSET_FACTOR);
+    offset_gyro_1_x = config->offset_gyro_1_x - (config->offset_gyro_user_x * GYRO_USER_OFFSET_FACTOR);
+    offset_gyro_1_y = config->offset_gyro_1_y - (config->offset_gyro_user_y * GYRO_USER_OFFSET_FACTOR);
+    offset_gyro_1_z = config->offset_gyro_1_z - (config->offset_gyro_user_z * GYRO_USER_OFFSET_FACTOR);
     offset_accel_0_x = config->offset_accel_0_x;
     offset_accel_0_y = config->offset_accel_0_y;
     offset_accel_0_z = config->offset_accel_0_z;
@@ -200,6 +231,7 @@ void imu_reset_calibration() {
 }
 
 void imu_calibrate() {
+    config_set_gyro_user_offset(0, 0, 0);
     imu_reset_calibration();
     imu_calibrate_single(PIN_SPI_CS0, 0, &offset_gyro_0_x, &offset_gyro_0_y, &offset_gyro_0_z);
     imu_calibrate_single(PIN_SPI_CS1, 0, &offset_gyro_1_x, &offset_gyro_1_y, &offset_gyro_1_z);

@@ -25,7 +25,7 @@ bool Button__is_pressed(Button *self) {
         }
     }
     // Buttons connected directly to Pico.
-    else if (is_between(self->pin, PIN_GROUP_PICO, PIN_GROUP_PICO_END)) {
+    else if (is_between(self->pin, PIN_GROUP_BOARD, PIN_GROUP_BOARD_END)) {
         return !gpio_get(self->pin);
     }
     // Buttons connected to 1st IO expander.

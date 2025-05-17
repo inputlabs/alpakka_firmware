@@ -46,28 +46,35 @@ void config_profile_default_flight(CtrlProfile *profile){
     profile->sections[SECTION_L4].button = (CtrlButton){};
     profile->sections[SECTION_R4].button = (CtrlButton){};
 
-    // DHat.
-    profile->sections[SECTION_DHAT_LEFT].button = (CtrlButton){};
-    profile->sections[SECTION_DHAT_RIGHT].button = (CtrlButton){};
-    profile->sections[SECTION_DHAT_UP].button = (CtrlButton){};
-    profile->sections[SECTION_DHAT_DOWN].button = (CtrlButton){};
-    profile->sections[SECTION_DHAT_UL].button = (CtrlButton){};
-    profile->sections[SECTION_DHAT_UR].button = (CtrlButton){};
-    profile->sections[SECTION_DHAT_DL].button = (CtrlButton){};
-    profile->sections[SECTION_DHAT_DR].button = (CtrlButton){};
-    profile->sections[SECTION_DHAT_PUSH].button = (CtrlButton){};
+    // Thumbstick (left).
+    profile->sections[SECTION_LSTICK_SETTINGS].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_OFF,
+        .overlap=50,
+        .saturation=100,
+    };
+
+    // Thumbstick (right) / DHat.
+    profile->sections[SECTION_RSTICK_SETTINGS].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_OFF,
+        .overlap=50,
+        .saturation=70,
+    };
+    // profile->sections[SECTION_RSTICK_LEFT].button = (CtrlButton){};
+    // profile->sections[SECTION_RSTICK_RIGHT].button = (CtrlButton){};
+    // profile->sections[SECTION_RSTICK_UP].button = (CtrlButton){};
+    // profile->sections[SECTION_RSTICK_DOWN].button = (CtrlButton){};
+    // profile->sections[SECTION_RSTICK_UL].button = (CtrlButton){};
+    // profile->sections[SECTION_RSTICK_UR].button = (CtrlButton){};
+    // profile->sections[SECTION_RSTICK_DL].button = (CtrlButton){};
+    // profile->sections[SECTION_RSTICK_DR].button = (CtrlButton){};
+    // profile->sections[SECTION_RSTICK_PUSH].button = (CtrlButton){};
 
     // Rotary.
     profile->sections[SECTION_ROTARY_UP].rotary = (CtrlRotary){};
     profile->sections[SECTION_ROTARY_DOWN].rotary = (CtrlRotary){};
 
-    // Thumbstick.
-    profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
-        .mode=THUMBSTICK_MODE_OFF,
-    };
-
     // Gyro.
-    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+    profile->sections[SECTION_GYRO_SETTINGS].gyro = (CtrlGyro){
         .mode=GYRO_MODE_OFF,
     };
 }

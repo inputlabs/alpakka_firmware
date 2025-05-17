@@ -163,6 +163,10 @@ void led_set_mode(LEDMode mode) {
     led_show();
 }
 
+void led_board_set(bool state) {
+    gpio_put(PIN_LED_BOARD, state);
+}
+
 void led_init_each(uint8_t pin) {
     gpio_set_function(pin, GPIO_FUNC_PWM);
     uint8_t slice_num = pwm_gpio_to_slice_num(pin);
@@ -172,16 +176,12 @@ void led_init_each(uint8_t pin) {
 
 void led_init() {
     // Pico LED.
-    gpio_init(PIN_LED_PICO);
-    gpio_set_dir(PIN_LED_PICO, GPIO_OUT);
-    gpio_put(PIN_LED_PICO, true);
+    gpio_init(PIN_LED_BOARD);
+    gpio_set_dir(PIN_LED_BOARD, GPIO_OUT);
+    gpio_put(PIN_LED_BOARD, false);
     // Front LEDs.
     led_init_each(PIN_LED_UP);
     led_init_each(PIN_LED_RIGHT);
     led_init_each(PIN_LED_DOWN);
     led_init_each(PIN_LED_LEFT);
-    // Blink all LEDs until something else happens.
-    led_static_mask(LED_NONE);
-    led_blink_mask(LED_ALL);
-    led_set_mode(LED_MODE_BLINK);
 }

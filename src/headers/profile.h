@@ -58,7 +58,8 @@ struct Profile_struct {
     Button r1;
     Button r2;
     Button r4;
-    Thumbstick thumbstick;
+    Thumbstick left_thumbstick;
+    Thumbstick right_thumbstick;
     Dhat dhat;
     Rotary rotary;
     Gyro gyro;

@@ -70,16 +70,17 @@ void config_profile_default_home(CtrlProfile *profile){
     profile->sections[SECTION_SELECT_1].button = (CtrlButton){
         .mode=HOLD|LONG,
         .actions={KEY_F9},
-        .actions_secondary={PROC_BOOTSEL},
+        .actions_secondary={PROC_BOOTSEL},  // TODO: BOOTSET_OR_PAIR.
     };
     profile->sections[SECTION_START_1].button = (CtrlButton){
         .mode=HOLD|LONG,
         .actions={KEY_F10},
-        .actions_secondary={KEY_CONTROL_LEFT, KEY_ALT_LEFT, KEY_DELETE},
+        .actions_secondary={PROC_SLEEP},
     };
     profile->sections[SECTION_SELECT_2].button = (CtrlButton){
-        .mode=NORMAL,
+        .mode=HOLD|LONG,
         .actions={KEY_F11},
+        .actions_secondary={KEY_CONTROL_LEFT, KEY_ALT_LEFT, KEY_DELETE},
     };
     profile->sections[SECTION_START_2].button = (CtrlButton){
         .mode=HOLD|LONG,
@@ -112,44 +113,86 @@ void config_profile_default_home(CtrlProfile *profile){
     profile->sections[SECTION_L4].button = (CtrlButton){};
     profile->sections[SECTION_R4].button = (CtrlButton){};
 
-    // DHat.
-    profile->sections[SECTION_DHAT_LEFT].button = (CtrlButton){
+    // Thumbstick (left).
+    profile->sections[SECTION_LSTICK_SETTINGS].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_4DIR,
+        .saturation=100,
+        .deadzone_override=true,
+        .deadzone=25,  // To avoid quickchat accidental triggers.
+        .overlap=-50,  // Ignore diagonals because quickchat.
+    };
+    profile->sections[SECTION_LSTICK_LEFT].button = (CtrlButton){
+        .mode=HOLD,
+        .actions={PROC_MACRO_1},
+        .actions_secondary={PROC_MACRO_5},
+    };
+    profile->sections[SECTION_LSTICK_RIGHT].button = (CtrlButton){
+        .mode=HOLD,
+        .actions={PROC_MACRO_2},
+        .actions_secondary={PROC_MACRO_6},
+    };
+    profile->sections[SECTION_LSTICK_UP].button = (CtrlButton){
+        .mode=HOLD,
+        .actions={PROC_MACRO_3},
+        .actions_secondary={PROC_MACRO_7},
+    };
+    profile->sections[SECTION_LSTICK_DOWN].button = (CtrlButton){
+        .mode=HOLD,
+        .actions={PROC_MACRO_4},
+        .actions_secondary={PROC_MACRO_8},
+    };
+    profile->sections[SECTION_LSTICK_PUSH].button = (CtrlButton){
+        .mode=HOLD|LONG,
+        .actions={KEY_SUPER_LEFT, KEY_CONTROL_LEFT, KEY_O},
+        .hint="On-screen KB",
+        .actions_secondary={PROC_THANKS},
+    };
+
+    // Thumbstick (right) / DHat.
+    profile->sections[SECTION_RSTICK_SETTINGS].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_8DIR,
+        .saturation=70,
+        .overlap=50,
+        .deadzone_override=true,
+        .deadzone=60,
+    };
+    profile->sections[SECTION_RSTICK_LEFT].button = (CtrlButton){
         .mode=HOLD|LONG,
         .actions={KEY_F1},
         .actions_secondary={PROC_TUNE_DEADZONE},
     };
-    profile->sections[SECTION_DHAT_DOWN].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_DOWN].button = (CtrlButton){
         .mode=HOLD|LONG,
         .actions={KEY_F2},
         .actions_secondary={PROC_TUNE_MOUSE_SENS},
     };
-    profile->sections[SECTION_DHAT_RIGHT].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_RIGHT].button = (CtrlButton){
         .mode=HOLD|LONG,
         .actions={KEY_F3},
         .actions_secondary={PROC_TUNE_TOUCH_SENS},
     };
-    profile->sections[SECTION_DHAT_UP].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_UP].button = (CtrlButton){
         .mode=HOLD|LONG,
         .actions={KEY_F4},
         .actions_secondary={PROC_TUNE_OS},
     };
-    profile->sections[SECTION_DHAT_UL].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_UL].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_F8},
     };
-    profile->sections[SECTION_DHAT_UR].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_UR].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_F7},
     };
-    profile->sections[SECTION_DHAT_DL].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_DL].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_F5}
     };
-    profile->sections[SECTION_DHAT_DR].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_DR].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_F6}
     };
-    profile->sections[SECTION_DHAT_PUSH].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_PUSH].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_BACKQUOTE},
     };
@@ -162,44 +205,8 @@ void config_profile_default_home(CtrlProfile *profile){
         .actions_0={PROC_TUNE_DOWN},
     };
 
-    // Thumbstick.
-    profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
-        .mode=THUMBSTICK_MODE_4DIR,
-        .deadzone_override=true,
-        .deadzone=25,  // To avoid quickchat accidental triggers.
-        .overlap=-50,  // Ignore diagonals because quickchat.
-    };
-    profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){
-        .mode=HOLD,
-        .actions={PROC_MACRO_1},
-        .actions_secondary={PROC_MACRO_5},
-    };
-    profile->sections[SECTION_THUMBSTICK_RIGHT].button = (CtrlButton){
-        .mode=HOLD,
-        .actions={PROC_MACRO_2},
-        .actions_secondary={PROC_MACRO_6},
-    };
-    profile->sections[SECTION_THUMBSTICK_UP].button = (CtrlButton){
-        .mode=HOLD,
-        .actions={PROC_MACRO_3},
-        .actions_secondary={PROC_MACRO_7},
-    };
-    profile->sections[SECTION_THUMBSTICK_DOWN].button = (CtrlButton){
-        .mode=HOLD,
-        .actions={PROC_MACRO_4},
-        .actions_secondary={PROC_MACRO_8},
-    };
-    profile->sections[SECTION_THUMBSTICK_PUSH].button = (CtrlButton){
-        .mode=HOLD|LONG,
-        .actions={KEY_SUPER_LEFT, KEY_CONTROL_LEFT, KEY_O},
-        .hint="On-screen KB",
-        .actions_secondary={PROC_THANKS},
-    };
-    profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){};
-    profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){};
-
     // Gyro.
-    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+    profile->sections[SECTION_GYRO_SETTINGS].gyro = (CtrlGyro){
         .mode=GYRO_MODE_TOUCH_ON,
         .engage=PIN_TOUCH_IN,
     };

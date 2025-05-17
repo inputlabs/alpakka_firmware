@@ -5,7 +5,7 @@
 
 #define XINPUT_REPORT_SIZE 20
 
-typedef struct {
+typedef struct __packed _XInputReport {
     uint8_t report_id;
     uint8_t report_size;
     uint8_t buttons_0;
@@ -17,7 +17,7 @@ typedef struct {
     int16_t rx;
     int16_t ry;
     uint8_t reserved[6];
-} xinput_report;
+} XInputReport;
 
-void xinput_send_report(xinput_report *report);
+bool xinput_send_report(XInputReport *report);
 void xinput_receive_report();

@@ -25,15 +25,37 @@ bool Dhat__update(Dhat *self) {
         }
         self->timestamp = time_us_64();
     }
-    // Report on virtual buttons.
-    self->up_left.virtual_press = (up && left);
+    // Cardinals.
     self->up_center.virtual_press = (up && !left && !right);
-    self->up_right.virtual_press = (up && right);
     self->mid_left.virtual_press = (left && !up && !down);
     self->mid_right.virtual_press = (right && !up && !down);
-    self->down_left.virtual_press = (down && left);
-    self->down_right.virtual_press = (down && right);
     self->down_center.virtual_press = (down && !left && !right);
+    // Diagonals.
+    if (up && left) {
+        self->up_left.virtual_press = true;
+        // Trigger cardinals if mapped to axis.
+        if (hid_is_axis(self->up_center.actions[0])) self->up_center.virtual_press = true;
+        if (hid_is_axis(self->mid_left.actions[0])) self->mid_left.virtual_press = true;
+    }
+    if (up && right) {
+        self->up_right.virtual_press = true;
+        // Trigger cardinals if mapped to axis.
+        if (hid_is_axis(self->up_center.actions[0])) self->up_center.virtual_press = true;
+        if (hid_is_axis(self->mid_right.actions[0])) self->mid_right.virtual_press = true;
+    }
+    if (down && left) {
+        self->down_left.virtual_press = true;
+        // Trigger cardinals if mapped to axis.
+        if (hid_is_axis(self->down_center.actions[0])) self->down_center.virtual_press = true;
+        if (hid_is_axis(self->mid_left.actions[0])) self->mid_left.virtual_press = true;
+    }
+    if (down && right) {
+        self->down_right.virtual_press = true;
+        // Trigger cardinals if mapped to axis.
+        if (hid_is_axis(self->down_center.actions[0])) self->down_center.virtual_press = true;
+        if (hid_is_axis(self->mid_right.actions[0])) self->mid_right.virtual_press = true;
+    }
+    // Push.
     self->mid_center.virtual_press = (push && !left && !right && !up && !down);
     return false;
 }
@@ -91,7 +113,7 @@ Dhat Dhat_ (
     dhat.right = Button_(PIN_DHAT_RIGHT, NORMAL, none, none, none);
     dhat.up =    Button_(PIN_DHAT_UP,    NORMAL, none, none, none);
     dhat.down =  Button_(PIN_DHAT_DOWN,  NORMAL, none, none, none);
-    dhat.push =  Button_(PIN_DHAT_PUSH,  NORMAL, none, none, none);
+    dhat.push =  Button_(PIN_R3,         NORMAL, none, none, none);
     // Virtual buttons.
     dhat.up_left = up_left;
     dhat.up_center = up_center;

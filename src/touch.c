@@ -43,31 +43,31 @@ There are 2 modes of operation:
 #include <pico/stdlib.h>
 #include "config.h"
 #include "touch.h"
+#include "loop.h"
 #include "pin.h"
 #include "common.h"
 #include "logging.h"
 
 uint8_t polarity_mode = 0;
 int8_t sens_from_config = 0;
-float threshold_ratio = 0;
 float baseline = 0;
 
 void touch_load_from_config() {
     // Load sensitivity presets.
     uint8_t preset = config_get_touch_sens_preset();
     sens_from_config = config_get_touch_sens_value(preset);
-    if (sens_from_config == -1) threshold_ratio = TOUCH_AUTO_RATIO_PRESET1;
-    if (sens_from_config == -2) threshold_ratio = TOUCH_AUTO_RATIO_PRESET2;
-    if (sens_from_config == -3) threshold_ratio = TOUCH_AUTO_RATIO_PRESET3;
     // Load polarity.
     Config *config = config_read();
     polarity_mode = !config->touch_invert_polarity;
     // Reset to initial baseline.
-    baseline = (
-        config_get_pcb_gen() == 0 ?
-        TOUCH_AUTO_START_GEN0 :
-        TOUCH_AUTO_START_GEN1
-    );
+    baseline = TOUCH_AUTO_START_V1_GEN0;
+    #ifdef DEVICE_ALPAKKA_V0
+        baseline = (
+            config_get_pcb_gen() == 0 ?
+            TOUCH_AUTO_START_V0_GEN0 :
+            TOUCH_AUTO_START_V0_GEN1
+        );
+    #endif
 }
 
 // Perform the time measurement (charge / discharge).
@@ -78,8 +78,7 @@ uint8_t touch_get_elapsed() {
     gpio_put(PIN_TOUCH_OUT, polarity_mode);
     while(gpio_get(PIN_TOUCH_IN) != polarity_mode) {
         if ((time_us_32() - timer_start) > TOUCH_TIMEOUT) {
-            timedout = true;
-            break;
+            return TOUCH_TIMEOUT;
         }
     }
     // Request change and measure.
@@ -94,10 +93,8 @@ uint8_t touch_get_elapsed() {
     // Request settle for next cycle.
     gpio_put(PIN_TOUCH_OUT, polarity_mode);
     // Calculate elapsed (ignore settling time).
-    uint32_t elapsed;
-    if (!timedout) elapsed = time_us_32() - timer_settled;
-    else elapsed = TOUCH_TIMEOUT;
-    return elapsed;
+    if (timedout) return TOUCH_TIMEOUT;
+    else return time_us_32() - timer_settled;
 }
 
 // Take as many samples as possible within the available time (timeout).
@@ -114,10 +111,28 @@ float touch_get_elapsed_multisample() {
     return total / samples;
 }
 
+float touch_get_threshold_ratio() {
+    // When the touch sensitivity is negative it means the touch detection is
+    // in "dynamic" mode.
+    // When the controller is in wireless mode (working on battery) the return
+    // path is much sorter and the timing is different; so the ratio has to be
+    // adjusted when the mode changes from wired to wireless (and viceversa).
+    if (loop_get_device_mode() == WIRED) {
+        if (sens_from_config == -1) return TOUCH_AUTO_RATIO_WIRED_PRESET1;
+        if (sens_from_config == -2) return TOUCH_AUTO_RATIO_WIRED_PRESET2;
+        if (sens_from_config == -3) return TOUCH_AUTO_RATIO_WIRED_PRESET3;
+    }
+    if (loop_get_device_mode() == WIRELESS) {
+        if (sens_from_config == -1) return TOUCH_AUTO_RATIO_WIRELESS_PRESET1;
+        if (sens_from_config == -2) return TOUCH_AUTO_RATIO_WIRELESS_PRESET2;
+        if (sens_from_config == -3) return TOUCH_AUTO_RATIO_WIRELESS_PRESET3;
+    }
+}
+
 // Calculate dynamic threshold.
-float touch_get_auto_threshold(float elapsed) {
+float touch_get_auto_threshold(float elapsed, float ratio) {
     // Calculate threshold based on current baseline and factor.
-    float threshold = baseline * threshold_ratio;
+    float threshold = baseline * ratio;
     // Update baseline (with smoothing) if the surface is considered disengaged.
     bool engaged = elapsed >= threshold;
     if (!engaged) {
@@ -137,10 +152,11 @@ bool touch_status() {
     float smoothed = (elapsed + elapsed_prev) / 2;
     elapsed_prev = elapsed;
     // Determine threshold.
+    float threshold_ratio = touch_get_threshold_ratio();
     float threshold = (
         sens_from_config > 0 ?
         sens_from_config / 10.0 :
-        touch_get_auto_threshold(smoothed)
+        touch_get_auto_threshold(smoothed, threshold_ratio)
     );
     // Determine if the surface is considered engaged.
     bool engaged = smoothed >= threshold;
@@ -149,7 +165,8 @@ bool touch_status() {
         static uint32_t log_last_ts = 0;
         if (time_us_32() > (log_last_ts + (TOUCH_DEBUG_FREQ * 1000))) {
             log_last_ts = time_us_32();
-            info("%.1f / %.1f\n", smoothed, threshold);
+            float ratio = sens_from_config < 0 ? threshold_ratio : 0;
+            info("e=%.1f t=%.1f r=%.2f\n", elapsed, threshold, ratio);
         }
     }
     // Debounce check (prioritize stay up to avoid microcuts).
@@ -166,7 +183,8 @@ bool touch_status() {
     // Debug log triggered by state change.
     if (engaged != engaged_prev) {
         if (logging_has_mask(LOG_TOUCH_SENS)) {
-            info("%.1f / %.1f", smoothed, threshold);
+            float ratio = sens_from_config < 0 ? threshold_ratio : 0;
+            info("e=%.1f t=%.1f r=%.2f", elapsed, threshold, ratio);
             if (engaged) info(" TOUCH\n");
             else info(" LIFT\n");
         }
@@ -179,11 +197,11 @@ bool touch_status() {
 // Probe timings and show them in the startup log.
 void touch_log_probe() {
     uint8_t t0 = touch_get_elapsed();
-    sleep_ms(CFG_TICK_INTERVAL);
+    sleep_ms(CFG_TICK_INTERVAL_IN_MS);
     uint8_t t1 = touch_get_elapsed();
-    sleep_ms(CFG_TICK_INTERVAL);
+    sleep_ms(CFG_TICK_INTERVAL_IN_MS);
     uint8_t t2 = touch_get_elapsed();
-    sleep_ms(CFG_TICK_INTERVAL);
+    sleep_ms(CFG_TICK_INTERVAL_IN_MS);
     uint8_t t3 = touch_get_elapsed();
     info("  Touch readings: %ius %ius %ius %ius\n", t0, t1, t2, t3);
 }

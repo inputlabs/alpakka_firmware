@@ -104,41 +104,55 @@ void config_profile_default_desktop(CtrlProfile *profile){
         .actions={KEY_SHIFT_LEFT},
     };
 
-    // DHat.
-    profile->sections[SECTION_DHAT_UL].button = (CtrlButton){
+    // Thumbstick (left).
+    profile->sections[SECTION_LSTICK_SETTINGS].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_ALPHANUMERIC,
+        .saturation=100,
+        .overlap=50,
+    };
+
+    // Thumbstick (right) / DHat.
+    profile->sections[SECTION_RSTICK_SETTINGS].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_8DIR,
+        .saturation=70,
+        .overlap=50,
+        .deadzone_override=true,
+        .deadzone=60,
+    };
+    profile->sections[SECTION_RSTICK_UL].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_1},
     };
-    profile->sections[SECTION_DHAT_UP].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_UP].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_2},
     };
-    profile->sections[SECTION_DHAT_UR].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_UR].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_3},
     };
-    profile->sections[SECTION_DHAT_LEFT].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_LEFT].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_4},
     };
-    profile->sections[SECTION_DHAT_PUSH].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_PUSH].button = (CtrlButton){
         .mode=HOLD,
         .actions={KEY_5},
         .actions_secondary={KEY_0},
     };
-    profile->sections[SECTION_DHAT_RIGHT].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_RIGHT].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_6},
     };
-    profile->sections[SECTION_DHAT_DL].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_DL].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_7},
     };
-    profile->sections[SECTION_DHAT_DOWN].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_DOWN].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_8},
     };
-    profile->sections[SECTION_DHAT_DR].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_DR].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_9},
     };
@@ -149,12 +163,6 @@ void config_profile_default_desktop(CtrlProfile *profile){
     };
     profile->sections[SECTION_ROTARY_DOWN].rotary = (CtrlRotary){
         .actions_0={MOUSE_SCROLL_DOWN},
-    };
-
-    // Thumbstick.
-    profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
-        .mode=THUMBSTICK_MODE_ALPHANUMERIC,
-        .overlap=50,
     };
 
     // Glyph-stick.
@@ -224,7 +232,7 @@ void config_profile_default_desktop(CtrlProfile *profile){
     profile->sections[SECTION_DAISY_3].daisy = (CtrlDaisy){.groups={down_left, down_right}};
 
     // Gyro.
-    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+    profile->sections[SECTION_GYRO_SETTINGS].gyro = (CtrlGyro){
         .mode=GYRO_MODE_TOUCH_ON,
         .engage=PIN_TOUCH_IN,
     };

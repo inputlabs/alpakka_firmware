@@ -3,7 +3,19 @@
 
 # Pico SDK.
 SDK_URL=https://github.com/raspberrypi/pico-sdk.git
-SDK_TAG=1.5.1
+SDK_TAG=2.1.0
+
+# Pico Extras.
+EXTRAS_URL=https://github.com/raspberrypi/pico-extras.git
+EXTRAS_TAG=sdk-2.1.0
+
+# Pico tool.
+PICOTOOL_URL=https://github.com/raspberrypi/picotool.git
+PICOTOOL_TAG=v2.1.0
+
+# ESP serial flasher
+ESPSF_URL=https://github.com/espressif/esp-serial-flasher
+ESPSF_TAG=v1.6.2
 
 # ARM toolchain.
 # WEBSITE: https://developer.arm.com/downloads/-/gnu-rm
@@ -34,21 +46,53 @@ else
     exit 1
 fi
 
+# ARM toolchain.
 echo 'Downloading ARM toolchain...'
 echo $ARM_URL
 curl --progress-bar -L -o $ARM_TAR $ARM_URL
-
 echo 'Extracting ARM toolchain...'
 mkdir $ARM_DIR
 tar -xf $ARM_TAR --directory $ARM_DIR --strip-components 1
 rm $ARM_TAR
 
+# Pico SDK.
 echo "Downloading Pico C SDK..."
 git clone $SDK_URL
 cd pico-sdk
 git checkout --quiet $SDK_TAG
-
 echo "Configuring Pico C SDK..."
 git submodule update --init
+cd ..
 
+# Pico Extras.
+echo "Downloading Pico Extras..."
+git clone $EXTRAS_URL
+cd pico-extras
+git checkout --quiet $EXTRAS_TAG
+cd ..
+
+# ESP serial flasher.
+echo "Downloading ESP Serial Flasher..."
+git clone $ESPSF_URL
+cd esp-serial-flasher
+git checkout --quiet $ESPSF_TAG
+echo "Configuring ESP Serial Flasher..."
+git submodule update --init
+python3 ../../scripts/esp_flasher_patch.py
+cd ..
+
+# Picotool (pico-sdk depends on it now).
+echo "Downloading Picotool..."
+git clone $PICOTOOL_URL
+cd picotool
+git checkout --quiet $PICOTOOL_TAG_TAG
+echo "Building Picotool..."
+export PICO_SDK_PATH=`pwd`/../pico-sdk
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=./bin -DPICOTOOL_FLAT_INSTALL=1 ..
+make install
+cd ../..
+
+# Done.
 echo "Dependencies installed"

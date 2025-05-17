@@ -62,18 +62,18 @@ flowchart
     style SUSTAIN fill:orange,color:black
     immediate{{Has 'immediate' modifier?}}
     immediate2{{Has 'immediate' modifier?}}
-    held{{Was held longer\nthan the threshold?}}
+    held{{Was held longer<br />than the threshold?}}
 
     START -->|on PRESS| immediate
-    immediate -->|Yes\nENGAGE short| held
+    immediate -->|Yes<br />ENGAGE short| held
     immediate -->|No| held
-    held -->|Yes\nENGAGE long| SUSTAIN
-    held -->|No\non RELEASE| immediate2
+    held -->|Yes<br />ENGAGE long| SUSTAIN
+    held -->|No<br />on RELEASE| immediate2
 
-    immediate2 -->|Yes\nDISENGAGE short| START
-    immediate2 -->|No\nENGAGE short\nDISENGAGE short| START
+    immediate2 -->|Yes<br />DISENGAGE short| START
+    immediate2 -->|No<br />ENGAGE short<br />DISENGAGE short| START
 
-    SUSTAIN -->|on RELEASE\nDISENGAGE all| START
+    SUSTAIN -->|on RELEASE<br />DISENGAGE all| START
     linkStyle 4 color:red
     linkStyle 7 color:red
 ```
@@ -85,23 +85,23 @@ flowchart
     style SUSTAIN fill:orange,color:black
     isdouble{{Is a double press?}}
     isimmediate{{Has 'immediate' modifier?}}
-    istimeout{{Could the next press\nbe a double press?}}
-    istimeout2{{Could the next press\nbe a double press?}}
+    istimeout{{Could the next press<br />be a double press?}}
+    istimeout2{{Could the next press<br />be a double press?}}
 
 
     START -->|on PRESS| isdouble
-    isdouble -->|Yes\nENGAGE double| SUSTAIN
+    isdouble -->|Yes<br />ENGAGE double| SUSTAIN
     isdouble -->|No| isimmediate
 
-    SUSTAIN -->|on RELEASE\nDISENGAGE all| START
+    SUSTAIN -->|on RELEASE<br />DISENGAGE all| START
 
-    isimmediate -->|No\nENGAGE single| SUSTAIN
+    isimmediate -->|No<br />ENGAGE single| SUSTAIN
     isimmediate -->|No| istimeout
 
-    istimeout -->|No\nENGAGE single| SUSTAIN
-    istimeout -->|Yes\non RELEASE| istimeout2
+    istimeout -->|No<br />ENGAGE single| SUSTAIN
+    istimeout -->|Yes<br />on RELEASE| istimeout2
 
-    istimeout2 -->|No\nENGAGE single\nDISENGAGE single| START
+    istimeout2 -->|No<br />ENGAGE single<br />DISENGAGE single| START
     istimeout2 -->|Yes| istimeout2
     istimeout2 -->|It was already | START
 

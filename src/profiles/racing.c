@@ -118,40 +118,55 @@ void config_profile_default_racing(CtrlProfile *profile){
         .hint="MDF+",
     };
 
-    // DHat.
-    profile->sections[SECTION_DHAT_LEFT].button = (CtrlButton){
+    // Thumbstick (left).
+    profile->sections[SECTION_LSTICK_SETTINGS].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_4DIR,
+        .distance_mode=THUMBSTICK_DISTANCE_RADIAL,
+        .saturation=100,
+        .overlap=80,
+    };
+    profile->sections[SECTION_LSTICK_UP].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_RZ},
+    };
+    profile->sections[SECTION_LSTICK_DOWN].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={GAMEPAD_AXIS_LZ},
+    };
+    profile->sections[SECTION_LSTICK_PUSH].button = (CtrlButton){
+        .mode=NORMAL,
+        .actions={KEY_L},
+    };
+    profile->sections[SECTION_LSTICK_LEFT].button = (CtrlButton){};
+    profile->sections[SECTION_LSTICK_RIGHT].button = (CtrlButton){};
+    profile->sections[SECTION_LSTICK_INNER].button = (CtrlButton){};
+    profile->sections[SECTION_LSTICK_OUTER].button = (CtrlButton){};
+
+    // Thumbstick (right) / DHat.
+    profile->sections[SECTION_RSTICK_SETTINGS].thumbstick = (CtrlThumbstick){
+        .mode=THUMBSTICK_MODE_4DIR,
+        .saturation=70,
+        .overlap=50,
+        .deadzone_override=true,
+        .deadzone=15,
+    };
+    profile->sections[SECTION_RSTICK_LEFT].button = (CtrlButton){
         .mode=NORMAL,
         .actions={GAMEPAD_AXIS_RX_NEG, PROC_ROTARY_MODE_1},
     };
-    profile->sections[SECTION_DHAT_RIGHT].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_RIGHT].button = (CtrlButton){
         .mode=NORMAL,
         .actions={GAMEPAD_AXIS_RX, PROC_ROTARY_MODE_3},
     };
-    profile->sections[SECTION_DHAT_UP].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_UP].button = (CtrlButton){
         .mode=NORMAL,
         .actions={GAMEPAD_AXIS_RY_NEG, PROC_ROTARY_MODE_4},
     };
-    profile->sections[SECTION_DHAT_DOWN].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_DOWN].button = (CtrlButton){
         .mode=NORMAL,
         .actions={GAMEPAD_AXIS_RY, PROC_ROTARY_MODE_2},
     };
-    profile->sections[SECTION_DHAT_UL].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY_NEG},
-    };
-    profile->sections[SECTION_DHAT_UR].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY_NEG},
-    };
-    profile->sections[SECTION_DHAT_DL].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={GAMEPAD_AXIS_RX_NEG, GAMEPAD_AXIS_RY},
-    };
-    profile->sections[SECTION_DHAT_DR].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={GAMEPAD_AXIS_RX, GAMEPAD_AXIS_RY},
-    };
-    profile->sections[SECTION_DHAT_PUSH].button = (CtrlButton){
+    profile->sections[SECTION_RSTICK_PUSH].button = (CtrlButton){
         .mode=NORMAL,
         .actions={KEY_R, PROC_ROTARY_MODE_0},
     };
@@ -182,31 +197,8 @@ void config_profile_default_racing(CtrlProfile *profile){
         .hint_4="MIX-",
     };
 
-    // Thumbstick.
-    profile->sections[SECTION_THUMBSTICK].thumbstick = (CtrlThumbstick){
-        .mode=THUMBSTICK_MODE_4DIR,
-        .distance_mode=THUMBSTICK_DISTANCE_RADIAL,
-        .overlap=80,
-    };
-    profile->sections[SECTION_THUMBSTICK_UP].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={GAMEPAD_AXIS_RZ},
-    };
-    profile->sections[SECTION_THUMBSTICK_DOWN].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={GAMEPAD_AXIS_LZ},
-    };
-    profile->sections[SECTION_THUMBSTICK_PUSH].button = (CtrlButton){
-        .mode=NORMAL,
-        .actions={KEY_L},
-    };
-    profile->sections[SECTION_THUMBSTICK_LEFT].button = (CtrlButton){};
-    profile->sections[SECTION_THUMBSTICK_RIGHT].button = (CtrlButton){};
-    profile->sections[SECTION_THUMBSTICK_INNER].button = (CtrlButton){};
-    profile->sections[SECTION_THUMBSTICK_OUTER].button = (CtrlButton){};
-
     // Gyro.
-    profile->sections[SECTION_GYRO].gyro = (CtrlGyro){
+    profile->sections[SECTION_GYRO_SETTINGS].gyro = (CtrlGyro){
         .mode=GYRO_MODE_AXIS_ABSOLUTE,
     };
     profile->sections[SECTION_GYRO_X].gyro_axis = (CtrlGyroAxis){

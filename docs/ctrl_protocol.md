@@ -20,11 +20,12 @@ Padding zeros to complete the 64 bytes may be used. Therefore the protocol avoid
 | - | - | - | - | - |
 | Protocol version | Device Id | Message type | Payload size | Payload
 
-### Protocol version
+### Protocol flags
 
 | Key | Index |
 | - | - |
-| VERSION 1 | 1 |
+| NONE | 1 |
+| WIRELESS | 2 |
 
 ### Device id
 
@@ -64,7 +65,7 @@ Procedure index as defined in [hid.h](/src/headers/hid.h).
 ### Section index
 | Key              | Index |
 | -                | -     |
-| NAME             | 1
+| META             | 1
 | A                | 2
 | B                | 3
 | X                | 4
@@ -83,25 +84,32 @@ Procedure index as defined in [hid.h](/src/headers/hid.h).
 | R2               | 17
 | L4               | 18
 | R4               | 19
-| DHAT_LEFT        | 20
-| DHAT_RIGHT       | 21
-| DHAT_UP          | 22
-| DHAT_DOWN        | 23
-| DHAT_UL          | 24
-| DHAT_UR          | 25
-| DHAT_DL          | 26
-| DHAT_DR          | 27
-| DHAT_PUSH        | 28
 | ROTARY_UP        | 29
 | ROTARY_DOWN      | 30
-| THUMBSTICK       | 31
-| THUMBSTICK_LEFT  | 32
-| THUMBSTICK_RIGHT | 33
-| THUMBSTICK_UP    | 34
-| THUMBSTICK_DOWN  | 35
-| THUMBSTICK_PUSH  | 36
-| THUMBSTICK_INNER | 37
-| THUMBSTICK_OUTER | 38
+| LSTICK_SETTINGS  | 31
+| LSTICK_LEFT      | 32
+| LSTICK_RIGHT     | 33
+| LSTICK_UP        | 34
+| LSTICK_DOWN      | 35
+| LSTICK_UL        | 55
+| LSTICK_UR        | 56
+| LSTICK_DL        | 57
+| LSTICK_DR        | 58
+| LSTICK_PUSH      | 36
+| LSTICK_INNER     | 37
+| LSTICK_OUTER     | 38
+| RSTICK_SETTINGS  | 59
+| RSTICK_LEFT      | 20
+| RSTICK_RIGHT     | 21
+| RSTICK_UP        | 22
+| RSTICK_DOWN      | 23
+| RSTICK_UL        | 24
+| RSTICK_UR        | 25
+| RSTICK_DL        | 26
+| RSTICK_DR        | 27
+| RSTICK_PUSH      | 28
+| RSTICK_INNER     | 60
+| RSTICK_OUTER     | 61
 | GLYPHS_0         | 39
 | GLYPHS_1         | 40
 | GLYPHS_2         | 41
@@ -110,7 +118,7 @@ Procedure index as defined in [hid.h](/src/headers/hid.h).
 | DAISY_1          | 44
 | DAISY_2          | 45
 | DAISY_3          | 46
-| GYRO             | 47
+| GYRO_SETTINGS    | 47
 | GYRO_X           | 48
 | GYRO_Y           | 49
 | GYRO_Z           | 50
