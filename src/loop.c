@@ -177,25 +177,21 @@ void loop_controller_task() {
         uint32_t now = time_us_32();
         // Report to USB.
         bool reported = hid_report_wired();
-        if (reported) {
-            did_report = true;
-            last_report = now;
-        } else {
-            // If report fails repeatedly.
-            if (did_report && (now - last_report) > REPORT_TIMEOUT_US) {
-                #if defined DEVICE_ALPAKKA_V0
+        #if defined DEVICE_ALPAKKA_V1
+            // If report fails in v1 hardware, go wireless directly.
+            if (!reported) set_wireless();
+        #elif defined DEVICE_ALPAKKA_V0
+            if (reported) {
+                did_report = true;
+                last_report = now;
+            } else {
+                // If report fails repeatedly.
+                if (did_report && (now - last_report) > REPORT_TIMEOUT_US) {
                     // No USB connection, go sleep.
                     power_dormant();
-                #elif defined DEVICE_ALPAKKA_V1
-                    if (loop_get_device_mode() == WIRED) {
-                        // No USB connection, go wireless mode.
-                        set_wireless();
-                    } else {
-                        // Wireless UART returning false is not implemented.
-                    }
-                #endif
+                }
             }
-        }
+        #endif
     }
     if (device_mode == WIRELESS) {
         wireless_controller_task();
