@@ -86,6 +86,9 @@ static void set_wireless() {
     #ifdef DEVICE_HAS_MARMOTA
         info("LOOP: Wireless\n");
         device_mode = WIRELESS;
+        led_show_cycle2();
+        sleep_ms(2000);
+        led_show();
         wireless_set_uart_data_mode(true);
     #endif
 }

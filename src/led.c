@@ -93,6 +93,7 @@ void led_show_blink() {
     );
 }
 
+// Circular rotation animation (with a single LED).
 void led_show_cycle_step() {
     led_set(PIN_LED_UP,    cycle_position == 0);
     led_set(PIN_LED_RIGHT, cycle_position == 1);
@@ -107,6 +108,26 @@ void led_show_cycle() {
     add_repeating_timer_ms(
         LED_BLINK_PERIOD,
         (repeating_timer_callback_t)led_show_cycle_step,
+        NULL,
+        &led_timer
+    );
+}
+
+// Circular rotation animation (but with double LED).
+void led_show_cycle2_step() {
+    led_set(PIN_LED_UP,    1<<cycle_position & 0b1001);
+    led_set(PIN_LED_RIGHT, 1<<cycle_position & 0b0011);
+    led_set(PIN_LED_DOWN,  1<<cycle_position & 0b0110);
+    led_set(PIN_LED_LEFT,  1<<cycle_position & 0b1100);
+    cycle_position += 1;
+    if(cycle_position == 4) cycle_position = 0;
+}
+
+void led_show_cycle2() {
+    cycle_position = 0;
+    add_repeating_timer_ms(
+        LED_BLINK_PERIOD,
+        (repeating_timer_callback_t)led_show_cycle2_step,
         NULL,
         &led_timer
     );
