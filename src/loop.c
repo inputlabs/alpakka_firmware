@@ -107,14 +107,9 @@ static void board_led() {
         i++;
         if (i == 100) {
             i = 0;
-            if (device_mode == WIRED) {
-                if (!gpio_get(PIN_BATT_STAT_1)) {
-                    led_board_set(true);  // Led on indicates battery is charging.
-                } else {
-                    led_board_set(false);
-                }
-            }
-            if (device_mode == WIRELESS) {
+            if (!gpio_get(PIN_BATT_STAT_1)) {
+                led_board_set(true);  // Led on indicates battery is charging.
+            } else {
                 if (battery_low) {
                     blink = !blink;
                     led_board_set(blink);  // Blinking led if battery is low.
