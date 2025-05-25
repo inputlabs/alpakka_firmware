@@ -125,7 +125,7 @@ void wireless_uart_commands() {
                     // Optional logging.
                     if (logging_has_mask(LOG_WIRELESS)) {
                         float linear = ((float)battery_level - 2700) / 650;
-                        info("RF: Battery at %0.f%% (%lu)\n", linear*100, battery_level);
+                        info("RF: Battery at %0.f%% (%lu)\n", fmax(100, linear*100), battery_level);
                     }
                     if (battery_level < BATTERY_LOW_THRESHOLD) {
                         loop_set_battery_low(true);

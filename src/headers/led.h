@@ -10,8 +10,9 @@ typedef enum LEDMode_enum {
     LED_MODE_CYCLE,
 } LEDMode;
 
-#define LED_BLINK_PERIOD 100  // milliseconds.
-#define LED_WARNING_PERIOD 300  // milliseconds.
+#define LED_ANIMATION_FAST 100  // milliseconds.
+#define LED_ANIMATION_MID 200  // milliseconds.
+#define LED_ANIMATION_SLOW 300  // milliseconds.
 
 #define LED_UP    0b0001
 #define LED_RIGHT 0b0010
@@ -35,4 +36,5 @@ void led_show();
 void led_show_cycle();
 void led_show_cycle2();
 void led_show_cycle_step();
+void led_show_low_battery();
 void led_board_set(bool state);

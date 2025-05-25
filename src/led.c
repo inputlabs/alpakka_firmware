@@ -86,7 +86,7 @@ void led_show_blink_step() {
 void led_show_blink() {
     blink_state = !(engage_mask == 0b1111);  // Immediate feedback.
     add_repeating_timer_ms(
-        LED_BLINK_PERIOD,
+        LED_ANIMATION_FAST,
         (repeating_timer_callback_t)led_show_blink_step,
         NULL,
         &led_timer
@@ -106,7 +106,7 @@ void led_show_cycle_step() {
 void led_show_cycle() {
     cycle_position = 0;
     add_repeating_timer_ms(
-        LED_BLINK_PERIOD,
+        LED_ANIMATION_FAST,
         (repeating_timer_callback_t)led_show_cycle_step,
         NULL,
         &led_timer
@@ -145,8 +145,27 @@ void led_show_warning_step() {
 void led_show_warning() {
     blink_state = false;
     add_repeating_timer_ms(
-        LED_WARNING_PERIOD,
+        LED_ANIMATION_SLOW,
         (repeating_timer_callback_t)led_show_warning_step,
+        NULL,
+        &led_timer
+    );
+}
+
+void led_show_low_battery_step() {
+    led_set(PIN_LED_UP,    1<<cycle_position & 0b0001);
+    led_set(PIN_LED_RIGHT, 1<<cycle_position & 0b0011);
+    led_set(PIN_LED_DOWN,  1<<cycle_position & 0b0111);
+    led_set(PIN_LED_LEFT,  1<<cycle_position & 0b0011);
+    cycle_position += 1;
+    if(cycle_position > 3) cycle_position = 0;
+}
+
+void led_show_low_battery() {
+    cycle_position = 0;
+    add_repeating_timer_ms(
+        LED_ANIMATION_MID,
+        (repeating_timer_callback_t)led_show_low_battery_step,
         NULL,
         &led_timer
     );
@@ -171,7 +190,10 @@ void led_blink_mask(uint8_t mask) {
 void led_show() {
     led_stop();
     if (led_mode == LED_MODE_IDLE) {
-        if (config_problems_are_pending()) led_show_warning();
+        uint8_t problems = config_get_problems();
+        if (problems & PROBLEM_CALIBRATION) led_show_warning();
+        else if (problems & PROBLEM_GYRO) led_show_warning();
+        else if (problems & PROBLEM_LOW_BATTERY) led_show_low_battery();
         else led_show_idle();
     }
     if (led_mode == LED_MODE_ENGAGE) led_show_engage();

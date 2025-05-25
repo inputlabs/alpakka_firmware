@@ -33,9 +33,7 @@ uint8_t config_tune_mode = 0;
 uint8_t pcb_gen = 255;
 
 // Problems.
-bool problem_calibration = false;
-bool problem_gyro = false;
-bool problem_battery_low = false;
+uint8_t problems = 0;  // Bitmask with Problem enum.
 
 
 void config_load() {
@@ -525,36 +523,33 @@ void config_set_gyro_user_offset(int8_t x, int8_t y, int8_t z) {
 }
 
 void config_set_problem_calibration(bool state) {
-    problem_calibration = state;
+    problems = problems & ~PROBLEM_CALIBRATION;  // Reset bit.
+    if (state) problems += PROBLEM_CALIBRATION;  // Add.
     led_show();
 }
 
 void config_set_problem_gyro(bool state) {
-    problem_gyro = state;
+    problems = problems & ~PROBLEM_GYRO;  // Reset bit.
+    if (state) problems += PROBLEM_GYRO;  // Add.
     led_show();
 }
 
 void config_set_problem_battery_low(bool state) {
-    if (state == problem_battery_low) return;
-    problem_battery_low = state;
+    if (state == problems & PROBLEM_LOW_BATTERY) return;  // Ignore if there is no change.
+    problems = problems & ~PROBLEM_LOW_BATTERY;  // Reset bit.
+    if (state) problems += PROBLEM_LOW_BATTERY;  // Add.
     led_show();
 }
 
 void config_ignore_problems() {
-    if (!config_problems_are_pending()) return;
+    if (!config_get_problems()) return;
     warn("User requested to ignore problems\n");
-    problem_calibration = false;
-    problem_gyro = false;
-    problem_battery_low = false;
+    problems = 0;
     led_show();
 }
 
-bool config_problems_are_pending() {
-    return (
-        problem_calibration ||
-        problem_gyro ||
-        problem_battery_low
-    );
+uint8_t config_get_problems() {
+    return problems;
 }
 
 void config_alert_if_not_calibrated() {
