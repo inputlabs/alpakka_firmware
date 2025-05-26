@@ -287,6 +287,7 @@ KeyboardReport hid_get_keyboard_report() {
     // Modifiers.
     uint8_t modifiers = 0;
     for(int i=0; i<8; i++) {
+        // Any value bigger than 1 consolidates to 1 (with !!).
         modifiers += !!state_matrix[MODIFIER_INDEX + i] << i;
     }
     // Create report.
@@ -314,6 +315,7 @@ GamepadReport hid_get_gamepad_report() {
     // Sorted so the most common assigned buttons are lower and easier to
     // identify in-game.
     int32_t buttons = (
+        // Any value bigger than 1 consolidates to 1 (with !!).
         ((!!state_matrix[GAMEPAD_A])      <<  0) +
         ((!!state_matrix[GAMEPAD_B])      <<  1) +
         ((!!state_matrix[GAMEPAD_X])      <<  2) +
@@ -356,6 +358,7 @@ XInputReport hid_get_xinput_report() {
     int8_t buttons_0 = 0;
     int8_t buttons_1 = 0;
     // Button bitmask.
+    // Any value bigger than 1 consolidates to 1 (with !!).
     for(int i=0; i<8; i++) {
         buttons_0 += (!!state_matrix[GAMEPAD_INDEX + i]) << i;
     }
