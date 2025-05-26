@@ -126,7 +126,7 @@ void led_show_cycle2_step() {
 void led_show_cycle2() {
     cycle_position = 0;
     add_repeating_timer_ms(
-        LED_BLINK_PERIOD,
+        LED_ANIMATION_FAST,
         (repeating_timer_callback_t)led_show_cycle2_step,
         NULL,
         &led_timer
