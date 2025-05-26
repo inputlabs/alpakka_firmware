@@ -13,7 +13,7 @@
 #if defined DEVICE_ALPAKKA_V0
     #define REPORT_TIMEOUT_US 10000000  // 10 seconds.
 #elif defined DEVICE_ALPAKKA_V1
-    #define REPORT_TIMEOUT_US 1000000  // 1 seconds.
+    #define REPORT_TIMEOUT_US 500000  // 0.5 seconds.
 #endif
 
 typedef enum {
