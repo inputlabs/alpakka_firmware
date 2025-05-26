@@ -141,7 +141,7 @@ void loop_controller_init() {
     power_gpio_init();
     wireless_init();
     set_wired();
-    #ifdef DEVICE_ALPAKKA_V1
+    #if defined DEVICE_ALPAKKA_V1
         if (!usb) set_wireless();
     #endif
     loop_run();
@@ -172,26 +172,22 @@ void loop_controller_task() {
     profile_report_active();
     // Report to the correct channel.
     if (device_mode == WIRED) {
-        static bool did_report = false;
-        static uint32_t last_report = 0;
-        uint32_t now = time_us_32();
+        static uint64_t last_report_ts = 0;
+        uint64_t now = time_us_64();
         // Report to USB.
         bool reported = hid_report_wired();
-        #if defined DEVICE_ALPAKKA_V1
-            // If report fails in v1 hardware, go wireless directly.
-            if (!reported) set_wireless();
-        #elif defined DEVICE_ALPAKKA_V0
-            if (reported) {
-                did_report = true;
-                last_report = now;
-            } else {
-                // If report fails repeatedly.
-                if (did_report && (now - last_report) > REPORT_TIMEOUT_US) {
-                    // No USB connection, go sleep.
-                    power_dormant();
-                }
+        if (reported) {
+            last_report_ts = now;
+        } else {
+            // If report fails repeatedly.
+            if (last_report_ts && (now - last_report_ts) > REPORT_TIMEOUT_US) {
+                #if defined DEVICE_ALPAKKA_V0
+                    power_dormant();  // In v0, go sleep.
+                #elif defined DEVICE_ALPAKKA_V1
+                    set_wireless();  // In v1, go wireless.
+                #endif
             }
-        #endif
+        }
     }
     if (device_mode == WIRELESS) {
         wireless_controller_task();

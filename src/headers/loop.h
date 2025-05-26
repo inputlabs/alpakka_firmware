@@ -9,7 +9,12 @@
 #define LABEL_DONGLE     "Wireless dongle   "
 #define USB_WAIT_FOR_INIT_MS 1000  // 1 second.
 #define USB_DONGLE_CHECK_US 2000000  // 2 seconds.
-#define REPORT_TIMEOUT_US 10000000  // 10 seconds.
+
+#if defined DEVICE_ALPAKKA_V0
+    #define REPORT_TIMEOUT_US 10000000  // 10 seconds.
+#elif defined DEVICE_ALPAKKA_V1
+    #define REPORT_TIMEOUT_US 1000000  // 1 seconds.
+#endif
 
 typedef enum {
     WIRED,
