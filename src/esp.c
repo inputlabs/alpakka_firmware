@@ -6,6 +6,7 @@
 #include "config.h"
 #include "pin.h"
 #include "power.h"
+#include "led.h"
 
 void esp_log_state() {
     #ifdef DEVICE_HAS_MARMOTA
@@ -75,6 +76,7 @@ void esp_bootsel() {
 
     void esp_flash() {
         info("RF: ESP flash start\n");
+        led_board_blink();
         uart_set_baudrate(ESP_UART, ESP_FLASHER_BAUD);
         const loader_pi_pico_config_t config = {
             .uart_inst = ESP_UART,

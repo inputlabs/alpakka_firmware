@@ -231,6 +231,7 @@ void loop_llama_init() {
     stdio_uart_init();
     stdio_init_all();
     wireless_init();
+    led_init();
     esp_flash();
 }
 

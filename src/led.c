@@ -210,6 +210,20 @@ void led_board_set(bool state) {
     gpio_put(PIN_LED_BOARD, state);
 }
 
+void led_board_blink_step() {
+    blink_state = !blink_state;
+    led_board_set(blink_state);
+}
+
+void led_board_blink() {
+    add_repeating_timer_ms(
+        LED_BLINK_PERIOD,
+        (repeating_timer_callback_t)led_board_blink_step,
+        NULL,
+        &led_timer
+    );
+}
+
 void led_init_each(uint8_t pin) {
     gpio_set_function(pin, GPIO_FUNC_PWM);
     uint8_t slice_num = pwm_gpio_to_slice_num(pin);
@@ -222,9 +236,11 @@ void led_init() {
     gpio_init(PIN_LED_BOARD);
     gpio_set_dir(PIN_LED_BOARD, GPIO_OUT);
     gpio_put(PIN_LED_BOARD, false);
-    // Front LEDs.
-    led_init_each(PIN_LED_UP);
-    led_init_each(PIN_LED_RIGHT);
-    led_init_each(PIN_LED_DOWN);
-    led_init_each(PIN_LED_LEFT);
+    #ifdef DEVICE_IS_CONTROLLER
+        // Front LEDs.
+        led_init_each(PIN_LED_UP);
+        led_init_each(PIN_LED_RIGHT);
+        led_init_each(PIN_LED_DOWN);
+        led_init_each(PIN_LED_LEFT);
+    #endif
 }
