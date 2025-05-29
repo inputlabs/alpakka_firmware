@@ -155,6 +155,7 @@ void config_write_init() {
         .long_calibration = 0,
         .swap_gyros = 0,
         .touch_invert_polarity = 0,
+        .thumbstick_smooth_samples = 0,
     };
     config_cache.sens_mouse_values[0] = 1.0,
     config_cache.sens_mouse_values[1] = 1.5,
@@ -203,7 +204,6 @@ void config_print() {
         config_cache.deadzone_values[1],
         config_cache.deadzone_values[2]
     );
-    info("  vibration=%i\n", config_cache.vibration);
     info("  profile=%i\n", config_cache.profile);
     info("  log_modes level=%i mask=%i\n", config_cache.log_level, config_cache.log_mask);
     info("  long_calibration=%i\n", config_cache.long_calibration);
@@ -520,6 +520,13 @@ void config_set_gyro_user_offset(int8_t x, int8_t y, int8_t z) {
     config_cache.offset_gyro_user_z = z;
     config_cache_synced = false;
     imu_load_calibration();
+}
+
+void config_set_thumbstick_smooth_samples(uint8_t value) {
+    info("Config: thumbstick_smooth_samples=%i\n", value);
+    config_cache.thumbstick_smooth_samples = value;
+    config_cache_synced = false;
+    thumbstick_update_smooth_samples();
 }
 
 void config_set_problem_calibration(bool state) {

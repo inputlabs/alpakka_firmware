@@ -55,12 +55,18 @@ PROFILE_OVERWRITE | 12
 Procedure index as defined in [hid.h](/src/headers/hid.h).
 
 ### Config index
-| Key        | Index |
-| -          | -     |
-| PROTOCOL   | 1
-| SENS_TOUCH | 2
-| SENS_MOUSE | 3
-| DEADZONE   | 4
+| Key                       | Index |
+| -                         | -     |
+| PROTOCOL                  | 1
+| SENS_TOUCH                | 2
+| SENS_MOUSE                | 3
+| DEADZONE                  | 4
+| LOG_MASK                  | 5
+| LONG_CALIBRATION          | 6
+| SWAP_GYROS                | 7
+| TOUCH_INVERT_POLARITY     | 8
+| GYRO_USER_OFFSET          | 9
+| THUMBSTICK_SMOOTH_SAMPLES | 10
 
 ### Section index
 | Key              | Index |

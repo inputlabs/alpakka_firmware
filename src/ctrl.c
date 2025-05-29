@@ -99,6 +99,9 @@ void ctrl_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[5]) {
     else if (key == GYRO_USER_OFFSET) {
         config_set_gyro_user_offset(values[0], values[1], values[2]);
     }
+    else if (key == THUMBSTICK_SMOOTH_SAMPLES) {
+        config_set_thumbstick_smooth_samples(preset);
+    }
 }
 
 Ctrl ctrl_config_share(uint8_t index) {
@@ -150,6 +153,9 @@ Ctrl ctrl_config_share(uint8_t index) {
         ctrl.payload[2] = config->offset_gyro_user_x;
         ctrl.payload[3] = config->offset_gyro_user_y;
         ctrl.payload[4] = config->offset_gyro_user_z;
+    }
+    else if (index == THUMBSTICK_SMOOTH_SAMPLES) {
+        ctrl.payload[1] = config->thumbstick_smooth_samples;
     }
     return ctrl;
 }

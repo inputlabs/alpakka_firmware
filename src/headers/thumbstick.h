@@ -9,8 +9,6 @@
 #define THUMBSTICK_BASELINE_SATURATION 1.65
 #define THUMBSTICK_INNER_RADIUS 0.75
 #define THUMBSTICK_ADDITIONAL_DEADZONE_FOR_BUTTONS 0.05
-// #define ADC_SMOOTH_MAX 8
-// #define ADC_SMOOTH_THRESHOLD 0.1
 
 typedef enum ThumbstickMode_enum {
     THUMBSTICK_MODE_OFF,
@@ -120,4 +118,5 @@ void thumbstick_init();
 void thumbstick_report();
 void thumbstick_calibrate();
 void thumbstick_update_deadzone();
+void thumbstick_update_smooth_samples();
 void thumbstick_from_ctrl(Thumbstick *thumbstick, CtrlProfile *ctrl, uint8_t index);

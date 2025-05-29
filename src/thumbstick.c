@@ -22,6 +22,7 @@ float offset_ly = 0;
 float offset_rx = 0;
 float offset_ry = 0;
 float config_deadzone = 0;
+uint8_t thumbstick_smooth_samples = 0;
 
 // Daisywheel.
 bool daisywheel_used = false;
@@ -39,22 +40,14 @@ float thumbstick_adc(uint8_t pin) {
     return value * THUMBSTICK_BASELINE_SATURATION;
 }
 
-// float thumbstick_adc_smoothed(uint8_t pin) {
-//     // Dynamic smooting depending on how big the diff to previous samples are:
-//     // Small diff -> Max smooth.
-//     // Bigger diff -> Progressively less smooting.
-//     // Diff over threshold -> No smoothing.
-//     uint8_t channel = pin - 26;
-//     float value = thumbstick_adc(pin);
-//     // Determine factor..
-//     float diff = fabs(value - smoothed[channel]);
-//     float factor = 1 - sramp(0, diff, ADC_SMOOTH_THRESHOLD);
-//     // Do rolling average.
-//     value = smooth(smoothed[channel], value, factor*ADC_SMOOTH_MAX);
-//     // Update rolling value and return.
-//     smoothed[channel] = value;
-//     return value;
-// }
+float thumbstick_adc_smoothed(uint8_t pin) {
+    if (!thumbstick_smooth_samples) return thumbstick_adc(pin);
+    uint8_t channel = pin - 26;
+    float value = thumbstick_adc(pin);
+    value = smooth(smoothed[channel], value, (float)(thumbstick_smooth_samples));  // Rolling average.
+    smoothed[channel] = value;
+    return value;
+}
 
 void thumbstick_update_deadzone() {
     uint8_t preset = config_get_deadzone_preset();
@@ -67,6 +60,11 @@ void thumbstick_update_offsets() {
     offset_ly = config->offset_ts_ly;
     offset_rx = config->offset_ts_rx;
     offset_ry = config->offset_ts_ry;
+}
+
+void thumbstick_update_smooth_samples() {
+    Config *config = config_read();
+    thumbstick_smooth_samples = config->thumbstick_smooth_samples;
 }
 
 void thumbstick_calibrate_each(uint8_t pin_x, uint8_t pin_y, float *result_x, float *result_y) {
@@ -111,6 +109,7 @@ void thumbstick_init() {
     #endif
     thumbstick_update_offsets();
     thumbstick_update_deadzone();
+    thumbstick_update_smooth_samples();
     // Alternative usage of ABXY while doing daisywheel.
     Actions none = {0,};
     daisy_a = Button_(PIN_A, NORMAL, none, none, none);
@@ -452,8 +451,8 @@ void Thumbstick__report(Thumbstick *self) {
     // Do not report if not calibrated.
     if (offset_x == 0 && offset_y == 0) return;
     // Get values from ADC.
-    float x = thumbstick_adc(self->pin_x) - offset_x;
-    float y = thumbstick_adc(self->pin_y) - offset_y;
+    float x = thumbstick_adc_smoothed(self->pin_x) - offset_x;
+    float y = thumbstick_adc_smoothed(self->pin_y) - offset_y;
     x /= self->saturation;
     y /= self->saturation;
     x = constrain(x, -1, 1) * (self->invert_x? -1 : 1);
