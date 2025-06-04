@@ -16,6 +16,7 @@ Pin numbers from 200 to 215 are IO Expander 2, from pin 0 to pin 15.
 #define PIN_GROUP_IO_0_END 199
 #define PIN_GROUP_IO_1 200
 #define PIN_GROUP_IO_1_END 249
+#define PIN_ADC_FIRST 26
 
 // Pico.
 #ifdef DEVICE_ALPAKKA_V0

@@ -34,7 +34,7 @@ Button daisy_y;
 float smoothed[4] = {0, 0, 0, 0};
 
 float thumbstick_adc(uint8_t pin) {
-    uint8_t channel = pin - 26;
+    uint8_t channel = pin - PIN_ADC_FIRST;
     adc_select_input(channel);
     float value = ((float)adc_read() - BIT_11) / BIT_11;
     return value * THUMBSTICK_BASELINE_SATURATION;
@@ -42,7 +42,7 @@ float thumbstick_adc(uint8_t pin) {
 
 float thumbstick_adc_smoothed(uint8_t pin) {
     if (!thumbstick_smooth_samples) return thumbstick_adc(pin);
-    uint8_t channel = pin - 26;
+    uint8_t channel = pin - PIN_ADC_FIRST;
     float value = thumbstick_adc(pin);
     value = smooth(smoothed[channel], value, (float)(thumbstick_smooth_samples));  // Rolling average.
     smoothed[channel] = value;
@@ -62,6 +62,7 @@ void thumbstick_update_offsets() {
     offset_ry = config->offset_ts_ry;
 }
 
+// Refresh runtime smoothing factor with value from config.
 void thumbstick_update_smooth_samples() {
     Config *config = config_read();
     thumbstick_smooth_samples = config->thumbstick_smooth_samples;
