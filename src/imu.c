@@ -50,7 +50,7 @@ void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     info("  IMU cs=%i id=0x%02x xl=0b%08i g=0b%08i\n", cs, id, bin(xl), bin(g));
     if (id == 0x00) {
         warn("Gyro was not able to initialize\n");
-        config_set_problem_gyro(true);
+        config_set_problem(PROBLEM_GYRO, true);
     }
 }
 
@@ -78,9 +78,9 @@ void imu_power_off() {
 Vector imu_read_gyro_bits(uint8_t cs) {
     uint8_t buf[6];
     bus_spi_read(cs, IMU_READ | IMU_OUTX_L_G, buf, 6);
-    int16_t y =  (((int8_t)buf[1] << 8) + (int8_t)buf[0]);
-    int16_t z =  (((int8_t)buf[3] << 8) + (int8_t)buf[2]);
-    int16_t x = -(((int8_t)buf[5] << 8) + (int8_t)buf[4]);
+    int16_t y =  (((int16_t)buf[1] << 8) | (int16_t)buf[0]);
+    int16_t z =  (((int16_t)buf[3] << 8) | (int16_t)buf[2]);
+    int16_t x = -(((int16_t)buf[5] << 8) | (int16_t)buf[4]);
     double offset_x = (cs==PIN_SPI_CS0) ? offset_gyro_0_x : offset_gyro_1_x;
     double offset_y = (cs==PIN_SPI_CS0) ? offset_gyro_0_y : offset_gyro_1_y;
     double offset_z = (cs==PIN_SPI_CS0) ? offset_gyro_0_z : offset_gyro_1_z;
@@ -102,9 +102,9 @@ Vector imu_read_gyro_bits(uint8_t cs) {
 Vector imu_read_accel_bits(uint8_t cs) {
     uint8_t buf[6];
     bus_spi_read(cs, IMU_READ | IMU_OUTX_L_XL, buf, 6);
-    int16_t x =  (((int8_t)buf[1] << 8) + (int8_t)buf[0]);
-    int16_t y =  (((int8_t)buf[3] << 8) + (int8_t)buf[2]);
-    int16_t z =  (((int8_t)buf[5] << 8) + (int8_t)buf[4]);
+    int16_t x = (((int16_t)buf[1] << 8) | (int16_t)buf[0]);
+    int16_t y = (((int16_t)buf[3] << 8) | (int16_t)buf[2]);
+    int16_t z = (((int16_t)buf[5] << 8) | (int16_t)buf[4]);
     double offset_x = (cs==PIN_SPI_CS0) ? offset_accel_0_x : offset_accel_1_x;
     double offset_y = (cs==PIN_SPI_CS0) ? offset_accel_0_y : offset_accel_1_y;
     double offset_z = (cs==PIN_SPI_CS0) ? offset_accel_0_z : offset_accel_1_z;

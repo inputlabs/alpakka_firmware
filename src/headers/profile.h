@@ -68,6 +68,7 @@ Profile Profile_ ();
 
 void profile_init();
 void profile_report_active();
+void profile_reset_home_sleep(bool now);
 void profile_set_home(bool state);
 void profile_set_home_gamepad(bool state);
 void profile_set_active(uint8_t index);

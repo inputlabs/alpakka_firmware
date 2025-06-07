@@ -86,9 +86,11 @@ static void set_wireless() {
     #ifdef DEVICE_HAS_MARMOTA
         info("LOOP: Wireless\n");
         device_mode = WIRELESS;
+        // Show the animation for a fixed time (in lack of a proper pairing system).
         led_show_cycle2();
-        sleep_ms(2000);
+        sleep_ms(FAKE_PAIR_TIME_MS);
         led_show();
+        // Prepare UART.
         wireless_set_uart_data_mode(true);
     #endif
 }
@@ -182,6 +184,7 @@ void loop_controller_task() {
             // If report fails repeatedly.
             if (last_report_ts && (now - last_report_ts) > REPORT_TIMEOUT_US) {
                 #if defined DEVICE_ALPAKKA_V0
+                    info("Dormant mode requested by loop task (no usb data)\n");
                     power_dormant();  // In v0, go sleep.
                 #elif defined DEVICE_ALPAKKA_V1
                     set_wireless();  // In v1, go wireless.

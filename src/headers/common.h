@@ -64,3 +64,4 @@ void print_array(uint8_t *array, uint8_t len);
 #define ramp(x, min, max)  constrain( 2 * ((x-min) / (max-min)) - 1, -1, 1)
 
 void print_array(uint8_t *array, uint8_t len);
+uint8_t bitmask_set(uint8_t bitmask, uint8_t flag, bool value);

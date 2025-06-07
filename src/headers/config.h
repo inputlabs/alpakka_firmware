@@ -177,9 +177,7 @@ void config_profile_default_custom(CtrlProfile *profile);
 void config_profile_overwrite(uint8_t indexTo, int8_t indexFrom);
 
 // Problems.
-void config_set_problem_calibration(bool state);
-void config_set_problem_gyro(bool state);
-void config_set_problem_battery_low(bool state);
+void config_set_problem(uint8_t flag, bool state);
 void config_ignore_problems();
 uint8_t config_get_problems();
 

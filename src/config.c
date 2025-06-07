@@ -33,7 +33,7 @@ uint8_t config_tune_mode = 0;
 uint8_t pcb_gen = 255;
 
 // Problems.
-uint8_t problems = 0;  // Bitmask with Problem enum.
+uint8_t problems_state = 0;  // Bitmask with Problem enum.
 
 
 void config_load() {
@@ -362,6 +362,7 @@ void config_reset_profiles() {
 }
 
 void config_calibrate_execute() {
+    profile_reset_home_sleep(false);  // Ignore if home button is never released.
     led_set_mode(LED_MODE_CYCLE);
     thumbstick_calibrate();
     imu_calibrate();
@@ -382,7 +383,7 @@ void config_calibrate() {
     }
     info("\n");
     config_calibrate_execute();
-    config_set_problem_calibration(false);
+    config_set_problem(PROBLEM_CALIBRATION, false);
     led_set_mode(LED_MODE_IDLE);
     info("Calibration completed\n");
     logging_set_onloop(true);
@@ -529,41 +530,27 @@ void config_set_thumbstick_smooth_samples(uint8_t value) {
     thumbstick_update_smooth_samples();
 }
 
-void config_set_problem_calibration(bool state) {
-    problems = problems & ~PROBLEM_CALIBRATION;  // Reset bit.
-    if (state) problems += PROBLEM_CALIBRATION;  // Add.
-    led_show();
-}
-
-void config_set_problem_gyro(bool state) {
-    problems = problems & ~PROBLEM_GYRO;  // Reset bit.
-    if (state) problems += PROBLEM_GYRO;  // Add.
-    led_show();
-}
-
-void config_set_problem_battery_low(bool state) {
-    if (state == problems & PROBLEM_LOW_BATTERY) return;  // Ignore if there is no change.
-    problems = problems & ~PROBLEM_LOW_BATTERY;  // Reset bit.
-    if (state) problems += PROBLEM_LOW_BATTERY;  // Add.
+void config_set_problem(uint8_t flag, bool state) {
+    problems_state = bitmask_set(problems_state, flag, state);
     led_show();
 }
 
 void config_ignore_problems() {
     if (!config_get_problems()) return;
     warn("User requested to ignore problems\n");
-    problems = 0;
+    problems_state = 0;
     led_show();
 }
 
 uint8_t config_get_problems() {
-    return problems;
+    return problems_state;
 }
 
 void config_alert_if_not_calibrated() {
     if (config_cache.offset_ts_lx == 0 && config_cache.offset_ts_ly == 0) {
         warn("The controller is not calibrated\n");
         warn("Please run calibration\n");
-        config_set_problem_calibration(true);
+        config_set_problem(PROBLEM_CALIBRATION, true);
     }
 }
 

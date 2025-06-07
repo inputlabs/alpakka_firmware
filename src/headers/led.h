@@ -33,6 +33,7 @@ void led_idle_mask(uint8_t mask);
 void led_static_mask(uint8_t mask);
 void led_blink_mask(uint8_t mask);
 void led_show();
+void led_show_low_battery();
 void led_show_cycle();
 void led_show_cycle2();
 void led_show_cycle_step();

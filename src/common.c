@@ -22,3 +22,9 @@ void print_array(uint8_t *array, uint8_t len) {
     for(uint8_t i=0; i<len; i++) printf("%i ", array[i]);
     printf("]\n");
 }
+
+uint8_t bitmask_set(uint8_t bitmask, uint8_t flag, bool value) {
+    bitmask = bitmask & ~flag;  // Always reset bit to zero.
+    if (value) bitmask += flag;  // Add / set to one.
+    return bitmask;
+}

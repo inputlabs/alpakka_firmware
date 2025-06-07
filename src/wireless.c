@@ -124,14 +124,14 @@ void wireless_uart_commands() {
                     memcpy(&battery_level, payload, 4);
                     // Optional logging.
                     if (logging_has_mask(LOG_WIRELESS)) {
-                        float linear = ((float)battery_level - 2700) / 650;
+                        float linear = ((float)battery_level - BATTERY_MIN / BATTERY_CAPACITY);
                         info("RF: Battery at %0.f%% (%lu)\n", fmax(100, linear*100), battery_level);
                     }
                     if (battery_level < BATTERY_LOW_THRESHOLD) {
                         loop_set_battery_low(true);
                         static bool battery_low_was_triggered = false;
                         if (!battery_low_was_triggered) {
-                            config_set_problem_battery_low(true);
+                            config_set_problem(PROBLEM_LOW_BATTERY, true);
                             battery_low_was_triggered = true;
                         }
                     } else {
