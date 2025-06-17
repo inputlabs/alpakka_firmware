@@ -265,6 +265,18 @@
 #define PROC_SLEEP  PROC_INDEX + 42
 #define PROC_PAIR  PROC_INDEX + 43
 
+typedef enum _ReportType {
+    REPORT_KEYBOARD = 1,
+    REPORT_MOUSE,
+    REPORT_GAMEPAD,
+    REPORT_XINPUT,
+    REPORT_WEBUSB,
+    REPORT_REPLAY_KEYBOARD = 11,
+    REPORT_REPLAY_MOUSE,
+    REPORT_REPLAY_GAMEPAD,
+    REPORT_REPLAY_XINPUT,
+} ReportType;
+
 typedef enum _GamepadAxis {
     LX,
     LY,
@@ -308,14 +320,8 @@ bool hid_report_wireless();
 extern bool hid_allow_communication;
 
 #define HID_REPORT_PRIORITY_RATIO 8
-
-#define REPORT_KEYBOARD 1
-#define REPORT_MOUSE 2
-#define REPORT_GAMEPAD 3
-#define REPORT_XINPUT 4
-#define REPORT_WEBUSB 5
-#define REPORT_MOUSE_EOT 6
-#define REPORT_TIMESTAMP 7
+#define HID_REPLAY_THRESHOLD 16  // Number of cycles since last report to trigger replay.
+#define HID_REPLAY_N_TIMES 4  // How many times it will be replayed.
 
 #define REPORT_QUEUE_ITEM_SIZE 20
 #define REPORT_QUEUE_LEN 16

@@ -61,6 +61,17 @@ int16_t mouse_y = 0;
 double gamepad_axis[6] = {0,};
 double gamepad_axis_last[6] = {0,};
 
+// Replay reports.
+static KeyboardReport last_report_keyboard;
+static MouseReport last_report_mouse;
+static GamepadReport last_report_gamepad;
+static XInputReport last_report_xinput;
+
+// Replay state (array to support multiple report types).
+static bool report_was_sent[4] = {false,};  // Prevent replay if no report was ever sent.
+static uint8_t cycles_without_reporting[4] = {0,};  // Cycles since the last report.
+static uint8_t replayed_ntimes[4] = {0,};  // How many times the last report was replayed.
+
 void hid_matrix_reset(uint8_t keep) {
     for(uint8_t action=0; action<255; action++) {
         if (action == keep) continue;  // Optionally do not reset specific actions.
@@ -429,6 +440,7 @@ bool hid_report_keyboard(bool wired) {
     if (wired) tud_hid_report(REPORT_KEYBOARD, &report, sizeof(report));
     else wireless_send_hid(REPORT_KEYBOARD, &report, sizeof(report));
     synced_keyboard = true;
+    last_report_keyboard = report;
 }
 
 bool hid_report_mouse(bool wired) {
@@ -438,6 +450,7 @@ bool hid_report_mouse(bool wired) {
     hid_reset_mouse();
     synced_mouse = true;
     priority_mouse = 0;
+    last_report_mouse = report;
 }
 
 bool hid_report_gamepad(bool wired) {
@@ -445,6 +458,7 @@ bool hid_report_gamepad(bool wired) {
     if (wired) tud_hid_report(REPORT_GAMEPAD, &report, sizeof(report));
     else wireless_send_hid(REPORT_GAMEPAD, &report, sizeof(report));
     hid_set_gamepad_synced();
+    last_report_gamepad = report;
 }
 
 bool hid_report_xinput(bool wired) {
@@ -452,17 +466,79 @@ bool hid_report_xinput(bool wired) {
     if (wired) xinput_send_report(&report);
     else wireless_send_hid(REPORT_XINPUT, &report, sizeof(report));
     hid_set_gamepad_synced();
+    last_report_xinput = report;
 }
 
-uint8_t hid_get_priority() {
+void hid_replay_keyboard() {
+    wireless_send_hid(REPORT_KEYBOARD, &last_report_keyboard, sizeof(last_report_keyboard));
+    replayed_ntimes[REPORT_KEYBOARD] += 1;
+    cycles_without_reporting[REPORT_KEYBOARD] = 0;
+}
+
+void hid_replay_mouse() {
+    // Strip incremental data (replay only buttons).
+    last_report_mouse.x = 0;
+    last_report_mouse.y = 0;
+    last_report_mouse.scroll = 0;
+    last_report_mouse.pan = 0;
+    // Replay.
+    wireless_send_hid(REPORT_MOUSE, &last_report_mouse, sizeof(last_report_mouse));
+    replayed_ntimes[REPORT_MOUSE] += 1;
+    cycles_without_reporting[REPORT_MOUSE] = 0;
+}
+
+void hid_replay_gamepad() {
+    wireless_send_hid(REPORT_GAMEPAD, &last_report_gamepad, sizeof(last_report_gamepad));
+    replayed_ntimes[REPORT_GAMEPAD] += 1;
+    cycles_without_reporting[REPORT_GAMEPAD] = 0;
+}
+
+void hid_replay_xinput() {
+    wireless_send_hid(REPORT_XINPUT, &last_report_xinput, sizeof(last_report_xinput));
+    replayed_ntimes[REPORT_GAMEPAD] += 1;
+    cycles_without_reporting[REPORT_GAMEPAD] = 0;
+}
+
+void hid_update_cycles_without_reporting(ReportType type) {
+    if (type == REPORT_XINPUT) type = REPORT_GAMEPAD; // Gamepad and Xinput counter is shared.
+    if (cycles_without_reporting[REPORT_KEYBOARD] < 255) cycles_without_reporting[REPORT_KEYBOARD] += 1;
+    if (cycles_without_reporting[REPORT_MOUSE] < 255) cycles_without_reporting[REPORT_MOUSE] += 1;
+    if (cycles_without_reporting[REPORT_GAMEPAD] < 255) cycles_without_reporting[REPORT_GAMEPAD] += 1;
+    if (type == 0) return;
+    cycles_without_reporting[type] = 0;
+    replayed_ntimes[type] = 0;
+    report_was_sent[type] = true;
+}
+
+bool hid_should_replay(ReportType type) {
+    if (
+        report_was_sent[type] == true &&
+        cycles_without_reporting[type] > HID_REPLAY_THRESHOLD &&
+        replayed_ntimes[type] < HID_REPLAY_N_TIMES
+    ) {
+        return true;
+    }
+    return false;
+}
+
+ReportType hid_get_priority() {
     // Not all events are sent everytime, they are delivered based on their
     // priority ratio and how long they have been queueing.
     // For example thumbstick movement may be queued for some cycles if there
     // is a lot of mouse data being sent.
+    //
+    // Calculate priority factors.
     hid_evaluate_gamepad_synced(); // Special case because accumulative absolute axis.
     if (!synced_mouse) priority_mouse += 1 * HID_REPORT_PRIORITY_RATIO;
     if (!synced_gamepad) priority_gamepad += 1;
-    // Evaluate.
+    // Replay.
+    if (synced_keyboard && hid_should_replay(REPORT_KEYBOARD)) return REPORT_REPLAY_KEYBOARD;
+    if (synced_mouse && hid_should_replay(REPORT_MOUSE)) return REPORT_REPLAY_MOUSE;
+    if (synced_gamepad && hid_should_replay(REPORT_GAMEPAD)) {
+        if (config_get_protocol() == PROTOCOL_GENERIC) return REPORT_REPLAY_GAMEPAD;
+        else return REPORT_REPLAY_XINPUT;
+    }
+    // Evaluate keyboard / mouse / gamepad.
     if (!synced_keyboard) return REPORT_KEYBOARD;
     if (!synced_mouse && (priority_mouse > priority_gamepad)) return REPORT_MOUSE;
     if (!synced_gamepad) {
@@ -474,7 +550,7 @@ uint8_t hid_get_priority() {
 
 bool hid_report_wired() {
     if (!hid_allow_communication) return true;
-    uint8_t device_to_report = hid_get_priority();
+    ReportType device_to_report = hid_get_priority();
     tud_task();
     if (tud_ready()) {
         if (tud_hid_ready()) {
@@ -497,11 +573,21 @@ bool hid_report_wired() {
 
 bool hid_report_wireless() {
     if (!hid_allow_communication) return true;
-    uint8_t device_to_report = hid_get_priority();
+    ReportType device_to_report = hid_get_priority();
     if (device_to_report == REPORT_KEYBOARD) hid_report_keyboard(false);
     if (device_to_report == REPORT_MOUSE) hid_report_mouse(false);
     if (device_to_report == REPORT_GAMEPAD) hid_report_gamepad(false);
     if (device_to_report == REPORT_XINPUT) hid_report_xinput(false);
+    // Replay.
+    if (device_to_report == REPORT_REPLAY_KEYBOARD) hid_replay_keyboard();
+    if (device_to_report == REPORT_REPLAY_MOUSE) hid_replay_mouse();
+    if (device_to_report == REPORT_REPLAY_GAMEPAD) hid_replay_gamepad();
+    if (device_to_report == REPORT_REPLAY_XINPUT) hid_replay_xinput();
+    // Update replay state.
+    if (device_to_report <= REPORT_XINPUT) {  // Skip update when a report is being replayed.
+        hid_update_cycles_without_reporting(device_to_report);
+    }
+    // Post-process.
     hid_reset_gamepad_axis();
     // webusb_read();
     webusb_flush();
