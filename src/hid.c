@@ -149,9 +149,12 @@ void hid_release(uint8_t key) {
 
 void hid_press_multiple(uint8_t *keys) {
     for(uint8_t i=0; i<ACTIONS_LEN; i++) {
-        if (keys[i] == 0) return;
+        if (keys[i] == 0) break;
         hid_press(keys[i]);
     }
+    if (keys[0] == PROC_HOME) return; // Home does not count as input.
+    profile_set_reported_inputs(true);
+
 }
 
 void hid_release_multiple(uint8_t *keys) {
@@ -253,10 +256,12 @@ void hid_mouse_move(int16_t x, int16_t y) {
     mouse_x += x;
     mouse_y += y;
     synced_mouse = false;
+    profile_set_reported_inputs(true);
 }
 
 void hid_gamepad_axis(GamepadAxis axis, double value) {
     gamepad_axis[axis] += value;  // Multiple inputs can be combined.
+    if (value != 0) profile_set_reported_inputs(true);
 }
 
 MouseReport hid_get_mouse_report() {

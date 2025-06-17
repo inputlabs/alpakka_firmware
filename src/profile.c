@@ -22,6 +22,7 @@ Profile profiles[PROFILE_SLOTS];
 uint8_t profile_active_index = -1;
 bool profile_led_lock = false;  // Extern.
 bool profile_pending_reboot = false;  // Extern.
+bool profile_reported_inputs = false;
 bool pending_reset = false;
 uint8_t pending_reset_keep;  // Action that must be kept between resets.
 bool home_is_active = false;
@@ -230,11 +231,7 @@ void profile_reset_all() {
     pending_reset_keep = 0;
 }
 
-void profile_report_active() {
-    // Reboot if needed.
-    if (profile_pending_reboot && !home_is_active) power_restart();
-    // Reset all profiles (state) if needed.
-    if (pending_reset) profile_reset_all();
+void profile_check_home_sleep() {
     // Check if home button is held super long, and go to sleep.
     if (home_is_active && hold_home_to_sleep_ts) {
         uint64_t threshold = hold_home_to_sleep_ts + (CFG_HOME_SLEEP_TIME*1000);
@@ -242,10 +239,23 @@ void profile_report_active() {
             info("Dormant mode requested by long press home\n");
             power_dormant();
         }
+        // Disable hold-home-sleep if there were reports (home profile was used).
+        if (profile_reported_inputs) {
+            profile_reset_home_sleep(false);
+        }
     }
+}
+
+void profile_report_active() {
+    // Reboot if needed.
+    if (profile_pending_reboot && !home_is_active) power_restart();
+    // Reset all profiles (state) if needed.
+    if (pending_reset) profile_reset_all();
     // Report active profile.
     Profile* profile = profile_get_active(false);
+    profile_reported_inputs = false;
     profile->report(profile);
+    profile_check_home_sleep();
 }
 
 void profile_reset_home_sleep(bool now) {
@@ -312,6 +322,10 @@ uint8_t profile_get_active_index(bool strict) {
         if (home_is_active) return 0;
         else return profile_active_index;
     }
+}
+
+void profile_set_reported_inputs(bool value) {
+    profile_reported_inputs = value;
 }
 
 void profile_enable_all(bool value) {

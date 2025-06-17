@@ -73,6 +73,7 @@ void profile_set_home(bool state);
 void profile_set_home_gamepad(bool state);
 void profile_set_active(uint8_t index);
 void profile_set_lock_leds(bool lock);
+void profile_set_reported_inputs(bool value);
 void profile_update_leds();
 void profile_enable_all(bool value);
 void profile_enable_abxy(bool value);
