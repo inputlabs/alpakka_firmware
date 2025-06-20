@@ -54,27 +54,37 @@ void wireless_init() {
 }
 
 void wireless_send_hid(uint8_t report_id, void *payload, uint8_t len) {
-    uint8_t message[36] = {UART_CONTROL_BYTES, AT_HID, report_id,};
-    memcpy(&message[5], payload, len);
-    uart_write_blocking(ESP_UART, message, 36);
+    uint8_t message[AT_HEADER_LEN+AT_HID_LEN] = {UART_CONTROL_BYTES, AT_HID, report_id,};
+    memcpy(&message[AT_HEADER_LEN+1], payload, len);
+    uart_write_blocking(ESP_UART, message, AT_HEADER_LEN+AT_HID_LEN);
 }
 
 void wireless_send_webusb(Ctrl ctrl) {
     ctrl.protocol_flags = CTRL_FLAG_WIRELESS;
-    uint8_t message[68] = {UART_CONTROL_BYTES, AT_WEBUSB,};
-    memcpy(&message[4], (uint8_t*)&ctrl, 64);
-    uart_write_blocking(ESP_UART, message, 68);
+    uint8_t message[AT_HEADER_LEN+AT_WEBUSB_LEN] = {UART_CONTROL_BYTES, AT_WEBUSB,};
+    memcpy(&message[AT_HEADER_LEN], (uint8_t*)&ctrl, AT_WEBUSB_LEN);
+    uart_write_blocking(ESP_UART, message, AT_HEADER_LEN+AT_WEBUSB_LEN);
+}
+
+void wireless_send_usb_protocol(Protocol protocol) {
+    uint8_t message[AT_HEADER_LEN+AT_USB_PROTOCOL_LEN] = {UART_CONTROL_BYTES, AT_USB_PROTOCOL,};
+    message[AT_HEADER_LEN] = protocol;
+    uart_write_blocking(ESP_UART, message, AT_HEADER_LEN+AT_USB_PROTOCOL_LEN);
 }
 
 void wireless_uart_commands() {
     static uint8_t i = 0;
     static uint8_t command = 0;
-    static uint8_t payload[68] = {0,};
+    static uint8_t payload[AT_PAYLOAD_MAX_LEN] = {0,};
     while(!uart_rx_buffer_is_empty()) {
         char c = uart_rx_buffer_getc();
         // Check control bytes.
         if (i < 3) {
-            if ((i==0 && c==30) || (i==1 && c==29) || (i==2 && c==28))  {
+            if (
+                (i==0 && c==UART_CONTROL_0) ||
+                (i==1 && c==UART_CONTROL_1) ||
+                (i==2 && c==UART_CONTROL_2)
+            ) {
                 i += 1;
             } else {
                 i = 0;
@@ -84,7 +94,7 @@ void wireless_uart_commands() {
         }
         // Get AT command.
         else if (i == 3) {
-            if (c >= AT_HID && c <= AT_BATTERY) {
+            if (c >= AT_HID && c <= AT_USB_PROTOCOL) {
                 command = c;
                 i += 1;
             } else {
@@ -94,17 +104,17 @@ void wireless_uart_commands() {
         }
         // Get payload.
         else {
-            payload[i-4] = c;
+            payload[i-AT_HEADER_LEN] = c;
             i += 1;
             // Payload complete.
-            if (command==AT_HID && i==4+32) {
+            if (command==AT_HID && i==AT_HEADER_LEN+AT_HID_LEN) {
                 hid_report_dongle(payload[0], &payload[1]);
                 i = 0;
                 command = 0;
             }
-            else if (command==AT_WEBUSB && i==4+64) {
+            else if (command==AT_WEBUSB && i==AT_HEADER_LEN+AT_WEBUSB_LEN) {
                 Ctrl ctrl = {0,};
-                memcpy(&ctrl, payload, 64);
+                memcpy(&ctrl, payload, AT_WEBUSB_LEN);
                 #ifdef DEVICE_DONGLE
                     // Ctrl message from controller, gets read at dongle uart,
                     // and sent to the USB.
@@ -117,7 +127,7 @@ void wireless_uart_commands() {
                 i = 0;
                 command = 0;
             }
-            else if (command==AT_BATTERY && i==4+4) {
+            else if (command==AT_BATTERY && i==AT_HEADER_LEN+AT_BATTERY_LEN) {
                 #ifdef DEVICE_ALPAKKA_V1
                     // Convert to 32 bit.
                     uint32_t battery_level = 0;
@@ -141,6 +151,9 @@ void wireless_uart_commands() {
                 #endif
                 i = 0;
                 command = 0;
+            }
+            else if (command==AT_USB_PROTOCOL && i==AT_HEADER_LEN+AT_USB_PROTOCOL_LEN) {
+                config_set_protocol(payload[0]);
             }
         }
     }

@@ -57,7 +57,7 @@ Flow diagram: docs/replay.md
 #include "thanks.h"
 #include "power.h"
 
-bool hid_allow_communication = true;  // Extern.
+static bool hid_allow_communication = true;
 
 bool synced_keyboard = false;
 bool synced_mouse = false;
@@ -85,6 +85,10 @@ static XInputReport last_report_xinput;
 static bool report_was_sent[4] = {false,};  // Prevent replay if no report was ever sent.
 static uint8_t cycles_without_reporting[4] = {0,};  // Cycles since the last report.
 static uint8_t replayed_ntimes[4] = {0,};  // How many times the last report was replayed.
+
+void hid_set_allow_communication(bool value) {
+    hid_allow_communication = value;
+}
 
 void hid_matrix_reset(uint8_t keep) {
     for(uint8_t action=0; action<255; action++) {

@@ -288,6 +288,7 @@ typedef enum _GamepadAxis {
 
 void hid_init();
 void hid_thanks();
+void hid_set_allow_communication(bool value);
 
 // Keys.
 void hid_matrix_reset(uint8_t keep);
@@ -316,8 +317,6 @@ void hid_gamepad_axis(GamepadAxis axis, double value);
 // Report.
 bool hid_report_wired();
 bool hid_report_wireless();
-
-extern bool hid_allow_communication;
 
 #define HID_REPORT_PRIORITY_RATIO 8
 #define HID_REPLAY_THRESHOLD 16  // Number of cycles since last report to trigger replay.
