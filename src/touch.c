@@ -127,6 +127,7 @@ float touch_get_threshold_ratio() {
         if (sens_from_config == -2) return TOUCH_AUTO_RATIO_WIRELESS_PRESET2;
         if (sens_from_config == -3) return TOUCH_AUTO_RATIO_WIRELESS_PRESET3;
     }
+    return 0.0;  // Prevent undefined behavior.
 }
 
 // Calculate dynamic threshold.

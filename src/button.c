@@ -36,6 +36,7 @@ bool Button__is_pressed(Button *self) {
     else if (is_between(self->pin, PIN_GROUP_IO_1, PIN_GROUP_IO_1_END)) {
         return bus_i2c_io_cache_read(1, self->pin - PIN_GROUP_IO_1);
     }
+    return false;  // Prevent undefined behavior.
 }
 
 void Button__report(Button *self) {

@@ -49,6 +49,9 @@ else()
     message(FATAL_ERROR "Target device not defined")
 endif()
 
+# Enable all warnings and promote them to errors.
+target_compile_options(${PROJECT} PRIVATE -Wall -Werror)
+
 target_link_libraries(${PROJECT} PRIVATE
     pico_stdlib
     pico_time
