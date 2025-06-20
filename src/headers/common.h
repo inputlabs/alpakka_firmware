@@ -26,6 +26,9 @@
 #define degrees(radians)  ( radians * 180.0 / M_PI )
 #define radians(degrees)  ( degrees * M_PI / 180.0 )
 
+// Safe +1 increment saturating at max value (without wrapping).
+#define nowrap_u8_increment(x)  do { if ((x) < UINT8_MAX) (x)++; } while (0)
+
 uint32_t bin(uint8_t k);
 uint32_t bin16(uint16_t k);
 uint8_t random8();

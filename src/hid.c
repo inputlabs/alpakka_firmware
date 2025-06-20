@@ -27,6 +27,19 @@ To avoid orphan references, the state matrix is usually re-initialized (reset)
 to zeros when the user changes the active profile, otherwise the disabled
 profile won't ever trigger the corresponding counter decrease of held buttons
 during the profile change.
+
+The replay feature was introduced as a simple mechanism to prevent stuck inputs
+if the last wireless report is lost (since the protocol does not have
+packet-received confirmation nor any resend logic yet).
+It works by re-sending (replaying) the last report of an specific report type
+several times, and therefore reducing the chances that all these packets are
+lost. To determine what is considered "last" it keeps counters of how many
+polling cycles passed since the last report (per report type), then after
+HID_REPLAY_THRESHOLD is excedeed the last report is replayed a fixed amount of
+times determined by HID_REPLAY_N_TIMES. When HID_REPLAY_N_TIMES is excedeed
+nothing will happen anymore until new inputs are sent, which will reset the
+replay counters.
+Flow diagram: docs/replay.md
 */
 
 #include <tusb.h>
@@ -67,7 +80,8 @@ static MouseReport last_report_mouse;
 static GamepadReport last_report_gamepad;
 static XInputReport last_report_xinput;
 
-// Replay state (array to support multiple report types).
+// Replay state (array to support multiple report types), using ReportType as index.
+// 0=unused, 1=keyboard, 2=mouse, 3=gamepad/xinput.
 static bool report_was_sent[4] = {false,};  // Prevent replay if no report was ever sent.
 static uint8_t cycles_without_reporting[4] = {0,};  // Cycles since the last report.
 static uint8_t replayed_ntimes[4] = {0,};  // How many times the last report was replayed.
@@ -499,11 +513,11 @@ void hid_replay_xinput() {
     cycles_without_reporting[REPORT_GAMEPAD] = 0;
 }
 
-void hid_update_cycles_without_reporting(ReportType type) {
+void hid_update_replay_state(ReportType type) {
     if (type == REPORT_XINPUT) type = REPORT_GAMEPAD; // Gamepad and Xinput counter is shared.
-    if (cycles_without_reporting[REPORT_KEYBOARD] < 255) cycles_without_reporting[REPORT_KEYBOARD] += 1;
-    if (cycles_without_reporting[REPORT_MOUSE] < 255) cycles_without_reporting[REPORT_MOUSE] += 1;
-    if (cycles_without_reporting[REPORT_GAMEPAD] < 255) cycles_without_reporting[REPORT_GAMEPAD] += 1;
+    nowrap_u8_increment(cycles_without_reporting[REPORT_KEYBOARD]);
+    nowrap_u8_increment(cycles_without_reporting[REPORT_MOUSE]);
+    nowrap_u8_increment(cycles_without_reporting[REPORT_GAMEPAD]);
     if (type == 0) return;
     cycles_without_reporting[type] = 0;
     replayed_ntimes[type] = 0;
@@ -527,7 +541,7 @@ ReportType hid_get_priority() {
     // For example thumbstick movement may be queued for some cycles if there
     // is a lot of mouse data being sent.
     //
-    // Calculate priority factors.
+    // Calculate priority ratios.
     hid_evaluate_gamepad_synced(); // Special case because accumulative absolute axis.
     if (!synced_mouse) priority_mouse += 1 * HID_REPORT_PRIORITY_RATIO;
     if (!synced_gamepad) priority_gamepad += 1;
@@ -585,7 +599,7 @@ bool hid_report_wireless() {
     if (device_to_report == REPORT_REPLAY_XINPUT) hid_replay_xinput();
     // Update replay state.
     if (device_to_report <= REPORT_XINPUT) {  // Skip update when a report is being replayed.
-        hid_update_cycles_without_reporting(device_to_report);
+        hid_update_replay_state(device_to_report);
     }
     // Post-process.
     hid_reset_gamepad_axis();
