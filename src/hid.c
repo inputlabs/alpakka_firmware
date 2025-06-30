@@ -452,7 +452,7 @@ void hid_evaluate_gamepad_synced() {
     }
 }
 
-bool hid_report_keyboard(bool wired) {
+void hid_report_keyboard(bool wired) {
     KeyboardReport report = hid_get_keyboard_report();
     if (wired) tud_hid_report(REPORT_KEYBOARD, &report, sizeof(report));
     else wireless_send_hid(REPORT_KEYBOARD, &report, sizeof(report));
@@ -460,7 +460,7 @@ bool hid_report_keyboard(bool wired) {
     last_report_keyboard = report;
 }
 
-bool hid_report_mouse(bool wired) {
+void hid_report_mouse(bool wired) {
     MouseReport report = hid_get_mouse_report();
     if (wired) tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
     else wireless_send_hid(REPORT_MOUSE, &report, sizeof(report));
@@ -470,7 +470,7 @@ bool hid_report_mouse(bool wired) {
     last_report_mouse = report;
 }
 
-bool hid_report_gamepad(bool wired) {
+void hid_report_gamepad(bool wired) {
     GamepadReport report = hid_get_gamepad_report();
     if (wired) tud_hid_report(REPORT_GAMEPAD, &report, sizeof(report));
     else wireless_send_hid(REPORT_GAMEPAD, &report, sizeof(report));
@@ -478,7 +478,7 @@ bool hid_report_gamepad(bool wired) {
     last_report_gamepad = report;
 }
 
-bool hid_report_xinput(bool wired) {
+void hid_report_xinput(bool wired) {
     XInputReport report = hid_get_xinput_report();
     if (wired) xinput_send_report(&report);
     else wireless_send_hid(REPORT_XINPUT, &report, sizeof(report));

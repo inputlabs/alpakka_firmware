@@ -17,7 +17,7 @@
 #include "loop.h"
 #include "wireless.h"
 
-char webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
+uint8_t webusb_buffer[WEBUSB_BUFFER_SIZE] = {0,};
 uint16_t webusb_ptr_in = 0;
 uint16_t webusb_ptr_out = 0;
 bool webusb_timedout = false;
@@ -53,7 +53,7 @@ bool webusb_transfer_wired(Ctrl ctrl) {
     // Claim USB endpoint.
     if (!usbd_edpt_claim(0, ADDR_WEBUSB_IN)) return false;
     // Transfer data.
-    bool success = usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (char*)&ctrl, ctrl.len+4);
+    bool success = usbd_edpt_xfer(0, ADDR_WEBUSB_IN, (uint8_t*)&ctrl, ctrl.len+4);
     // Release USB endpoint.
     usbd_edpt_release(0, ADDR_WEBUSB_IN);
     return success;
@@ -71,6 +71,7 @@ bool webusb_transfer(Ctrl ctrl) {
     #elif defined DEVICE_DONGLE
         return webusb_transfer_wired(ctrl);
     #endif
+    return false;  // Prevent undefined behavior.
 }
 
 bool webusb_flush() {
@@ -131,7 +132,7 @@ void webusb_write(char *msg) {
         return;
     }
     // Add message to the buffer.
-    strncpy(webusb_buffer + webusb_ptr_in, msg, len);
+    memcpy(webusb_buffer + webusb_ptr_in, msg, len);
     webusb_ptr_in += len;
     // If the configuration is still running (still not in the main loop), and
     // the webusb connection has not been flagged as timed out, then force
@@ -178,7 +179,7 @@ void webusb_handle_section_set(uint8_t profileIndex, uint8_t sectionIndex, uint8
     debug("WebUSB: Handle profile SET %i %i\n", profileIndex, sectionIndex);
     // Update profile in config.
     CtrlProfile *profile_cfg = config_profile_read(profileIndex);
-    profile_cfg->sections[sectionIndex] = *(CtrlSection*)section;
+    memcpy(&profile_cfg->sections[sectionIndex], section, sizeof(CtrlSection));
     // Update profile runtime.
     Profile *profile = profile_get(profileIndex);
     profile->load_from_config(profile, profile_cfg);
