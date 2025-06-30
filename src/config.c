@@ -420,9 +420,15 @@ void config_set_protocol(uint8_t preset) {
     if (preset == config_cache.protocol) return;
     config_cache.protocol = preset;
     config_write();
-    profile_pending_reboot = true;
-    hid_allow_communication = false;
     info("Config: Protocol preset %i\n", preset);
+    #ifdef DEVICE_DONGLE
+        // On dongle: Restart directly.
+        power_restart();
+    #else
+        // On controllers: Schedule restart.
+        hid_set_allow_communication(false);
+        profile_set_protocol_changed(preset);
+    #endif
 }
 
 void config_set_touch_sens_preset(uint8_t preset, bool notify_webusb) {

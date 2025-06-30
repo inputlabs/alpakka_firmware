@@ -3,6 +3,7 @@
 
 #pragma once
 #include "ctrl.h"
+#include "config.h"
 
 #define BATTERY_MIN 2700
 #define BATTERY_MAX 3350
@@ -18,3 +19,4 @@ void wireless_set_uart_data_mode(bool mode);
 
 void wireless_send_hid(uint8_t report_id, void *packet, uint8_t len);
 void wireless_send_webusb(Ctrl ctrl);
+void wireless_send_usb_protocol(Protocol protocol);

@@ -21,10 +21,6 @@
 #define NVM_PROFILE_SIZE 4096
 #define NVM_PROFILE_SLOTS 14
 
-#define PROTOCOL_XINPUT_WIN 0
-#define PROTOCOL_XINPUT_UNIX 1
-#define PROTOCOL_GENERIC 2
-
 #define CFG_LED_BRIGHTNESS 0.2
 
 #ifdef DEVICE_DONGLE
@@ -62,6 +58,12 @@
 #define CFG_HOME_SLEEP_TIME 5000  // Milliseconds.
 
 #define CFG_DHAT_DEBOUNCE_TIME 100  // Milliseconds.
+
+typedef enum _Protocol {
+    PROTOCOL_XINPUT_WIN = 0,
+    PROTOCOL_XINPUT_UNIX,
+    PROTOCOL_GENERIC,
+} Protocol;
 
 typedef enum _Problem {
     PROBLEM_CALIBRATION = 1,

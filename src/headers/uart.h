@@ -4,12 +4,24 @@
 #pragma once
 
 #define UART_RX_BUFFER_SIZE 1024
-#define UART_CONTROL_BYTES  30, 29, 28
+
+#define UART_CONTROL_0 30
+#define UART_CONTROL_1 29
+#define UART_CONTROL_2 28
+#define UART_CONTROL_BYTES  UART_CONTROL_0, UART_CONTROL_1, UART_CONTROL_2
+
+#define AT_HEADER_LEN 4
+#define AT_HID_LEN 32
+#define AT_WEBUSB_LEN 64
+#define AT_BATTERY_LEN 4
+#define AT_USB_PROTOCOL_LEN 1
+#define AT_PAYLOAD_MAX_LEN  (AT_HEADER_LEN + AT_WEBUSB_LEN)
 
 typedef enum _UART_AT {
     AT_HID = 1,
     AT_WEBUSB,
     AT_BATTERY,
+    AT_USB_PROTOCOL,
 } UART_AT;
 
 void uart_listen_serial();
