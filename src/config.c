@@ -156,7 +156,7 @@ void config_write_init() {
         .long_calibration = 0,
         .swap_gyros = 0,
         .touch_invert_polarity = 0,
-        .thumbstick_smooth_samples = 0,
+        .thumbstick_smooth_samples = 5,
     };
     config_cache.sens_mouse_values[0] = 1.0,
     config_cache.sens_mouse_values[1] = 1.5,

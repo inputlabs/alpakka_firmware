@@ -252,6 +252,7 @@ Gyro Gyro_ (
     gyro.config_y = Gyro__config_y;
     gyro.config_z = Gyro__config_z;
     gyro.mode = mode;
+    if (engage == 12) engage = 13;  // v1 RC fix.
     gyro.engage = engage;
     if (engage != PIN_NONE && engage != PIN_TOUCH_IN) {
         Actions none = {0,};
