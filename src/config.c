@@ -63,7 +63,8 @@ void config_profile_load(uint8_t index) {
         (meta.version_minor * 1000) +
         (meta.version_patch)
     );
-    if (version < NVM_PROFILE_VERSION) {
+    uint32_t min_version = index == 0 ? NVM_HOME_PROFILE_VERSION : NVM_PROFILE_VERSION;
+    if (version < min_version) {
         debug("Config: Profile %i incompatible version (%lu)\n", index, version);
         config_profile_default(index, index);
     }
