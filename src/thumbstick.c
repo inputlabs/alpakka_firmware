@@ -348,7 +348,6 @@ void Thumbstick__config_glyphstick(Thumbstick *self, Actions actions, Glyph glyp
 }
 
 void Thumbstick__report_glyphstick(Thumbstick *self, Glyph input) {
-    bool matched = false;
     // Iterate over all defined glyphs.
     uint8_t nglyphs = self->glyphstick_index;
     for(uint8_t i=0; i<nglyphs; i++) {

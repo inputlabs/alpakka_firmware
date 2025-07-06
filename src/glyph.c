@@ -25,15 +25,15 @@ uint8_t glyph_encode(Glyph glyph) {
     // represent the 4 directions, and thus skipping DIR4_NONE.
     encoded += glyph[0] - 1;
     // Termination bit.
-    encoded += 1 << 1+len;
+    encoded += 1 << (1+len);
     // Remaining directions.
     for(uint8_t i=1; i<len; i++) {
         // Each subsequent direction is either clockwise or anticlockwise, so
         // it is encoded in a single bit.
-        if (glyph[i-1] == DIR4_UP    && glyph[i] == DIR4_RIGHT) encoded += (1 << 1+i);
-        if (glyph[i-1] == DIR4_RIGHT && glyph[i] == DIR4_DOWN)  encoded += (1 << 1+i);
-        if (glyph[i-1] == DIR4_DOWN  && glyph[i] == DIR4_LEFT)  encoded += (1 << 1+i);
-        if (glyph[i-1] == DIR4_LEFT  && glyph[i] == DIR4_UP)    encoded += (1 << 1+i);
+        if (glyph[i-1] == DIR4_UP    && glyph[i] == DIR4_RIGHT) encoded += (1 << (1+i));
+        if (glyph[i-1] == DIR4_RIGHT && glyph[i] == DIR4_DOWN)  encoded += (1 << (1+i));
+        if (glyph[i-1] == DIR4_DOWN  && glyph[i] == DIR4_LEFT)  encoded += (1 << (1+i));
+        if (glyph[i-1] == DIR4_LEFT  && glyph[i] == DIR4_UP)    encoded += (1 << (1+i));
     }
     return encoded;
 }
@@ -52,7 +52,7 @@ void glyph_decode(Glyph glyph, uint8_t encoded) {
     glyph[0] = (encoded & 0b00000011) + 1;
     // Remaining directions.
     for(uint8_t i=1; i<len; i++) {
-        if (encoded & (1<<i+1)) {
+        if (encoded & (1 << (i+1))) {
             // Clockwise.
             if (glyph[i-1] == DIR4_UP)    glyph[i] = DIR4_RIGHT;
             if (glyph[i-1] == DIR4_RIGHT) glyph[i] = DIR4_DOWN;

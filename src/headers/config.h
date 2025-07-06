@@ -12,18 +12,16 @@
 #define MINOR 1000
 #define PATCH 1
 
-#define NVM_CONFIG_VERSION  ((MAJOR * 1) + (MINOR * 2) + (PATCH * 0))
 #define NVM_CONTROL_BYTE 0b01010101
 #define NVM_CONFIG_ADDR 0x001D0000
 #define NVM_CONFIG_SIZE 256
 
-#define NVM_PROFILE_VERSION  ((MAJOR * 1) + (MINOR * 0) + (PATCH * 0))
 #define NVM_PROFILE_SIZE 4096
 #define NVM_PROFILE_SLOTS 14
 
-#define PROTOCOL_XINPUT_WIN 0
-#define PROTOCOL_XINPUT_UNIX 1
-#define PROTOCOL_GENERIC 2
+#define NVM_CONFIG_VERSION        ((MAJOR * 1) + (MINOR * 2) + (PATCH * 0))
+#define NVM_HOME_PROFILE_VERSION  ((MAJOR * 1) + (MINOR * 1) + (PATCH * 0))
+#define NVM_PROFILE_VERSION       ((MAJOR * 1) + (MINOR * 0) + (PATCH * 0))
 
 #define CFG_LED_BRIGHTNESS 0.2
 
@@ -66,6 +64,13 @@
 #define CFG_HOME_SLEEP_TIME 5000  // Milliseconds.
 
 #define CFG_DHAT_DEBOUNCE_TIME 100  // Milliseconds.
+
+typedef enum _Protocol {
+    PROTOCOL_UNDEFINED = -1,
+    PROTOCOL_XINPUT_WIN = 0,
+    PROTOCOL_XINPUT_UNIX,
+    PROTOCOL_GENERIC,
+} Protocol;
 
 typedef enum _Problem {
     PROBLEM_CALIBRATION = 1,

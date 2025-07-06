@@ -56,7 +56,9 @@ Flow diagram: docs/replay.md
 #include "thanks.h"
 #include "power.h"
 
-bool hid_allow_communication = true;  // Extern.
+// Toggle to prevent any further communication. Main use case being turning it
+// off while the protocol is being changed to avoid incoherent outputs.
+static bool hid_allow_communication = true;
 
 bool synced_keyboard = false;
 bool synced_mouse = false;
@@ -84,6 +86,10 @@ static XInputReport last_report_xinput;
 static bool report_was_sent[4] = {false,};  // Prevent replay if no report was ever sent.
 static uint8_t cycles_without_reporting[4] = {0,};  // Cycles since the last report.
 static uint8_t replayed_ntimes[4] = {0,};  // How many times the last report was replayed.
+
+void hid_set_allow_communication(bool value) {
+    hid_allow_communication = value;
+}
 
 void hid_matrix_reset(uint8_t keep) {
     for(uint8_t action=0; action<255; action++) {
@@ -448,7 +454,7 @@ void hid_evaluate_gamepad_synced() {
     }
 }
 
-bool hid_report_keyboard(bool wired) {
+void hid_report_keyboard(bool wired) {
     KeyboardReport report = hid_get_keyboard_report();
     if (wired) tud_hid_report(REPORT_KEYBOARD, &report, sizeof(report));
     else wireless_send_hid(REPORT_KEYBOARD, &report, sizeof(report));
@@ -456,7 +462,7 @@ bool hid_report_keyboard(bool wired) {
     last_report_keyboard = report;
 }
 
-bool hid_report_mouse(bool wired) {
+void hid_report_mouse(bool wired) {
     MouseReport report = hid_get_mouse_report();
     if (wired) tud_hid_report(REPORT_MOUSE, &report, sizeof(report));
     else wireless_send_hid(REPORT_MOUSE, &report, sizeof(report));
@@ -466,7 +472,7 @@ bool hid_report_mouse(bool wired) {
     last_report_mouse = report;
 }
 
-bool hid_report_gamepad(bool wired) {
+void hid_report_gamepad(bool wired) {
     GamepadReport report = hid_get_gamepad_report();
     if (wired) tud_hid_report(REPORT_GAMEPAD, &report, sizeof(report));
     else wireless_send_hid(REPORT_GAMEPAD, &report, sizeof(report));
@@ -474,7 +480,7 @@ bool hid_report_gamepad(bool wired) {
     last_report_gamepad = report;
 }
 
-bool hid_report_xinput(bool wired) {
+void hid_report_xinput(bool wired) {
     XInputReport report = hid_get_xinput_report();
     if (wired) xinput_send_report(&report);
     else wireless_send_hid(REPORT_XINPUT, &report, sizeof(report));

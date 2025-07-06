@@ -105,7 +105,7 @@ const uint16_t *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     static uint16_t response[64];
     const char *string = descriptor_string[index];
     uint8_t i = 0;
-    for (i; string[i]; i++) {
+    for (i=0; string[i]; i++) {
         response[i + 1] = string[i];
     }
     response[0] = TUSB_DESC_STRING << 8;  // String type.

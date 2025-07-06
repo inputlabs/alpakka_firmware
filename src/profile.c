@@ -15,20 +15,27 @@
 #include "logging.h"
 #include "common.h"
 #include "power.h"
+#include "wireless.h"
 
 Profile profiles[PROFILE_SLOTS];
 uint8_t profile_active_index = -1;
-bool profile_led_lock = false;  // Extern.
-bool profile_pending_reboot = false;  // Extern.
+Protocol profile_protocol_was_changed = PROTOCOL_UNDEFINED;
 bool profile_reported_inputs = false;
+
+// Matrix reset.
 bool pending_reset = false;
 uint8_t pending_reset_keep;  // Action that must be kept between resets.
+
+// Home button.
+Button home;
 bool home_is_active = false;
 bool home_gamepad_is_active = false;
+uint64_t hold_home_to_sleep_ts = 0;
+
+// Locks.
 bool enabled_all = true;
 bool enabled_abxy = true;
-Button home;
-uint64_t hold_home_to_sleep_ts = 0;
+bool profile_led_lock = false;  // Extern.
 
 void Profile__report(Profile *self) {
     if (!enabled_all) return;
@@ -245,8 +252,15 @@ void profile_check_home_sleep() {
 }
 
 void profile_report_active() {
-    // Reboot if needed.
-    if (profile_pending_reboot && !home_is_active) power_restart();
+    // If protocol was changed.
+    if (profile_protocol_was_changed >= 0 && !home_is_active) {
+        #ifdef DEVICE_ALPAKKA_V1
+            // Notify dongle so it syncs on the same protocol.
+            wireless_send_usb_protocol(profile_protocol_was_changed);
+            sleep_ms(10);  // Enough time for wireless packet to be sent.
+        #endif
+        power_restart();
+    }
     // Reset all profiles (state) if needed.
     if (pending_reset) profile_reset_all();
     // Report active profile.
@@ -332,6 +346,11 @@ void profile_enable_all(bool value) {
 
 void profile_enable_abxy(bool value) {
     enabled_abxy = value;
+}
+
+void profile_notify_protocol_changed(Protocol protocol) {
+    hid_set_allow_communication(false);
+    profile_protocol_was_changed = (int8_t)protocol;
 }
 
 void profile_init() {

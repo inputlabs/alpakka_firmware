@@ -63,7 +63,9 @@ void config_profile_load(uint8_t index) {
         (meta.version_minor * 1000) +
         (meta.version_patch)
     );
-    if (version < NVM_PROFILE_VERSION) {
+    bool profileIsHome = index == 0;
+    uint32_t min_version = profileIsHome ? NVM_HOME_PROFILE_VERSION : NVM_PROFILE_VERSION;
+    if (version < min_version) {
         debug("Config: Profile %i incompatible version (%lu)\n", index, version);
         config_profile_default(index, index);
     }
@@ -472,9 +474,14 @@ void config_set_protocol(uint8_t preset) {
     if (preset == config_cache.protocol) return;
     config_cache.protocol = preset;
     config_write();
-    profile_pending_reboot = true;
-    hid_allow_communication = false;
     info("Config: Protocol preset %i\n", preset);
+    #ifdef DEVICE_DONGLE
+        // On dongle: Restart directly.
+        power_restart();
+    #else
+        // On controllers: Schedule restart.
+        profile_notify_protocol_changed(preset);
+    #endif
 }
 
 void config_set_touch_sens_preset(uint8_t preset, bool notify_webusb) {

@@ -1,6 +1,6 @@
 HEADER_PATH="src/headers/version.h"
 
-if ( git describe --tags ); then
+if ( git describe --tags 2>/dev/null ); then
     TAG=`git describe --tags`
 else
     TAG=${GITHUB_REF}
