@@ -201,9 +201,9 @@ Vector imu_read_gyro() {
         weight_0.z = 1;
     }
 
-    float x = (gyro0.x * weight_0.x) + (gyro1.x * (1.0f-weight_0.x) / 4);
-    float y = (gyro0.y * weight_0.y) + (gyro1.y * (1.0f-weight_0.y) / 4);
-    float z = (gyro0.z * weight_0.z) + (gyro1.z * (1.0f-weight_0.z) / 4);
+    float x = (gyro0.x * weight_0.x) + (gyro1.x * (1.0f-weight_0.x) / 4.0f);
+    float y = (gyro0.y * weight_0.y) + (gyro1.y * (1.0f-weight_0.y) / 4.0f);
+    float z = (gyro0.z * weight_0.z) + (gyro1.z * (1.0f-weight_0.z) / 4.0f);
     return (Vector){x, y, z};
 }
 
@@ -343,6 +343,7 @@ void imu_load_calibration() {
     imu_calib1.accel[1].stddev = config->stddev_accel_1_y;
     imu_calib1.accel[2].stddev = config->stddev_accel_1_z;
 
+    // IMU0 is on 500dps, IMU1 is on 125dps.
 
     // sum of variances
     Vector variance_div = {
@@ -361,6 +362,10 @@ void imu_load_calibration() {
     imu_gyro1_weight[0] = 1 - imu_gyro0_weight[0];
     imu_gyro1_weight[1] = 1 - imu_gyro0_weight[1];
     imu_gyro1_weight[2] = 1 - imu_gyro0_weight[2];
+    info("IMU0 weight: x=%.02f y=%.02f z=%.02f\n", 
+        imu_gyro0_weight[0], imu_gyro0_weight[1], imu_gyro0_weight[2]);
+    info("IMU1 weight: x=%.02f y=%.02f z=%.02f\n", 
+        imu_gyro1_weight[0], imu_gyro1_weight[1], imu_gyro1_weight[2]);
     
 }
 

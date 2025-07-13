@@ -181,6 +181,9 @@ void Gyro__report_absolute_fast(Gyro *self){
     else        gyro_absolute_output(-x, self->actions_x_neg, &(self->pressed_x_neg));
     if (y >= 0) gyro_absolute_output( y, self->actions_y_pos, &(self->pressed_y_pos));
     else        gyro_absolute_output(-y, self->actions_y_neg, &(self->pressed_y_neg));
+    if (z >= 0) gyro_absolute_output( z, self->actions_z_pos, &(self->pressed_z_pos));
+    else        gyro_absolute_output(-z, self->actions_z_neg, &(self->pressed_z_neg));
+    
 }
 
 
