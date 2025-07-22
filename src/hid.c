@@ -541,6 +541,7 @@ bool hid_should_replay(ReportType type) {
 }
 
 ReportType hid_get_priority() {
+    static uint8_t cycle_i = 0;
     // Not all events are sent everytime, they are delivered based on their
     // priority ratio and how long they have been queueing.
     // For example thumbstick movement may be queued for some cycles if there
@@ -564,6 +565,18 @@ ReportType hid_get_priority() {
         if (config_get_protocol() == PROTOCOL_GENERIC) return REPORT_GAMEPAD;
         else return REPORT_XINPUT;
     }
+    // if all was synced, just cycle through the reports anyway.
+    if (cycle_i == 0) {
+        cycle_i = 1;
+        return REPORT_KEYBOARD;
+    } else if (cycle_i == 1) {
+        cycle_i = 2;
+        return REPORT_MOUSE;
+    } else if (cycle_i == 2) {
+        cycle_i = 0;
+        if (config_get_protocol() == PROTOCOL_GENERIC) return REPORT_GAMEPAD;
+        else return REPORT_XINPUT;
+    } 
     return 0;
 }
 
