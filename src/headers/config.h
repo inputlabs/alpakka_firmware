@@ -28,7 +28,7 @@
 #ifdef DEVICE_DONGLE
     #define CFG_TICK_FREQUENCY 1000  // Hz.
 #else
-    #define CFG_TICK_FREQUENCY 1000  // Hz.
+    #define CFG_TICK_FREQUENCY 500  // Hz.
     #define REFERENCE_TICK_FREQUENCY 250  // Hz. This used to be the default, it is used for backward compatibility.
 #endif
 

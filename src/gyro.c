@@ -196,8 +196,15 @@ void Gyro__report_incremental(Gyro *self) {
     float x = imu_gyro.x * CFG_GYRO_SENSITIVITY_X * sensitivity_multiplier;
     float y = imu_gyro.y * CFG_GYRO_SENSITIVITY_Y * sensitivity_multiplier;
     float z = imu_gyro.z * CFG_GYRO_SENSITIVITY_Z * sensitivity_multiplier;
-    // Additional processing.
-    float t = CFG_IMU_DEADZONE;
+
+
+    // compensate tick frequency.
+    x *= (float)REFERENCE_TICK_FREQUENCY/(float)CFG_TICK_FREQUENCY;
+    y *= (float)REFERENCE_TICK_FREQUENCY/(float)CFG_TICK_FREQUENCY;
+    z *= (float)REFERENCE_TICK_FREQUENCY/(float)CFG_TICK_FREQUENCY;
+
+    //Additional processing.
+    float t = CFG_IMU_DEADZONE*0;
     float k = CFG_IMU_DEADZONE_STRENGTH;
     if      (x > 0 && x <  t) x =  hssnf(t, k,  x);
     else if (x < 0 && x > -t) x = -hssnf(t, k, -x);
@@ -205,11 +212,6 @@ void Gyro__report_incremental(Gyro *self) {
     else if (y < 0 && y > -t) y = -hssnf(t, k, -y);
     if      (z > 0 && z <  t) z =  hssnf(t, k,  z);
     else if (z < 0 && z > -t) z = -hssnf(t, k, -z);
-
-    // compensate tick frequency.
-    x *= (float)REFERENCE_TICK_FREQUENCY/(float)CFG_TICK_FREQUENCY;
-    y *= (float)REFERENCE_TICK_FREQUENCY/(float)CFG_TICK_FREQUENCY;
-    z *= (float)REFERENCE_TICK_FREQUENCY/(float)CFG_TICK_FREQUENCY;
 
     // Reintroduce subpixel leftovers.
     x += sub_x;

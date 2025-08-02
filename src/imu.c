@@ -79,7 +79,7 @@ void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
     // Gyro options.
     // bus_spi_write(cs, IMU_CTRL3_C, IMU_CTRL3_C_BDU); // Block data update
     bus_spi_write(cs, IMU_CTRL4_C, GYRO_LPF1_ENABLE_CTRL4_C); // Enable LPF1
-    bus_spi_write(cs, IMU_CTRL6_C, GYRO_LPF1_470HZ_CTRL6_C); // FTYPE selection for LPF1
+    bus_spi_write(cs, IMU_CTRL6_C, GYRO_LPF1_223HZ_CTRL6_C); // FTYPE selection for LPF1
     bus_spi_write(cs, IMU_CTRL2_G, gyro_conf);
     uint8_t xl = bus_spi_read_one(cs, IMU_READ | IMU_CTRL1_XL);
     uint8_t g = bus_spi_read_one(cs, IMU_READ | IMU_CTRL2_G);

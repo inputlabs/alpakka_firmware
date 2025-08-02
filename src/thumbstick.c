@@ -63,7 +63,7 @@ void thumbstick_update_offsets() {
 // Refresh runtime smoothing factor with value from config.
 void thumbstick_update_smooth_samples() {
     Config *config = config_read();
-    thumbstick_smooth_samples = config->thumbstick_smooth_samples;
+    thumbstick_smooth_samples = config->thumbstick_smooth_samples * CFG_TICK_FREQUENCY/REFERENCE_TICK_FREQUENCY;
 }
 
 void thumbstick_calibrate_each(uint8_t pin_x, uint8_t pin_y, float *result_x, float *result_y) {
