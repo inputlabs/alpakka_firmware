@@ -17,6 +17,10 @@
 #define GAMEPAD_AXIS_INDEX_END  PROC_INDEX - 1
 #define PROC_INDEX_END 255
 
+// timeout for going to sleep in wireless mode
+// set to 0 to disable
+#define HID_IDLE_TIMEOUT 2*60*CFG_TICK_FREQUENCY  // 2 minutes in ticks
+
 #define KEY_NONE 0
 
 #define KEY_A 4
@@ -348,3 +352,5 @@ typedef struct __packed _GamepadReport {
 } GamepadReport;
 
 void hid_report_dongle(uint8_t report_id, uint8_t* payload);
+
+bool hid_idle_timeout();

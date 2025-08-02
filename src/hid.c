@@ -87,6 +87,8 @@ static bool report_was_sent[4] = {false,};  // Prevent replay if no report was e
 static uint8_t cycles_without_reporting[4] = {0,};  // Cycles since the last report.
 static uint8_t replayed_ntimes[4] = {0,};  // How many times the last report was replayed.
 
+uint32_t idle_counter = 0;  // Counter to track idle time.
+
 void hid_set_allow_communication(bool value) {
     hid_allow_communication = value;
 }
@@ -604,6 +606,7 @@ bool hid_report_wired() {
 }
 
 bool hid_report_wireless() {
+    if (hid_idle_timeout()) power_dormant(); // If idle long enough, go to sleep.
     if (!hid_allow_communication) return true;
     ReportType device_to_report = hid_get_priority();
     if (device_to_report == REPORT_KEYBOARD) hid_report_keyboard(false);
@@ -682,4 +685,37 @@ void hid_thanks() {
 void hid_init() {
     info("INIT: HID\n");
     alarm_pool = alarm_pool_create(2, 255);
+}
+
+
+bool hid_idle_timeout(){
+    static uint8_t state_matrix_prev[256] = {0,};
+    static int16_t mouse_x_prev = 0;
+    static int16_t mouse_y_prev = 0;
+    static double gamepad_axis_prev[6] = {0,};
+    bool changed = false;
+    // Check if the state matrix has changed.
+    if (memcmp(state_matrix, state_matrix_prev, sizeof(state_matrix)) != 0) changed = true;
+    // Check if the mouse position has changed.
+    if (mouse_x != mouse_x_prev || mouse_y != mouse_y_prev) changed = true;
+    // Check if the gamepad axis has changed.
+    for (uint8_t i = 0; i < 6; i++) {
+        if (gamepad_axis[i] != gamepad_axis_prev[i]) {
+            changed = true;
+            break;
+        }
+    }
+    // Update previous state variables.
+    memcpy(state_matrix_prev, state_matrix, sizeof(state_matrix));
+    mouse_x_prev = mouse_x;
+    mouse_y_prev = mouse_y;
+    memcpy(gamepad_axis_prev, gamepad_axis, sizeof(gamepad_axis));
+    
+    if (changed) {
+        idle_counter = 0;  // Reset idle counter if there was any change.
+    } else {
+        idle_counter++;  // Increment idle counter if no changes.
+    }
+    if(idle_counter > HID_IDLE_TIMEOUT && HID_IDLE_TIMEOUT>0) return true;
+    else return false;  // Return true if idle timeout is reached.
 }
