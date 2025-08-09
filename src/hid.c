@@ -630,7 +630,7 @@ bool hid_report_wireless() {
 }
 
 void hid_report_dongle(uint8_t report_id, uint8_t* payload) {
-    tud_task();
+
     if (tud_ready()) {
         if (report_id == REPORT_KEYBOARD) {
             if (tud_hid_ready()) {

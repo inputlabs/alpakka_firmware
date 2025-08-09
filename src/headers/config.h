@@ -23,15 +23,10 @@
 #define NVM_HOME_PROFILE_VERSION  ((MAJOR * 1) + (MINOR * 1) + (PATCH * 0))
 #define NVM_PROFILE_VERSION       ((MAJOR * 1) + (MINOR * 0) + (PATCH * 0))
 
-#define CFG_LED_BRIGHTNESS 0.2
+#define CFG_LED_BRIGHTNESS 0.05
 
-#ifdef DEVICE_DONGLE
-    #define CFG_TICK_FREQUENCY 1000  // Hz.
-#else
-    #define CFG_TICK_FREQUENCY 500  // Hz.
-    #define REFERENCE_TICK_FREQUENCY 250  // Hz. This used to be the default, it is used for backward compatibility.
-#endif
-
+#define CFG_TICK_FREQUENCY 500  // Hz.
+#define REFERENCE_TICK_FREQUENCY 250  // Hz. This used to be the default, it is used for backward compatibility.
 #define CFG_IMU_TICK_SAMPLES 128  // Multi-sampling per pooling cycle.
 
 #define CFG_IMU_DEADZONE 1.0 // Deadzone for the IMU in pixels per second

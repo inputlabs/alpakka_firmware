@@ -213,8 +213,8 @@ void loop_dongle_task() {
     uint32_t now = time_us_32();
     if (device_mode == WIRELESS) {
         config_sync();
-        wireless_dongle_task();
         tud_task();
+        wireless_dongle_task();
         if (tud_ready()) {
             webusb_read();
             webusb_flush();
@@ -247,15 +247,12 @@ void loop_run() {
     logging_set_onloop(true);
     while (true) {
         i++;
-        // Start timer.
-        uint32_t start = time_us_32();
+        
         // Task.
         #if defined DEVICE_ALPAKKA_V0 || defined DEVICE_ALPAKKA_V1
-            loop_controller_task();
-        #endif
-        #ifdef DEVICE_DONGLE
-            loop_dongle_task();
-        #endif
+        // Start timer.
+        uint32_t start = time_us_32();
+        loop_controller_task();
         // Calculate used time.
         uint32_t used = time_us_32() - start;
         int32_t unused = CFG_TICK_INTERVAL_IN_US - (int32_t)used;
@@ -276,5 +273,10 @@ void loop_run() {
             info("+");
             sleep_us(0);  // Allow IRQ to take over even if the controller is overwhelmed.
         };
+        #endif
+        #ifdef DEVICE_DONGLE
+            loop_dongle_task();
+        #endif
+
     }
 }
