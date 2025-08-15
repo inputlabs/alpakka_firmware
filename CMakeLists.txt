@@ -28,6 +28,16 @@ add_executable(${PROJECT}
     src/main.c
 )
 
+# Build Zig static library and link it
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/zig/zig-out/lib/libalpakka_zig.a
+    COMMAND zig build -Dtarget=arm-freestanding-eabi -Dcpu=cortex_m0plus -Drelease-small=true
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/zig
+    COMMENT "Building Zig static library"
+)
+add_custom_target(ziglib ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/zig/zig-out/lib/libalpakka_zig.a)
+add_dependencies(${PROJECT} ziglib)
+
 if(DEFINED DEVICE)
     if(DEVICE MATCHES "alpakka_v0")
         target_compile_definitions(${PROJECT} PUBLIC DEVICE_ALPAKKA_V0=1)
@@ -51,6 +61,11 @@ endif()
 
 # Enable all warnings and promote them to errors.
 target_compile_options(${PROJECT} PRIVATE -Wall -Werror)
+
+# Link the Zig static library path
+target_link_libraries(${PROJECT} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/zig/zig-out/lib/libalpakka_zig.a
+)
 
 target_link_libraries(${PROJECT} PRIVATE
     pico_stdlib
