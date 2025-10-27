@@ -182,6 +182,7 @@ Vector imu_read_gyro_burst(uint8_t cs, uint8_t samples) {
 }
 
 Vector imu_read_gyro() {
+    static Vector gyro_prev = {0,0,0};
     Vector gyro0 = imu_read_gyro_bits(IMU0);
     Vector gyro1 = imu_read_gyro_bits(IMU1);
     Vector weight_0 = {
@@ -190,21 +191,74 @@ Vector imu_read_gyro() {
         imu_gyro0_weight[2]
     };
 
+    Vector mean3 = {0,0,0};
+    bool out_of_range = false;
+
     // IMU 0 is on 500dps, IMU 1 is on 125dps.
     // when IMU 0 is on 20% of its range or higher, IMU 1 is on 80% of its range
     // then IMU 0 takes over 100% of the weight.
     // When vector-absolute value saturates, it is safer to switch all axes.
-    
-    if (gyro0.x*gyro0.x + gyro0.y*gyro0.y + gyro0.z*gyro0.z > 0.20f*0.20f*GYRO_MAXVAL_INT*GYRO_MAXVAL_INT) {
-        weight_0.x = 1;
-        weight_0.y = 1;
-        weight_0.z = 1;
-    }
 
-    float x = (gyro0.x * weight_0.x) + (gyro1.x * (1.0f-weight_0.x) / 4.0f);
-    float y = (gyro0.y * weight_0.y) + (gyro1.y * (1.0f-weight_0.y) / 4.0f);
-    float z = (gyro0.z * weight_0.z) + (gyro1.z * (1.0f-weight_0.z) / 4.0f);
-    return (Vector){x, y, z};
+    float gyro0_abs = (gyro0.x*gyro0.x + gyro0.y*gyro0.y + gyro0.z*gyro0.z);
+    float gyro1_abs = (gyro1.x*gyro1.x + gyro1.y*gyro1.y + gyro1.z*gyro1.z);
+
+    if (gyro0_abs > 0.20f*0.20f*GYRO_MAXVAL_INT*GYRO_MAXVAL_INT) {
+        if (gyro1_abs > 0.5f*0.5f*GYRO_MAXVAL_INT*GYRO_MAXVAL_INT )
+        {
+            // truly out of range
+            weight_0.x = 1;
+            weight_0.y = 1;
+            weight_0.z = 1;
+            out_of_range = true;
+        }
+        else
+        {
+            // possible noise spike on gyro0
+            weight_0.x = 0;
+            weight_0.y = 0;
+            weight_0.z = 0;
+        }
+        
+    }
+    gyro1.x /=4.0f; // Scale 125dps to 500dps
+    gyro1.y /=4.0f;
+    gyro1.z /=4.0f;
+
+    Vector weight_1 = {
+        1-weight_0.x,
+        1-weight_0.y,
+        1-weight_0.z
+    };
+
+    if(!out_of_range)
+    {
+        mean3.x = (gyro0.x *weight_0.x+ gyro1.x * weight_1.x + gyro_prev.x) / (weight_0.x + weight_1.x +1);
+        mean3.y = (gyro0.y *weight_0.y+ gyro1.y * weight_1.y + gyro_prev.y) / (weight_0.y + weight_1.y +1);
+        mean3.z = (gyro0.z *weight_0.z+ gyro1.z * weight_1.z + gyro_prev.z) / (weight_0.z + weight_1.z +1);
+        if ((gyro0.x-mean3.x)*(gyro0.x-mean3.x) + (gyro0.y-mean3.y)*(gyro0.y-mean3.y) + (gyro0.z-mean3.z)*(gyro0.z-mean3.z) >
+            0.10f*0.10f*GYRO_MAXVAL_INT*GYRO_MAXVAL_INT)
+        {
+            // too much deviation from mean, possible noise spike
+            weight_0.x = 0;
+            weight_0.y = 0;
+            weight_0.z = 0;
+        }
+        if ((gyro1.x-mean3.x)*(gyro1.x-mean3.x) + (gyro1.y-mean3.y)*(gyro1.y-mean3.y) + (gyro1.z-mean3.z)*(gyro1.z-mean3.z) >
+            0.10f*0.10f*GYRO_MAXVAL_INT*GYRO_MAXVAL_INT)
+        {
+            // too much deviation from mean, possible noise spike
+            weight_1.x = 0;
+            weight_1.y = 0;
+            weight_1.z = 0;
+        }               
+    }
+    // If out of range, it makes less sense to check outliers from current and prev values.
+    // So no else clause here.
+
+    gyro_prev.x = (gyro0.x * weight_0.x) + (gyro1.x * (weight_1.x));
+    gyro_prev.y = (gyro0.y * weight_0.y) + (gyro1.y * (weight_1.y));
+    gyro_prev.z = (gyro0.z * weight_0.z) + (gyro1.z * (weight_1.z));
+    return gyro_prev;
 }
 
 Vector imu_read_accel() {
