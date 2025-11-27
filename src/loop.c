@@ -77,6 +77,12 @@ static void title(char *label) {
     #endif
 }
 
+static void fw_info(int rate, float yaxis, float led) {
+    info("Poll rate: %dhz\n", rate);
+    info("Y-ratio: %.1f\n", yaxis);
+    info("LED brightness: %.2f\n", led);
+}
+
 static void set_wired() {
     info("LOOP: Wired\n");
     if (device_mode != WIRED) power_restart();
@@ -130,6 +136,11 @@ void loop_controller_init() {
     stdio_init_all();
     logging_init();
     title(LABEL_CONTROLLER);
+    fw_info(
+        CFG_TICK_FREQUENCY,
+        SENS_MULTIPLIER_Y,
+        CFG_LED_BRIGHTNESS
+    );
     config_init();
     tusb_init();
     bool usb = usb_wait_for_init(USB_WAIT_FOR_INIT_MS);
@@ -158,6 +169,11 @@ void loop_dongle_init() {
     stdio_init_all();
     logging_init();
     title(LABEL_DONGLE);
+    fw_info(
+        CFG_TICK_FREQUENCY,
+        SENS_MULTIPLIER_Y,
+        CFG_LED_BRIGHTNESS
+    );
     config_init();
     tusb_init();
     usb_wait_for_init(-1);  // Negative number = no timeout.
