@@ -199,9 +199,16 @@ typedef struct __packed _CtrlDaisy {
 
 typedef struct __packed _CtrlGyro {
     // Must be packed (58 bytes).
-    uint8_t mode;
-    uint8_t engage;
-    uint8_t _padding[56];
+    uint8_t mode;                       // Byte 0
+    uint8_t engage;                     // Byte 1
+    // Momentum settings
+    uint8_t momentum_enabled;           // Byte 2
+    uint8_t _reserved1;                 // Byte 3
+    uint8_t momentum_damping_h[4];      // Bytes 4-7 (float as bytes)
+    uint8_t momentum_damping_v[4];      // Bytes 8-11 (float as bytes)
+    uint8_t momentum_threshold[4];      // Bytes 12-15 (float as bytes)
+    // Padding to reach 58 bytes
+    uint8_t _padding[42];               // Bytes 16-57
 } CtrlGyro;
 
 typedef struct __packed _CtrlGyroAxis {

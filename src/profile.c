@@ -172,6 +172,21 @@ void Profile__load_from_config(Profile *self, CtrlProfile *profile) {
         ctrl_gyro_z.actions_neg,
         ctrl_gyro_z.actions_pos
     );
+    // Load gyro momentum settings from profile (convert from byte arrays to floats)
+    self->gyro.momentum_enabled = ctrl_gyro.momentum_enabled;
+    
+    // Check if momentum values are initialized (non-zero bytes), otherwise use defaults
+    float temp_float;
+    memcpy(&temp_float, ctrl_gyro.momentum_damping_h, 4);
+    self->gyro.momentum_damping_horizontal = (temp_float == 0.0f) ? 7.0f : temp_float;
+    
+    memcpy(&temp_float, ctrl_gyro.momentum_damping_v, 4);
+    self->gyro.momentum_damping_vertical = (temp_float == 0.0f) ? 7.0f : temp_float;
+    
+    memcpy(&temp_float, ctrl_gyro.momentum_threshold, 4);
+    self->gyro.momentum_threshold = (temp_float == 0.0f) ? 8.0f : temp_float;
+    
+
 }
 
 Profile Profile_ () {
