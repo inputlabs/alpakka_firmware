@@ -61,7 +61,7 @@ void ctrl_config_set(Ctrl_cfg_type key, uint8_t preset, uint8_t values[5]) {
     }
     else if (key == SENS_MOUSE) {
         // Scaled by 10 since the USB communication works with integers.
-        double values_fmt[] = {
+        float values_fmt[] = {
             values[0] / 10.0,
             values[1] / 10.0,
             values[2] / 10.0

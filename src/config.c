@@ -151,6 +151,18 @@ void config_write_init() {
         .offset_accel_1_x = 0,
         .offset_accel_1_y = 0,
         .offset_accel_1_z = 0,
+        .stddev_gyro_0_x = 1.0,
+        .stddev_gyro_0_y = 1.0,
+        .stddev_gyro_0_z = 1.0,
+        .stddev_gyro_1_x = 1.0,
+        .stddev_gyro_1_y = 1.0,
+        .stddev_gyro_1_z = 1.0,
+        .stddev_accel_0_x = 1.0,
+        .stddev_accel_0_y = 1.0,
+        .stddev_accel_0_z = 1.0,
+        .stddev_accel_1_x = 1.0,
+        .stddev_accel_1_y = 1.0,
+        .stddev_accel_1_z = 1.0,
         .log_level = 0,
         .log_mask = 0,
         .long_calibration = 0,
@@ -238,6 +250,26 @@ void config_print() {
         config_cache.offset_accel_1_y,
         config_cache.offset_accel_1_z
     );
+    info("  stddev_gyro_0  x=%.2f y=%.2f z=%.2f\n",
+        config_cache.stddev_gyro_0_x,
+        config_cache.stddev_gyro_0_y,
+        config_cache.stddev_gyro_0_z
+    );
+    info("  stddev_gyro_1  x=%.2f y=%.2f z=%.2f\n",
+        config_cache.stddev_gyro_1_x,
+        config_cache.stddev_gyro_1_y,
+        config_cache.stddev_gyro_1_z
+    );
+    info("  stddev_accel_0 x=%.2f y=%.2f z=%.2f\n",
+        config_cache.stddev_accel_0_x,
+        config_cache.stddev_accel_0_y,
+        config_cache.stddev_accel_0_z
+    );
+    info("  stddev_accel_1 x=%.2f y=%.2f z=%.2f\n",
+        config_cache.stddev_accel_1_x,
+        config_cache.stddev_accel_1_y,
+        config_cache.stddev_accel_1_z
+    );
 }
 
 void config_print_minimal() {
@@ -265,7 +297,7 @@ void config_set_thumbstick_offset(float lx, float ly, float rx, float ry) {
     config_cache_synced = false;
 }
 
-void config_set_gyro_offset(double ax, double ay, double az, double bx, double by, double bz) {
+void config_set_gyro_offset(float ax, float ay, float az, float bx, float by, float bz) {
     config_cache.offset_gyro_0_x = ax,
     config_cache.offset_gyro_0_y = ay,
     config_cache.offset_gyro_0_z = az,
@@ -275,13 +307,33 @@ void config_set_gyro_offset(double ax, double ay, double az, double bx, double b
     config_cache_synced = false;
 }
 
-void config_set_accel_offset(double ax, double ay, double az, double bx, double by, double bz) {
+void config_set_accel_offset(float ax, float ay, float az, float bx, float by, float bz) {
     config_cache.offset_accel_0_x = ax,
     config_cache.offset_accel_0_y = ay,
     config_cache.offset_accel_0_z = az,
     config_cache.offset_accel_1_x = bx,
     config_cache.offset_accel_1_y = by,
     config_cache.offset_accel_1_z = bz,
+    config_cache_synced = false;
+}
+
+void config_set_gyro_stddev(float ax, float ay, float az, float bx, float by, float bz) {
+    config_cache.stddev_gyro_0_x = ax,
+    config_cache.stddev_gyro_0_y = ay,
+    config_cache.stddev_gyro_0_z = az,
+    config_cache.stddev_gyro_1_x = bx,
+    config_cache.stddev_gyro_1_y = by,
+    config_cache.stddev_gyro_1_z = bz,
+    config_cache_synced = false;
+}
+
+void config_set_accel_stddev(float ax, float ay, float az, float bx, float by, float bz) {
+    config_cache.stddev_accel_0_x = ax,
+    config_cache.stddev_accel_0_y = ay,
+    config_cache.stddev_accel_0_z = az,
+    config_cache.stddev_accel_1_x = bx,
+    config_cache.stddev_accel_1_y = by,
+    config_cache.stddev_accel_1_z = bz,
     config_cache_synced = false;
 }
 
@@ -457,7 +509,7 @@ uint8_t config_get_touch_sens_value(uint8_t index) {
     return config_cache.sens_touch_values[index];
 }
 
-double config_get_mouse_sens_value(uint8_t index) {
+float config_get_mouse_sens_value(uint8_t index) {
     return config_cache.sens_mouse_values[index];
 }
 
@@ -473,7 +525,7 @@ void config_set_touch_sens_values(uint8_t* values) {
     config_cache_synced = false;
 }
 
-void config_set_mouse_sens_values(double* values) {
+void config_set_mouse_sens_values(float* values) {
     config_cache.sens_mouse_values[0] = values[0];
     config_cache.sens_mouse_values[1] = values[1];
     config_cache.sens_mouse_values[2] = values[2];

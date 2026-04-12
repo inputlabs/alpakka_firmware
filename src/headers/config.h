@@ -19,19 +19,18 @@
 #define NVM_PROFILE_SIZE 4096
 #define NVM_PROFILE_SLOTS 14
 
-#define NVM_CONFIG_VERSION        ((MAJOR * 1) + (MINOR * 1) + (PATCH * 0))
+#define NVM_CONFIG_VERSION        ((MAJOR * 1) + (MINOR * 2) + (PATCH * 0))
 #define NVM_HOME_PROFILE_VERSION  ((MAJOR * 1) + (MINOR * 1) + (PATCH * 0))
 #define NVM_PROFILE_VERSION       ((MAJOR * 1) + (MINOR * 0) + (PATCH * 0))
 
-#define CFG_LED_BRIGHTNESS 0.2
+#define CFG_LED_BRIGHTNESS 0.05
 
-#ifdef DEVICE_DONGLE
-    #define CFG_TICK_FREQUENCY 1000  // Hz.
-#else
-    #define CFG_TICK_FREQUENCY 250  // Hz.
-#endif
-
+#define CFG_TICK_FREQUENCY 500  // Hz.
+#define REFERENCE_TICK_FREQUENCY 250  // Hz. This used to be the default, it is used for backward compatibility.
 #define CFG_IMU_TICK_SAMPLES 128  // Multi-sampling per pooling cycle.
+
+#define CFG_IMU_DEADZONE 1.0 // Deadzone for the IMU in pixels per second
+#define CFG_IMU_DEADZONE_STRENGTH 0.5 // Strength of the deadzone, the amount of movement reduction near zero.
 
 #define CFG_TICK_INTERVAL_IN_MS  (1000 / CFG_TICK_FREQUENCY)
 #define CFG_TICK_INTERVAL_IN_US  (1000000 / CFG_TICK_FREQUENCY)
@@ -39,8 +38,8 @@
 #define NVM_SYNC_FREQUENCY  (CFG_TICK_FREQUENCY / 2)
 
 #define CFG_CALIBRATION_SAMPLES_THUMBSTICK 100000  // Samples.
-#define CFG_CALIBRATION_SAMPLES_GYRO 500000  // Samples.
-#define CFG_CALIBRATION_SAMPLES_ACCEL 100000  // Samples.
+#define CFG_CALIBRATION_SAMPLES_GYRO  50000  // Samples.
+#define CFG_CALIBRATION_SAMPLES_ACCEL 10000  // Samples.
 #define CFG_CALIBRATION_LONG_FACTOR 4
 #define CFG_CALIBRATION_PROGRESS_BAR 40
 
@@ -83,25 +82,37 @@ typedef struct __packed _Config {
     int8_t sens_touch;
     int8_t deadzone;
     int8_t vibration;
-    double sens_mouse_values[3];
+    float sens_mouse_values[3];
     int8_t sens_touch_values[5];
     float deadzone_values[3];
     float offset_ts_lx;
     float offset_ts_ly;
     float offset_ts_rx;
     float offset_ts_ry;
-    double offset_gyro_0_x;
-    double offset_gyro_0_y;
-    double offset_gyro_0_z;
-    double offset_gyro_1_x;
-    double offset_gyro_1_y;
-    double offset_gyro_1_z;
-    double offset_accel_0_x;
-    double offset_accel_0_y;
-    double offset_accel_0_z;
-    double offset_accel_1_x;
-    double offset_accel_1_y;
-    double offset_accel_1_z;
+    float offset_gyro_0_x;
+    float offset_gyro_0_y;
+    float offset_gyro_0_z;
+    float offset_gyro_1_x;
+    float offset_gyro_1_y;
+    float offset_gyro_1_z;
+    float offset_accel_0_x;
+    float offset_accel_0_y;
+    float offset_accel_0_z;
+    float offset_accel_1_x;
+    float offset_accel_1_y;
+    float offset_accel_1_z;
+    float stddev_gyro_0_x;
+    float stddev_gyro_0_y;
+    float stddev_gyro_0_z;
+    float stddev_gyro_1_x;
+    float stddev_gyro_1_y;
+    float stddev_gyro_1_z;
+    float stddev_accel_0_x;
+    float stddev_accel_0_y;
+    float stddev_accel_0_z;
+    float stddev_accel_1_x;
+    float stddev_accel_1_y;
+    float stddev_accel_1_z;
     int8_t offset_gyro_user_x;
     int8_t offset_gyro_user_y;
     int8_t offset_gyro_user_z;
@@ -121,8 +132,10 @@ Config* config_read();
 void config_delete();
 
 void config_set_thumbstick_offset(float lx, float ly, float rx, float ry);
-void config_set_gyro_offset(double ax, double ay, double az, double bx, double by, double bz);
-void config_set_accel_offset(double ax, double ay, double az, double bx, double by, double bz);
+void config_set_gyro_offset(float ax, float ay, float az, float bx, float by, float bz);
+void config_set_accel_offset(float ax, float ay, float az, float bx, float by, float bz);
+void config_set_gyro_stddev(float ax, float ay, float az, float bx, float by, float bz);
+void config_set_accel_stddev(float ax, float ay, float az, float bx, float by, float bz);
 uint8_t config_get_protocol();
 void config_tune_set_mode(uint8_t mode);
 void config_tune(bool direction);
@@ -146,11 +159,11 @@ void config_set_mouse_sens_preset(uint8_t preset, bool notify_webusb);
 void config_set_deadzone_preset(uint8_t preset, bool notify_webusb);
 
 uint8_t config_get_touch_sens_value(uint8_t index);
-double config_get_mouse_sens_value(uint8_t index);
+float config_get_mouse_sens_value(uint8_t index);
 float config_get_deadzone_value(uint8_t index);
 
 void config_set_touch_sens_values(uint8_t* values);
-void config_set_mouse_sens_values(double* values);
+void config_set_mouse_sens_values(float* values);
 void config_set_deadzone_values(float* values);
 
 void config_set_log_level(LogLevel log_level);

@@ -4,9 +4,9 @@
 #pragma once
 
 typedef struct vector_struct {
-    double x;
-    double y;
-    double z;
+    float x;
+    float y;
+    float z;
 } Vector;
 
 typedef struct vector4_struct {
