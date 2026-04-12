@@ -21,6 +21,8 @@ float offset_rx = 0;
 float offset_ry = 0;
 float config_deadzone = 0;
 uint8_t thumbstick_smooth_samples = 0;
+bool push_toggle_ready = false;
+bool push_toggle_engaged = false;
 
 // Daisywheel.
 bool daisywheel_used = false;
@@ -156,22 +158,28 @@ void thumbstick_from_ctrl(Thumbstick *thumbstick, CtrlProfile *ctrl, uint8_t ind
     const uint8_t SECTION_STICK_OUTER = index ? SECTION_RSTICK_OUTER : SECTION_LSTICK_OUTER;
     const uint8_t PIN_PUSH = index ? PIN_R3 : PIN_L3;
 
-    CtrlThumbstick ctrl_thumbtick = ctrl->sections[SECTION_STICK_SETTINGS].thumbstick;
+    CtrlThumbstick ctrl_thumbstick = ctrl->sections[SECTION_STICK_SETTINGS].thumbstick;
     *thumbstick = Thumbstick_(
         index,
         index==0 ? PIN_THUMBSTICK_LX : PIN_THUMBSTICK_RX,
         index==0 ? PIN_THUMBSTICK_LY : PIN_THUMBSTICK_RY,
         index==0 ? false : true,
         index==0 ? false : false,
-        ctrl_thumbtick.mode,
-        ctrl_thumbtick.distance_mode,
-        ctrl_thumbtick.deadzone_override,
-        ctrl_thumbtick.deadzone / 100.0,
-        ctrl_thumbtick.antideadzone / 100.0,
-        (int8_t)ctrl_thumbtick.overlap / 100.0,
-        ctrl_thumbtick.saturation > 0 ? ctrl_thumbtick.saturation / 100.0 : 1.0
+        ctrl_thumbstick.mode,
+        ctrl_thumbstick.distance_mode,
+        ctrl_thumbstick.deadzone_override,
+        ctrl_thumbstick.deadzone / 100.0,
+        ctrl_thumbstick.antideadzone / 100.0,
+        (int8_t)ctrl_thumbstick.overlap / 100.0,
+        ctrl_thumbstick.saturation > 0 ? ctrl_thumbstick.saturation / 100.0 : 1.0,
+        ctrl_thumbstick.outer_threshold > 0 ? ctrl_thumbstick.saturation / 100.0 : 0.8,
+        (bool)ctrl_thumbstick.push_auto_toggle,
+        ctrl_thumbstick.sens_mouse,
+        ctrl_thumbstick.sens_scroll,
+        ctrl_thumbstick.sens_xy_ratio  / 100.0,
+        ctrl_thumbstick.accel_curve > 0 ? ctrl_thumbstick.accel_curve / 100.0 : 1.0
     );
-    if (ctrl_thumbtick.mode == THUMBSTICK_MODE_4DIR) {
+    if (ctrl_thumbstick.mode == THUMBSTICK_MODE_4DIR) {
         thumbstick->config_4dir(
             thumbstick,
             Button_from_ctrl(PIN_VIRTUAL, ctrl->sections[SECTION_STICK_LEFT]),
@@ -183,7 +191,7 @@ void thumbstick_from_ctrl(Thumbstick *thumbstick, CtrlProfile *ctrl, uint8_t ind
             Button_from_ctrl(PIN_VIRTUAL, ctrl->sections[SECTION_STICK_OUTER])
         );
     }
-    if (ctrl_thumbtick.mode == THUMBSTICK_MODE_8DIR) {
+    if (ctrl_thumbstick.mode == THUMBSTICK_MODE_8DIR) {
         thumbstick->config_8dir(
             thumbstick,
             Button_from_ctrl(PIN_VIRTUAL,   ctrl->sections[SECTION_STICK_LEFT]),
@@ -197,7 +205,7 @@ void thumbstick_from_ctrl(Thumbstick *thumbstick, CtrlProfile *ctrl, uint8_t ind
             Button_from_ctrl(PIN_PUSH,      ctrl->sections[SECTION_STICK_PUSH])
         );
     }
-    if (ctrl_thumbtick.mode == THUMBSTICK_MODE_ALPHANUMERIC) {
+    if (ctrl_thumbstick.mode == THUMBSTICK_MODE_ALPHANUMERIC) {
         // Iterate sections.
         for(uint8_t s=0; s<4; s++) {
             // Iterate groups.
@@ -276,7 +284,7 @@ void Thumbstick__config_8dir(
 void Thumbstick__report_4dir_axial(Thumbstick *self, ThumbstickPosition pos) {
     // Evaluate virtual buttons.
     if (pos.radius > THUMBSTICK_ADDITIONAL_DEADZONE_FOR_BUTTONS) {
-        if (pos.radius < THUMBSTICK_INNER_RADIUS) self->inner.virtual_press = true;
+        if (pos.radius < self->outer_threshold) self->inner.virtual_press = true;
         else self->outer.virtual_press = true;
         uint8_t direction = thumbstick_get_direction(pos.angle, self->overlap);
         if (direction & DIR4_MASK_LEFT)  self->left.virtual_press = true;
@@ -300,6 +308,10 @@ void Thumbstick__report_4dir_axial(Thumbstick *self, ThumbstickPosition pos) {
     // Report inner and outer.
     self->inner.report(&self->inner);
     self->outer.report(&self->outer);
+    // Push auto-toggle.
+    if (self->push_auto_toggle) {
+        self->report_push_auto_toggle(self, pos);
+    }
     // Report push.
     self->push.report(&self->push);
 }
@@ -338,6 +350,53 @@ void Thumbstick__report_8dir(Thumbstick *self, ThumbstickPosition pos) {
     self->dr.report(&self->dr);
     // Report push.
     self->push.report(&self->push);
+}
+
+void Thumbstick__report_push_auto_toggle(Thumbstick *self, ThumbstickPosition pos) {
+    /*
+    CENTER -> EDGE -+-> PUSH (ready) -> RELEASE (^engaged) -+-> CENTER (disengaged)
+                    ^                                       |
+                    |             [push again]              |
+                    +---------------------------------------+
+
+    "Ready" in this context means:
+    "button is ready to be toggled at next button release".
+    */
+    bool is_pressed = self->push.is_pressed(&self->push);
+    // Conditions.
+    bool condition_ready = (
+        !push_toggle_ready &&
+        pos.radius >= self->outer_threshold &&
+        is_pressed
+    );
+    bool condition_engage = (
+        push_toggle_ready &&
+        !push_toggle_engaged &&
+        !is_pressed
+    );
+    bool condition_disengage_press = (
+        push_toggle_ready &&
+        push_toggle_engaged &&
+        !is_pressed
+    );
+    bool condition_disengage_center = (
+        push_toggle_engaged &&
+        pos.radius < self->outer_threshold &&
+        !is_pressed
+    );
+    // Logic.
+    if (condition_ready) push_toggle_ready = true;
+    if (condition_engage) {
+        push_toggle_engaged = true;
+        push_toggle_ready = false;
+    }
+    if (condition_disengage_press) {
+        push_toggle_engaged = false;
+        push_toggle_ready = false;
+    }
+    if (condition_disengage_center) push_toggle_engaged = false;
+    // Fake press.
+    if (push_toggle_engaged) self->push.virtual_press = true;
 }
 
 void Thumbstick__config_glyphstick(Thumbstick *self, Actions actions, Glyph glyph) {
@@ -512,7 +571,13 @@ Thumbstick Thumbstick_ (
     float deadzone,
     float antideadzone,
     float overlap,
-    float saturation
+    float saturation,
+    float outer_threshold,
+    bool push_auto_toggle,
+    uint8_t sens_mouse,
+    uint8_t sens_scroll,
+    float sens_xy_ratio,
+    float accel_curve
 ) {
     Thumbstick thumbstick;
     // Methods.
@@ -520,6 +585,7 @@ Thumbstick Thumbstick_ (
     thumbstick.report_4dir_axial = Thumbstick__report_4dir_axial;
     thumbstick.report_4dir_radial = Thumbstick__report_4dir_radial;
     thumbstick.report_8dir = Thumbstick__report_8dir;
+    thumbstick.report_push_auto_toggle = Thumbstick__report_push_auto_toggle;
     thumbstick.report_alphanumeric = Thumbstick__report_alphanumeric;
     thumbstick.reset = Thumbstick__reset;
     thumbstick.config_4dir = Thumbstick__config_4dir;
@@ -542,5 +608,11 @@ Thumbstick Thumbstick_ (
     thumbstick.overlap = overlap;
     thumbstick.saturation = saturation;
     thumbstick.glyphstick_index = 0;
+    thumbstick.outer_threshold = outer_threshold;
+    thumbstick.push_auto_toggle = push_auto_toggle;
+    thumbstick.sens_mouse = sens_mouse;
+    thumbstick.sens_scroll = sens_scroll;
+    thumbstick.sens_xy_ratio = sens_xy_ratio;
+    thumbstick.accel_curve = accel_curve;
     return thumbstick;
 }

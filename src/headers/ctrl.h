@@ -164,7 +164,13 @@ typedef struct __packed _CtrlThumbstick {
     uint8_t deadzone_override;
     uint8_t antideadzone;
     uint8_t saturation;
-    uint8_t _padding[51];
+    uint8_t outer_threshold;
+    uint8_t push_auto_toggle;
+    uint8_t sens_mouse;
+    uint8_t sens_scroll;
+    uint8_t sens_xy_ratio;
+    uint8_t accel_curve;
+    uint8_t _padding[45];
 } CtrlThumbstick;
 
 typedef struct __packed _CtrlGlyph {

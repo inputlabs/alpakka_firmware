@@ -6,7 +6,6 @@
 #include "glyph.h"
 
 #define THUMBSTICK_BASELINE_SATURATION 1.65
-#define THUMBSTICK_INNER_RADIUS 0.75
 #define THUMBSTICK_ADDITIONAL_DEADZONE_FOR_BUTTONS 0.05
 
 typedef enum ThumbstickMode_enum {
@@ -61,6 +60,7 @@ struct Thumbstick_struct {
     void (*report_4dir_axial) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_4dir_radial) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_8dir) (Thumbstick *self, ThumbstickPosition pos);
+    void (*report_push_auto_toggle) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_alphanumeric) (Thumbstick *self, ThumbstickPosition pos);
     void (*report_glyphstick) (Thumbstick *self, Glyph input);
     void (*report_daisywheel) (Thumbstick *self, Dir8 dir);
@@ -81,6 +81,12 @@ struct Thumbstick_struct {
     float antideadzone;
     float overlap;
     float saturation;
+    float outer_threshold;
+    bool push_auto_toggle;
+    uint8_t sens_mouse;
+    uint8_t sens_scroll;
+    float sens_xy_ratio;
+    float accel_curve;
     Button left;
     Button right;
     Button up;
@@ -110,7 +116,13 @@ Thumbstick Thumbstick_ (
     float deadzone,
     float antideadzone,
     float overlap,
-    float saturation
+    float saturation,
+    float outer_threshold,
+    bool push_auto_toggle,
+    uint8_t sens_mouse,
+    uint8_t sens_scroll,
+    float sens_xy_ratio,
+    float accel_curve
 );
 
 void thumbstick_init();

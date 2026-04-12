@@ -13,17 +13,23 @@
 #include "common.h"
 
 bool Button__is_pressed(Button *self) {
+    /*
+    Method that determines if a button is currently pressed.
+    Real buttons on a GPIO -> Physical or virtual press.
+    Real buttons on a IO expander -> Physical or virtual press.
+    Virtual buttons -> Virtual press only.
+    ("Virtual press" means the button press can be emulated programatically).
+    */
     if (self->pin == PIN_NONE) return false;
-    // Virtual buttons.
-    else if (self->pin == PIN_VIRTUAL) {
-        if (self->virtual_press) {
-            self->virtual_press = false;
-            return true;
-        } else {
-            return false;
-        }
+    // Virtual press.
+    else if (self->virtual_press) {
+        self->virtual_press = false;
+        return true;  // Both real and virtual buttons receive an emulated press.
     }
-    // Buttons connected directly to Pico.
+    else if (self->pin == PIN_VIRTUAL && !self->virtual_press) {
+        return false;  // Virtual buttons don't evaluate further.
+    }
+    // Buttons connected directly to RP GPIO.
     else if (is_between(self->pin, PIN_GROUP_BOARD, PIN_GROUP_BOARD_END)) {
         return !gpio_get(self->pin);
     }
