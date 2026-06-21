@@ -17,6 +17,8 @@ install:
 clean:
 	rm -rf build
 	rm -f src/headers/version.h
+	rm -rf zig/zig-out
+	rm -rf zig/.zig-cache
 
 load:
 	sh -e scripts/load.sh

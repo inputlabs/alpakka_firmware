@@ -3,14 +3,10 @@
 
 #include <math.h>
 #include "vector.h"
+#include "zig_abi.h"
 
 Vector vector_normalize(Vector v) {
-    float mag = (v.x*v.x) + (v.y*v.y) + (v.z*v.z);
-    if (fabs(mag - 1.0) > 0.0001) {  // Tolerance.
-        mag = sqrt(mag);
-        return (Vector){v.x/mag, v.y/mag, v.z/mag};
-    }
-    return v;
+    return zig_vector_normalize(v);
 }
 
 Vector vector_add(Vector a, Vector b) {
