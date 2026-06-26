@@ -110,7 +110,7 @@ void Thumbstick__report_alphanumeric(Thumbstick *self, ThumbstickPosition pos) {
         else if (is_between(pos.angle, -CUT8*3, -CUT8*1)) dir8 = DIR8_UP_LEFT;
         else if (fabs(pos.angle) >= CUT8*7)               dir8 = DIR8_DOWN;
         // Record direction 4.
-        if (input_index == 0 || dir4 != input[input_index-1]) {
+        if (input_index < 5 && (input_index == 0 || dir4 != input[input_index-1])) {
             input[input_index] = dir4;
             input_index += 1;
         }
