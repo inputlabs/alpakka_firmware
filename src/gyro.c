@@ -74,14 +74,13 @@ void gyro_absolute_output(float value, uint8_t *actions, bool *pressed) {
         } else {
             if (!(*pressed) && value >= 0.5) {
                 hid_press(action);
-                if (i==3) *pressed = true;
             }
             else if (*pressed && value < 0.5) {
                 hid_release(action);
-                if (i==3) *pressed = false;
             }
         }
     }
+    *pressed = (value >= 0.5);
 }
 
 void gyro_incremental_output(double value, uint8_t *actions) {
