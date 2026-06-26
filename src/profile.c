@@ -53,8 +53,8 @@ void Profile__report(Profile *self) {
     self->dpad_down.report(&self->dpad_down);
     self->select_1.report(&self->select_1);
     self->select_2.report(&self->select_2);
-    self->start_2.report(&self->start_1);
-    self->start_1.report(&self->start_2);
+    self->start_1.report(&self->start_1);
+    self->start_2.report(&self->start_2);
     self->l1.report(&self->l1);
     self->r1.report(&self->r1);
     self->l2.report(&self->l2);
@@ -82,8 +82,8 @@ void Profile__reset(Profile *self) {
     self->dpad_down.reset(&self->dpad_down);
     self->select_1.reset(&self->select_1);
     self->select_2.reset(&self->select_2);
-    self->start_2.reset(&self->start_1);
-    self->start_1.reset(&self->start_2);
+    self->start_1.reset(&self->start_1);
+    self->start_2.reset(&self->start_2);
     self->l1.reset(&self->l1);
     self->l2.reset(&self->l2);
     self->r1.reset(&self->r1);
