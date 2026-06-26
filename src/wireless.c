@@ -152,6 +152,8 @@ void wireless_uart_commands() {
             }
             else if (command==AT_USB_PROTOCOL && i==AT_HEADER_LEN+AT_USB_PROTOCOL_LEN) {
                 config_set_protocol(payload[0]);
+                i = 0;
+                command = 0;
             }
         }
     }
