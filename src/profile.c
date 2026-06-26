@@ -18,7 +18,7 @@
 #include "wireless.h"
 
 Profile profiles[PROFILE_SLOTS];
-uint8_t profile_active_index = -1;
+int8_t profile_active_index = -1;
 Protocol profile_protocol_was_changed = PROTOCOL_UNDEFINED;
 bool profile_reported_inputs = false;
 
