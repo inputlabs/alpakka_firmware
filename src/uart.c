@@ -115,7 +115,7 @@ uint8_t uart_rx_buffer_peekc() {
 
 void uart_rx_buffer_get(uint8_t *dest, uint16_t len) {
     for(uint8_t i=0; i<len; i++) {
-        dest[i] = rx_buffer[read_pos + i];
+        dest[i] = rx_buffer[(read_pos + i) % UART_RX_BUFFER_SIZE];
     }
     uart_rx_buffer_consume(len);
 }
@@ -123,7 +123,7 @@ void uart_rx_buffer_get(uint8_t *dest, uint16_t len) {
 bool uart_rx_buffer_match(uint8_t *pattern, uint8_t len) {
     if (len > uart_rx_buffer_available()) return false;
     for(uint8_t i=0; i<len; i++) {
-        if (rx_buffer[read_pos+i] != pattern[i]) return false;
+        if (rx_buffer[(read_pos+i) % UART_RX_BUFFER_SIZE] != pattern[i]) return false;
     }
     return true;
 }
