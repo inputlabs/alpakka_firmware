@@ -8,6 +8,10 @@
 - [Alpakka 3D-print](https://github.com/inputlabs/alpakka_case).
 - [Input Labs Roadmap](https://github.com/orgs/inputlabs/projects/2/views/2).
 
+## Documentation
+- **API Documentation**: Generated using Doxygen. Run `make docs` to generate the latest documentation, then open `docs/doxygen/html/index.html` in your browser.
+- **Development Guide**: See [docs/README.md](docs/README.md) for detailed documentation generation instructions.
+
 ## Supported developer operative systems
 - GNU/Linux (and MacOS) - See [Development in Linux](https://inputlabs.io/devices/alpakka/manual/dev_unix).
 - Windows - See [Development in Windows](https://inputlabs.io/devices/alpakka/manual/dev_windows).

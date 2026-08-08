@@ -18,6 +18,14 @@ clean:
 	rm -rf build
 	rm -f src/headers/version.h
 
+.PHONY: docs docs-clean
+
+docs-clean:
+	rm -rf docs/doxygen
+
+docs:
+	./scripts/generate_docs.sh
+
 load:
 	sh -e scripts/load.sh
 

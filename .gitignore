@@ -3,3 +3,7 @@ deps*/
 .vscode
 **/.DS_Store
 src/headers/version.h
+
+# Doxygen generated documentation
+docs/doxygen/
+# Note: Doxyfile is a configuration file and should be tracked

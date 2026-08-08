@@ -1,0 +1,73 @@
+/**
+ * @mainpage Alpakka Firmware Documentation
+ * 
+ * @section intro_sec Introduction
+ * 
+ * This is the firmware for the Alpakka gaming controller. The firmware is written in C and runs on a Raspberry Pi Pico microcontroller.
+ * 
+ * @section features_sec Features
+ * 
+ * The firmware provides the following features:
+ * - Multiple input profiles (FPS, Racing, RTS, etc.)
+ * - Gyroscope and accelerometer support
+ * - Wireless connectivity
+ * - USB HID device emulation
+ * - XInput compatibility
+ * - WebUSB interface
+ * - LED control and feedback
+ * - Touch input support
+ * - Rotary encoder support
+ * - Button and thumbstick input processing
+ * 
+ * @section arch_sec Architecture
+ * 
+ * The firmware is organized into several modules:
+ * - @ref hid "HID Interface" - USB Human Interface Device implementation
+ * - @ref config "Configuration" - Device configuration and profile management
+ * - @ref profiles "Profiles" - Input mapping profiles for different game types
+ * - @ref imu "IMU" - Inertial Measurement Unit (gyroscope/accelerometer) handling
+ * - @ref wireless "Wireless" - Wireless communication protocols
+ * - @ref led "LED Control" - RGB LED control and effects
+ * - @ref touch "Touch Input" - Touch sensor input processing
+ * - @ref button "Button Input" - Button state management
+ * - @ref thumbstick "Thumbstick" - Analog stick input processing
+ * - @ref rotary "Rotary Encoder" - Rotary encoder input handling
+ * - @ref power "Power Management" - Power state and battery management
+ * - @ref logging "Logging" - Debug and diagnostic logging
+ * 
+ * @section build_sec Building
+ * 
+ * To build the firmware:
+ * ```bash
+ * mkdir build
+ * cd build
+ * cmake ..
+ * make
+ * ```
+ * 
+ * To generate documentation:
+ * ```bash
+ * make docs
+ * ```
+ * 
+ * @section usage_sec Usage
+ * 
+ * The firmware automatically detects the connected device type and configures itself accordingly.
+ * Different device variants (Alpakka v0, v1, Dongle, Llama) have different capabilities and pin configurations.
+ * 
+ * @section dev_sec Development
+ * 
+ * The source code is organized in the following structure:
+ * - `src/` - Main source files
+ * - `src/headers/` - Header files
+ * - `src/profiles/` - Input profile implementations
+ * - `docs/` - Documentation files
+ * 
+ * @section license_sec License
+ * 
+ * This project is licensed under the GPL-2.0-only license.
+ * 
+ * @section contact_sec Contact
+ * 
+ * For more information about the Alpakka project, visit the project repository or contact the development team.
+ */ 
