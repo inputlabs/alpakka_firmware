@@ -34,11 +34,18 @@ void imu_channel_select() {
     IMU1 = config->swap_gyros ? PIN_SPI_CS0 : PIN_SPI_CS1;
 }
 
-void imu_init_single(uint8_t cs, uint8_t gyro_conf) {
-    uint8_t id = bus_spi_read_one(cs, IMU_READ | IMU_WHO_AM_I);
+void imu_init_single(uint8_t cs, bool short_range) {
     bus_spi_write(cs, IMU_CTRL1_XL, IMU_CTRL1_XL_2G);
     bus_spi_write(cs, IMU_CTRL8_XL, IMU_CTRL8_XL_LP);
-    bus_spi_write(cs, IMU_CTRL2_G, gyro_conf);
+    #if defined DEVICE_ALPAKKA
+        // LSM6DSR.
+        bus_spi_write(cs, IMU_CTRL2_G, short_range ? IMU_CTRL2_G_125 : IMU_CTRL2_G_500);
+    #elif defined DEVICE_KAPYBARA
+        // LSM6DSV.
+        bus_spi_write(cs, IMU_CTRL6_G, short_range ? IMU_CTRL6_G_125 : IMU_CTRL6_G_500);
+        bus_spi_write(cs, IMU_CTRL2_G, IMU_CTRL2_G_ODR);
+    #endif
+    uint8_t id = bus_spi_read_one(cs, IMU_READ | IMU_WHO_AM_I);
     uint8_t xl = bus_spi_read_one(cs, IMU_READ | IMU_CTRL1_XL);
     uint8_t g = bus_spi_read_one(cs, IMU_READ | IMU_CTRL2_G);
     info("  IMU cs=%i id=0x%02x xl=0b%08i g=0b%08i\n", cs, id, bin(xl), bin(g));
@@ -52,8 +59,8 @@ void imu_init() {
     info("INIT: IMU\n");
     imu_channel_select();
     imu_load_calibration();
-    imu_init_single(IMU0, IMU_CTRL2_G_500);
-    imu_init_single(IMU1, IMU_CTRL2_G_125);
+    imu_init_single(IMU0, false);
+    imu_init_single(IMU1, true);
 }
 
 void imu_power_off_single(uint8_t cs) {
@@ -72,23 +79,36 @@ void imu_power_off() {
 Vector imu_read_gyro_bits(uint8_t cs) {
     uint8_t buf[6];
     bus_spi_read(cs, IMU_READ | IMU_OUTX_L_G, buf, 6);
-    int16_t y =  (((int16_t)buf[1] << 8) | (int16_t)buf[0]);
-    int16_t z =  (((int16_t)buf[3] << 8) | (int16_t)buf[2]);
-    int16_t x = -(((int16_t)buf[5] << 8) | (int16_t)buf[4]);
+    // Pitch/yaw/roll according to default orientation in docs.
+    int16_t pch = (((int16_t)buf[1] << 8) | (int16_t)buf[0]);
+    int16_t rol = (((int16_t)buf[3] << 8) | (int16_t)buf[2]);
+    int16_t yaw = (((int16_t)buf[5] << 8) | (int16_t)buf[4]);
     double offset_x = (cs==PIN_SPI_CS0) ? offset_gyro_0_x : offset_gyro_1_x;
     double offset_y = (cs==PIN_SPI_CS0) ? offset_gyro_0_y : offset_gyro_1_y;
     double offset_z = (cs==PIN_SPI_CS0) ? offset_gyro_0_z : offset_gyro_1_z;
-    #ifdef DEVICE_ALPAKKA_V0
+    #if defined DEVICE_ALPAKKA_V0
         return (Vector){
-            (double)x - offset_x,
-            (double)y - offset_y,
-            (double)z - offset_z,
+            (double)-yaw - offset_x,
+            (double) pch - offset_y,
+            (double)-rol - offset_z,
         };
-    #else /* DEVICE_ALPAKKA_V1 */
+    #elif defined DEVICE_ALPAKKA_V1
         return (Vector){
-            (double)x - offset_x,
-            -(double)y - offset_y,
-            -(double)z - offset_z,
+            (double)-yaw - offset_x,
+            (double)-pch - offset_y,
+            (double) rol - offset_z,
+        };
+    #elif defined DEVICE_KAPYBARA
+        return (cs==PIN_SPI_CS0) ?  // Each Kapybara IMU is rotated differently.
+        (Vector){
+            (double) yaw - offset_x,  // Backside vertical.
+            (double) rol - offset_y,
+            (double)-pch - offset_z,
+        } :
+        (Vector){
+            (double) yaw - offset_x,  // Backside horizontal.
+            (double)-pch - offset_y,
+            (double)-rol - offset_z,
         };
     #endif
 }
@@ -96,23 +116,36 @@ Vector imu_read_gyro_bits(uint8_t cs) {
 Vector imu_read_accel_bits(uint8_t cs) {
     uint8_t buf[6];
     bus_spi_read(cs, IMU_READ | IMU_OUTX_L_XL, buf, 6);
+    // X/Y/Z according to default orientation in docs.
     int16_t x = (((int16_t)buf[1] << 8) | (int16_t)buf[0]);
     int16_t y = (((int16_t)buf[3] << 8) | (int16_t)buf[2]);
     int16_t z = (((int16_t)buf[5] << 8) | (int16_t)buf[4]);
     double offset_x = (cs==PIN_SPI_CS0) ? offset_accel_0_x : offset_accel_1_x;
     double offset_y = (cs==PIN_SPI_CS0) ? offset_accel_0_y : offset_accel_1_y;
     double offset_z = (cs==PIN_SPI_CS0) ? offset_accel_0_z : offset_accel_1_z;
-    #ifdef DEVICE_ALPAKKA_V0
+    #if defined DEVICE_ALPAKKA_V0
         return (Vector){
-            (double)x - offset_x,
-            (double)y - offset_y,
-            (double)z - offset_z,
+            (double) x - offset_x,
+            (double) y - offset_y,
+            (double) z - offset_z,
         };
-    #else /* DEVICE_ALPAKKA_V1 */
+    #elif defined DEVICE_ALPAKKA_V1
         return (Vector){
-            -(double)x - offset_x,
-            -(double)y - offset_y,
-            (double)z - offset_z,
+            (double)-x - offset_x,
+            (double)-y - offset_y,
+            (double) z - offset_z,
+        };
+    #elif defined DEVICE_KAPYBARA
+        return (cs==PIN_SPI_CS0) ?  // Each Kapybara IMU is rotated differently.
+        (Vector){
+            (double)-y - offset_x,  // Backside vertical.
+            (double)-x - offset_y,
+            (double)-z - offset_z,
+        } :
+        (Vector){
+            (double) x - offset_x,  // Backside horizontal.
+            (double)-y - offset_y,
+            (double)-z - offset_z,
         };
     #endif
 }

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 # Copyright (C) 2022, Input Labs Oy.
 
-UF2=build/alpakka.uf2
+UF2=build/firmware.uf2
 DRIVE_LINUX="/media/${USER}/RPI-RP2"
 DRIVE_MACOS="/Volumes/RPI-RP2"
 DRIVE_WSL="/mnt/RPI-RP2"

@@ -235,7 +235,7 @@ void led_init() {
     gpio_init(PIN_LED_BOARD);
     gpio_set_dir(PIN_LED_BOARD, GPIO_OUT);
     gpio_put(PIN_LED_BOARD, false);
-    #ifndef DEVICE_DONGLE  // Any controller.
+    #ifdef DEVICE_IS_CONTROLLER
         // Front LEDs.
         led_init_each(PIN_LED_UP);
         led_init_each(PIN_LED_RIGHT);

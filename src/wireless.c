@@ -126,7 +126,7 @@ void wireless_uart_commands() {
                 command = 0;
             }
             else if (command==AT_BATTERY && i==AT_HEADER_LEN+AT_BATTERY_LEN) {
-                #ifdef DEVICE_ALPAKKA_V1
+                #ifdef DEVICE_IS_WIRELESS_CONTROLLER
                     // Convert to 32 bit.
                     uint32_t battery_level = 0;
                     memcpy(&battery_level, payload, 4);

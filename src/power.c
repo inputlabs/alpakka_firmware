@@ -32,7 +32,7 @@ void power_restart() {
 }
 
 void power_bootsel() {
-    #ifdef DEVICE_IS_ALPAKKA
+    #ifdef DEVICE_IS_WIRELESS_CONTROLLER
         if (loop_get_device_mode() == WIRELESS) {
             warn("POWER: Unable to go into bootsel while wireless\n");
             return;
