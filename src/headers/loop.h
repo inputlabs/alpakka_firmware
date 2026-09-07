@@ -5,12 +5,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define LABEL_CONTROLLER "Alpakka controller"
-#define LABEL_DONGLE     "Wireless dongle   "
+#ifdef DEVICE_ALPAKKA
+    #define LABEL_TITLE "Alpakka controller "
+#elif DEVICE_KAPYBARA
+    #define LABEL_TITLE "Kapybara controller"
+#elif DEVICE_DONGLE
+    #define LABEL_TITLE "Wireless dongle    "
+#endif
 #define USB_WAIT_FOR_INIT_MS 1000  // 1 second.
 #define USB_DONGLE_CHECK_US 2000000  // 2 seconds.
 
-#if defined DEVICE_ALPAKKA_V1
+#if defined DEVICE_IS_WIRELESS_CONTROLLER
     #define REPORT_TIMEOUT_US 500000  // 0.5 seconds.
 #else
     #define REPORT_TIMEOUT_US 10000000  // 10 seconds.

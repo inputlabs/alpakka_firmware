@@ -108,7 +108,7 @@ void Gyro__report_absolute(Gyro *self) {
     static float sens = -BIT_18 * M_PI;
     // Rotate world space orientation.
     Vector4 rx = quaternion(world_right, gyro.y / sens);
-    Vector4 ry = quaternion(world_fw, gyro.z / sens);
+    Vector4 ry = quaternion(world_fw, -gyro.z / sens);
     Vector4 rz = quaternion(world_top, gyro.x / sens);
     static uint8_t i = 0;
     Vector4 r;

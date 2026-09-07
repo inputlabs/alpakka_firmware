@@ -4,7 +4,8 @@
 #pragma once
 #include "vector.h"
 
-// LSM6DSR
+// LSM6DSR & LSM6DSV
+#define IMU_READ 0b10000000  // Read byte.
 #define IMU_WHO_AM_I 0x0f  // Identifier address.
 #define IMU_CTRL1_XL 0x10  // Accelerometer config address.
 #define IMU_CTRL2_G 0x11  // Gyroscope config address.
@@ -17,13 +18,22 @@
 #define IMU_OUTY_L_XL 0x30  // Accelerometer read Y address.
 #define IMU_OUTZ_L_XL 0x2A  // Accelerometer read Z address.
 
-#define IMU_READ 0b10000000  // Read byte.
 #define IMU_CTRL1_XL_OFF 0b00000000  // Accelerometer value power off.
 #define IMU_CTRL1_XL_2G  0b10100010  // Accelerometer value for 2G range.
 #define IMU_CTRL8_XL_LP  0b00000000  // Accelerometer value for low pass filter.
 #define IMU_CTRL2_G_OFF  0b00000000  // Gyroscope value power off.
-#define IMU_CTRL2_G_125  0b10100010  // Gyroscope value for 125 dps.
-#define IMU_CTRL2_G_500  0b10100100  // Gyroscope value for 500 dps.
+
+#if defined DEVICE_ALPAKKA
+    // LSM6DSR.
+    #define IMU_CTRL2_G_125  0b10100010  // Gyroscope value for 125 dps.
+    #define IMU_CTRL2_G_500  0b10100100  // Gyroscope value for 500 dps.
+#elif defined DEVICE_KAPYBARA
+    // LSM6DSV.
+    #define IMU_CTRL6_G 0x15  // Gyroscope DPS address.
+    #define IMU_CTRL6_G_125  0b00000000  // Gyroscope value for 125 dps.
+    #define IMU_CTRL6_G_500  0b00000010  // Gyroscope value for 500 dps.
+    #define IMU_CTRL2_G_ODR  0b00001100  // High-performance 7.68 KHz.
+#endif
 
 #define GYRO_USER_OFFSET_FACTOR 1.5
 

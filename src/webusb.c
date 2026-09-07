@@ -60,7 +60,7 @@ bool webusb_transfer_wired(Ctrl ctrl) {
 }
 
 bool webusb_transfer(Ctrl ctrl) {
-    #if defined DEVICE_IS_ALPAKKA
+    #if defined DEVICE_IS_CONTROLLER
         if (loop_get_device_mode() == WIRED) {
             return webusb_transfer_wired(ctrl);
         }

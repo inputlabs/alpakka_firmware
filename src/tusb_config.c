@@ -17,6 +17,9 @@ static const char *const descriptor_string[] = {
     #elif defined DEVICE_ALPAKKA_V1
         STRING_PRODUCT_ALPAKKA,
         STRING_VERSION_ALPAKKA_V1,
+    #elif defined DEVICE_KAPYBARA
+        STRING_PRODUCT_KAPYBARA,
+        STRING_VERSION_KAPYBARA_V1,
     #elif defined DEVICE_DONGLE
         STRING_PRODUCT_DONGLE,
         STRING_VERSION_DONGLE_V1,
@@ -55,8 +58,10 @@ uint8_t const *tud_descriptor_device_cb() {
     static tusb_desc_device_t descriptor_device = {DESCRIPTOR_DEVICE};
     if (config_get_protocol() == PROTOCOL_XINPUT_WIN) {
         descriptor_device.idVendor = USB_WIN_VENDOR;
-        #ifdef DEVICE_IS_ALPAKKA
+        #if defined DEVICE_ALPAKKA
             descriptor_device.idProduct = USB_WIN_PRODUCT_ALPAKKA;
+        #elif defined DEVICE_KAPYBARA
+            descriptor_device.idProduct = USB_WIN_PRODUCT_KAPYBARA;
         #elif defined DEVICE_DONGLE
             descriptor_device.idProduct = USB_WIN_PRODUCT_DONGLE;
         #endif
@@ -67,8 +72,10 @@ uint8_t const *tud_descriptor_device_cb() {
     }
     if (config_get_protocol() == PROTOCOL_GENERIC) {
         descriptor_device.idVendor = USB_GENERIC_VENDOR;
-        #ifdef DEVICE_IS_ALPAKKA
+        #if defined DEVICE_ALPAKKA
             descriptor_device.idProduct = USB_GENERIC_PRODUCT_ALPAKKA;
+        #elif defined DEVICE_KAPYBARA
+            descriptor_device.idProduct = USB_GENERIC_PRODUCT_KAPYBARA;
         #elif defined DEVICE_DONGLE
             descriptor_device.idProduct = USB_GENERIC_PRODUCT_DONGLE;
         #endif

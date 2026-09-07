@@ -24,6 +24,7 @@ With `apt`, `rpm`, `pacman`, `brew`, or the equivalent package manager of your s
 ## Compilation targets
 - `alpakka_v0`: Alpakka v0.x.x with Raspberry Pico.
 - `alpakka_v1`: Alpakka v1.x.x with Marmota module.
+- `kapybara`: Kapybara with Marmota module.
 - `dongle`: Wireless dongle.
 - `llama`: ESP wireless module flasher (ESP-LLAMA repository).
 

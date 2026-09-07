@@ -35,10 +35,12 @@
 #define STRING_VENDOR "Input Labs"
 
 #define STRING_PRODUCT_ALPAKKA "Alpakka"
+#define STRING_PRODUCT_KAPYBARA "Kapybara"
 #define STRING_PRODUCT_DONGLE "Dongle"
 
 #define STRING_VERSION_ALPAKKA_V0 "v0"
 #define STRING_VERSION_ALPAKKA_V1 "v1"
+#define STRING_VERSION_KAPYBARA_V1 "v1"
 #define STRING_VERSION_DONGLE_V1 "v1"
 
 #define STRING_HID "HID"
@@ -49,6 +51,7 @@
 
 #define USB_WIN_VENDOR  0x0170  // Input Labs.
 #define USB_WIN_PRODUCT_ALPAKKA 0xAA80  // Alpakka (Xinput)
+#define USB_WIN_PRODUCT_KAPYBARA 0xCA80  // Alpakka (Xinput)
 #define USB_WIN_PRODUCT_DONGLE  0xDA80  // Dongle (Xinput)
 
 #define USB_UNIX_VENDOR  0x045E  // 360 controller vendor.
@@ -56,13 +59,16 @@
 
 #define USB_GENERIC_VENDOR  0x0170  // Input Labs.
 #define USB_GENERIC_PRODUCT_ALPAKKA 0xAC80  // Alpakka (HID complilant gamepad)
+#define USB_GENERIC_PRODUCT_KAPYBARA 0xCC80  // Kapybara (HID complilant gamepad)
 #define USB_GENERIC_PRODUCT_DONGLE  0xDC80  // Dongle (HID complilant gamepad)
 
 #define USB_TEST_VENDOR  0x0170  // Input Labs.
 #define USB_TEST_PRODUCT 0xFF00  // Test.
 
-#ifdef DEVICE_IS_ALPAKKA
+#if defined DEVICE_ALPAKKA
     #define WEBUSB_ID  'A', 0, '0', 0, '0', 0, '8', 0, '0', 0
+#elif defined DEVICE_KAPYBARA
+    #define WEBUSB_ID  'C', 0, '0', 0, '0', 0, '8', 0, '0', 0
 #elif defined DEVICE_DONGLE
     #define WEBUSB_ID  'D', 0, '0', 0, '0', 0, '8', 0, '0', 0
 #else

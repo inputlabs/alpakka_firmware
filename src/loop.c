@@ -70,6 +70,8 @@ static void title(char *label) {
         info("Compilation target: Alpakka v0\n");
     #elif defined DEVICE_ALPAKKA_V1
         info("Compilation target: Alpakka v1\n");
+    #elif defined DEVICE_KAPYBARA
+        info("Compilation target: Kapybara\n");
     #elif defined DEVICE_DONGLE
         info("Compilation target: Dongle\n");
     #elif defined DEVICE_LLAMA
@@ -104,7 +106,7 @@ static void set_inactive() {
 }
 
 static void board_led() {
-    #ifdef DEVICE_ALPAKKA_V1
+    #ifdef DEVICE_IS_WIRELESS_CONTROLLER
         static uint8_t i = 0;
         static bool blink = false;
         i++;
@@ -129,7 +131,7 @@ void loop_controller_init() {
     stdio_uart_init();
     stdio_init_all();
     logging_init();
-    title(LABEL_CONTROLLER);
+    title(LABEL_TITLE);
     config_init();
     tusb_init();
     bool usb = usb_wait_for_init(USB_WAIT_FOR_INIT_MS);
@@ -145,7 +147,7 @@ void loop_controller_init() {
     wireless_init();
     set_wired();
     if (!usb) {  // Variable out of the #if block so it is always used.
-        #if defined DEVICE_ALPAKKA_V1
+        #if defined DEVICE_IS_WIRELESS_CONTROLLER
             set_wireless();
         #endif
     }
@@ -157,7 +159,7 @@ void loop_dongle_init() {
     stdio_uart_init();
     stdio_init_all();
     logging_init();
-    title(LABEL_DONGLE);
+    title(LABEL_TITLE);
     config_init();
     tusb_init();
     usb_wait_for_init(-1);  // Negative number = no timeout.
@@ -189,7 +191,7 @@ void loop_controller_task() {
                 #if defined DEVICE_ALPAKKA_V0
                     info("Dormant mode requested by loop task (no usb data)\n");
                     power_dormant();  // In v0, go sleep.
-                #elif defined DEVICE_ALPAKKA_V1
+                #elif defined DEVICE_IS_WIRELESS_CONTROLLER
                     set_wireless();  // In v1, go wireless.
                 #endif
             }
@@ -250,10 +252,9 @@ void loop_run() {
         // Start timer.
         uint32_t start = time_us_32();
         // Task.
-        #if defined DEVICE_ALPAKKA_V0 || defined DEVICE_ALPAKKA_V1
+        #if defined DEVICE_IS_CONTROLLER
             loop_controller_task();
-        #endif
-        #ifdef DEVICE_DONGLE
+        #elif defined DEVICE_DONGLE
             loop_dongle_task();
         #endif
         // Calculate used time.

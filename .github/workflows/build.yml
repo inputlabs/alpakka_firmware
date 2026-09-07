@@ -43,15 +43,15 @@ jobs:
 
           make clean
           DEVICE=alpakka_v0 make
-          mv build/alpakka.uf2 alpakka_pico_${VERSION}.uf2
+          mv build/firmware.uf2 alpakka_pico_${VERSION}.uf2
 
           make clean
           DEVICE=alpakka_v1 make
-          mv build/alpakka.uf2 alpakka_marmota_${VERSION}.uf2
+          mv build/firmware.uf2 alpakka_marmota_${VERSION}.uf2
 
           make clean
           DEVICE=dongle make
-          mv build/alpakka.uf2 dongle_marmota_${VERSION}.uf2
+          mv build/firmware.uf2 dongle_marmota_${VERSION}.uf2
 
           ls -l
           shasum alpakka_pico_${VERSION}.uf2

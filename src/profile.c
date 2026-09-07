@@ -65,7 +65,7 @@ void Profile__report(Profile *self) {
     self->left_thumbstick.report(&self->left_thumbstick);
     #if defined DEVICE_ALPAKKA_V0
         self->dhat.report(&self->dhat);
-    #elif defined DEVICE_ALPAKKA_V1
+    #elif defined DEVICE_HAS_TWO_THUMBSTICKS
         self->right_thumbstick.report(&self->right_thumbstick);
     #endif
     self->gyro.report(&self->gyro);
@@ -257,7 +257,7 @@ void profile_check_home_sleep() {
 void profile_report_active() {
     // If protocol was changed.
     if (profile_protocol_was_changed >= 0 && !home_is_active) {
-        #ifdef DEVICE_ALPAKKA_V1
+        #ifdef DEVICE_IS_WIRELESS_CONTROLLER
             // Notify dongle so it syncs on the same protocol.
             wireless_send_usb_protocol(profile_protocol_was_changed);
             sleep_ms(10);  // Enough time for wireless packet to be sent.
@@ -314,6 +314,13 @@ void profile_set_active(uint8_t index) {
     }
     // Update frontal leds.
     profile_update_leds();
+}
+
+void profile_set_active_increment(int8_t increment) {
+    int8_t index = profile_get_active_index(true) + increment;
+    if (index < 1) index = 1;
+    if (index > 12) index = 12;
+    profile_set_active(index);
 }
 
 Profile* profile_get_active(bool strict) {

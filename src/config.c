@@ -115,7 +115,7 @@ void config_sync() {
         config_write();
     }
     // Sync profiles.
-    #ifdef DEVICE_IS_ALPAKKA
+    #ifdef DEVICE_IS_CONTROLLER
         for(uint8_t i=0; i<NVM_PROFILE_SLOTS; i++) {
             if (!config_profile_cache_synced[i]) {
                 config_profile_write(i);
@@ -339,6 +339,7 @@ void config_tune(bool direction) {
     else if (config_tune_mode == PROC_TUNE_TOUCH_SENS) {
         config_set_touch_sens_preset(constrain(config_cache.sens_touch + value, 0, 4), true);
     }
+    else profile_set_active_increment(direction ? -1 : 1);  // Not ideal this is here.
     config_cache_synced = false;
     config_tune_update_leds();
 }
@@ -637,7 +638,7 @@ void config_init() {
         warn("NVM config not found or incompatible, writing default instead\n");
         config_write_init();
     }
-    #ifdef DEVICE_IS_ALPAKKA
+    #ifdef DEVICE_IS_CONTROLLER
         config_init_profiles_from_nvm();
         config_print();
         config_alert_if_not_calibrated();
