@@ -3,8 +3,6 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 if (EXISTS ./deps/pico-sdk AND EXISTS ./deps/arm-toolchain)
     # If the dependencies are local.
     message("Using local dependencies")

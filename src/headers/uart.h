@@ -17,12 +17,14 @@
 #define AT_BATTERY_LEN 4
 #define AT_USB_PROTOCOL_LEN 1
 #define AT_PAYLOAD_MAX_LEN  (AT_HEADER_LEN + AT_WEBUSB_LEN)
+#define AT_HEARTBEAT_LEN 1
 
 typedef enum _UART_AT {
     AT_HID = 1,  // Keyboard, mouse or gamepad report (also Xinput).
     AT_WEBUSB,  // WebUSB relay.
     AT_BATTERY,  // Battery level.
-    AT_USB_PROTOCOL,  // USB protocol (Windows/Linux/Genetic) automatic dongle sync.
+    AT_HEARTBEAT,
+    AT_USB_PROTOCOL  // USB protocol (Windows/Linux/Genetic) automatic dongle sync.
 } UART_AT;
 
 void uart_listen_serial();

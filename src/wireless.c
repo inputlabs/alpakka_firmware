@@ -19,6 +19,8 @@
 
 static bool uart_data_mode = false;
 
+uint32_t heartbeat_received_time = 0, heartbeat_sent_time = 0;
+
 void wireless_set_uart_data_mode(bool mode) {
     info("RF: data_mode=%i\n", mode);
     uart_data_mode = mode;
@@ -150,10 +152,31 @@ void wireless_uart_commands() {
                 i = 0;
                 command = 0;
             }
+            else if (command==AT_HEARTBEAT && i==AT_HEADER_LEN+AT_HEARTBEAT_LEN) {
+                #ifdef DEVICE_ALPAKKA_V1
+                    heartbeat_received_time = time_us_32();
+                #endif
+                i = 0;
+                command = 0;
+            }
             else if (command==AT_USB_PROTOCOL && i==AT_HEADER_LEN+AT_USB_PROTOCOL_LEN) {
                 config_set_protocol(payload[0]);
             }
         }
+    }
+}
+
+void wireless_dongle_heartbeat_task() {
+    int32_t timestamp = time_us_32();
+    if (timestamp - heartbeat_sent_time > WIRELESS_HEARBEAT_INTERVAL_US) {
+        const uint8_t message[AT_HEADER_LEN + AT_HEARTBEAT_LEN] = {
+            UART_CONTROL_BYTES,
+            AT_HEARTBEAT,
+            1
+        };
+        uart_write_blocking(ESP_UART, message, sizeof(message));
+        heartbeat_sent_time = timestamp;
+        info("Heartbeat sent\n");
     }
 }
 
@@ -164,5 +187,10 @@ void wireless_controller_task() {
 
 void wireless_dongle_task() {
     // led_task();
+    wireless_dongle_heartbeat_task();
     wireless_uart_commands();
+}
+
+bool is_wireless_connected() {
+    return time_us_32() - heartbeat_received_time <= WIRELESS_CONNECT_TIMEOUT_US;
 }

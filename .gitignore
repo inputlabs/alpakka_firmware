@@ -1,7 +1,5 @@
 build/
 deps*/
-.vscode/*
-!.vscode/
-!.vscode/tasks.json
+.vscode
 **/.DS_Store
 src/headers/version.h
