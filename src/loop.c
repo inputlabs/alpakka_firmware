@@ -200,7 +200,12 @@ void loop_controller_task() {
         // Switch to wired if USB is connected (check once per second).
         static uint16_t i = 0;
         i++;
-        if ((!(i % CFG_TICK_FREQUENCY)) && usb_is_connected()) set_wired();
+        if ((!(i % CFG_TICK_FREQUENCY)) && usb_is_connected()) {
+            set_wired();
+        } else if (!is_wireless_connected()) {
+            info("Dormant mode requested by wireless disconnect\n");
+            power_dormant();
+        }
     }
     // Listen to UART commands.
     uart_listen_serial();

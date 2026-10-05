@@ -11,6 +11,8 @@
 #define BATTERY_CAPACITY (BATTERY_MAX - BATTERY_MIN)
 
 #define FAKE_PAIR_TIME_MS 2000
+#define WIRELESS_CONNECT_TIMEOUT_US 5000000 //5 sec
+#define WIRELESS_HEARBEAT_INTERVAL_US 1000000 //1 sec
 
 void wireless_init();
 void wireless_controller_task();
@@ -20,3 +22,5 @@ void wireless_set_uart_data_mode(bool mode);
 void wireless_send_hid(uint8_t report_id, void *packet, uint8_t len);
 void wireless_send_webusb(Ctrl ctrl);
 void wireless_send_usb_protocol(Protocol protocol);
+
+bool is_wireless_connected();
